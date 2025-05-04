@@ -1,5 +1,5 @@
 import unittest
-from Brick import Point, Brick, BrickMap
+from ..Brick import Point, Brick, BrickMap
 
 class TestPoint(unittest.TestCase):
     def test_to_json(self):
