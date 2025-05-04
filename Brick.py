@@ -124,7 +124,7 @@ class BrickMap:
 
 # Create a BrickMap instance and add bricks to it
 if __name__ == "__main__":
-    # Draw the map in ASCII format. Use a simple representation for the bricks
+    # Draw the map in ASCII format. Use a simple representation for the bricks.  Z will always be 0. AI!
     brick_map = BrickMap(5, 5, 1)
     red_brick = Brick("red", 2, 1)
     blue_brick = Brick("blue", 1, 1)
