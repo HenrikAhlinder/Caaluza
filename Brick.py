@@ -89,19 +89,17 @@ class BrickMap:
         if not self._point_in_bounds(x, y, z):
             raise ValueError("Position out of bounds.")
 
-        brick = self.bricks.get(self.map[x][y][z], None)
+        brick = self.map[x][y][z]  # Retrieve the brick at the given position
         if not brick:
             raise ValueError("No brick found at the specified position.")
-        print(brick)
 
         points_to_clear = self.bricks.get(brick, [])
         if not points_to_clear:
             raise ValueError("No occupied positions found for the specified brick.")
 
-        # Clear map
         for point in points_to_clear:
-            self.map[point.x][point.y][point.z] = None
-        del self.bricks[self.map[x][y][z]]
+            self.map[point.x][point.y][point.z] = None  # Clear the space on the map
+        del self.bricks[brick]  # Remove the brick from the dictionary of bricks
         
 
     def _point_in_bounds(self, x, y, z):
