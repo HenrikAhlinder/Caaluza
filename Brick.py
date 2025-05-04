@@ -20,7 +20,23 @@ class Point:
             raise ValueError("Can only add another Point.")
         return Point(self.x + other.x, self.y + other.y, self.z + other.z)
 
-        # Construct points from tuples (must be 3D). Make implicit conversion to Point. AI!
+    @staticmethod
+    def from_tuple(coords):
+        """
+        Construct a Point from a tuple of coordinates.
+
+        Args:
+            coords (tuple): A tuple of three integers representing (x, y, z).
+
+        Returns:
+            Point: A Point object.
+
+        Raises:
+            ValueError: If the tuple is not 3D.
+        """
+        if len(coords) != 3:
+            raise ValueError("Tuple must have exactly 3 elements to construct a Point.")
+        return Point(*coords)
 
 
 
