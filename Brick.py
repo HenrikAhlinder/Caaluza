@@ -10,10 +10,15 @@ class Point:
         y (int): The y-coordinate of the point.
         z (int): The z-coordinate of the point.
     """
-    # Make addition work for points. Always create a new point. AI!
     x: int
     y: int
     z: int
+
+    def __add__(self, other):
+        """Add two points and return a new Point object."""
+        if not isinstance(other, Point):
+            raise ValueError("Can only add another Point.")
+        return Point(self.x + other.x, self.y + other.y, self.z + other.z)
 
 
 @dataclass
