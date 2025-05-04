@@ -20,6 +20,9 @@ class Point:
             raise ValueError("Can only add another Point.")
         return Point(self.x + other.x, self.y + other.y, self.z + other.z)
 
+        # Construct points from tuples (must be 3D). Make implicit conversion to Point. AI!
+
+
 
 @dataclass
 class Brick:
@@ -69,7 +72,7 @@ class BrickMap:
                 # Ensure all positions are empty before adding the brick
             for i in range(brick_width):
                 for j in range(brick_depth):
-                    points_to_occupy.append(Point(Point.x + i, Point.y + j, Point.z))
+                    points_to_occupy.append(Point + (i, j, Point.z))
         else:
             raise ValueError("Position out of bounds.")
 
