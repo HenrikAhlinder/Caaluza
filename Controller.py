@@ -4,9 +4,26 @@ app = Flask(__name__)
 
 from Brick import Brick, BrickMap, Point
 
-# In-memory store for created maps
-# Change maps_store to a persistent store on file. Automatically load the maps on startup and save them on shutdown. AI!
-maps_store = {}
+import atexit
+import json
+import os
+
+# File to persist maps
+PERSIST_FILE = "maps_store.json"
+
+# Persistent store for created maps
+if os.path.exists(PERSIST_FILE):
+    with open(PERSIST_FILE, "r") as f:
+        maps_store = json.load(f)
+else:
+    maps_store = {}
+
+# Save maps to file on shutdown
+def save_maps():
+    with open(PERSIST_FILE, "w") as f:
+        json.dump(maps_store, f)
+
+atexit.register(save_maps)
 
 @app.route('/create-map', methods=['POST'])
 def create_map():
