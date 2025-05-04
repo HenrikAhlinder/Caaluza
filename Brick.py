@@ -32,10 +32,13 @@ class Brick:
         color (str): The color of the brick.
         size (int): The size of the brick in standard LEGO units.
     """
-    # Make this hashable AI!
     color: str
     width: int
     depth: int
+
+    def __hash__(self):
+        """Make the Brick class hashable."""
+        return hash((self.color, self.width, self.depth))
 
     def describe(self):
         """Return a string describing the brick."""
