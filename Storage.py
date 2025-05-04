@@ -1,28 +1,48 @@
-import os
-import json
+import sqlite3
 from Brick import BrickMap
 
-PERSIST_FILE = "maps_store.json"
+DB_FILE = "maps_store.sqlite"
 
 class MapStorage:
-    # Use SQLLite for persistent storage instead AI!
-    """Class to manage the storage of maps."""
-    # File to persist maps
-    maps_store = {}
+    """Class to manage the storage of maps using SQLite."""
 
     def __init__(self):
-        # Persistent store for created maps
-        if os.path.exists(PERSIST_FILE):
-            with open(PERSIST_FILE, "r") as f:
-                serialized_maps = json.load(f)
-                # Deserialize BrickMap objects
-                self.maps_store = {map_id: BrickMap.from_json(data) for map_id, data in serialized_maps.items()}
-        else:
-            self.maps_store = {}
+        """Initialize the SQLite database."""
+        self.conn = sqlite3.connect(DB_FILE)
+        self._create_table()
 
-    # Save maps to file on shutdown
-    def save_maps(self):
-        with open(PERSIST_FILE, "w") as f:
-            # Serialize BrickMap objects to JSON-compatible dictionaries
-            serialized_maps = {map_id: brick_map.to_json() for map_id, brick_map in self.maps_store.items()}
-            json.dump(serialized_maps, f)
+    def _create_table(self):
+        """Create the maps table if it doesn't already exist."""
+        with self.conn:
+            self.conn.execute("""
+                CREATE TABLE IF NOT EXISTS maps (
+                    id TEXT PRIMARY KEY,
+                    data TEXT NOT NULL
+                )
+            """)
+
+    def save_map(self, map_id, brick_map):
+        """Save or update a map in the database."""
+        with self.conn:
+            self.conn.execute("""
+                INSERT INTO maps (id, data) VALUES (?, ?)
+                ON CONFLICT(id) DO UPDATE SET data=excluded.data
+            """, (map_id, brick_map.to_json()))
+
+    def load_map(self, map_id):
+        """Load a map from the database by its ID."""
+        cursor = self.conn.execute("SELECT data FROM maps WHERE id = ?", (map_id,))
+        row = cursor.fetchone()
+        if row:
+            return BrickMap.from_json(row[0])
+        return None
+
+    def delete_map(self, map_id):
+        """Delete a map from the database."""
+        with self.conn:
+            self.conn.execute("DELETE FROM maps WHERE id = ?", (map_id,))
+
+    def list_maps(self):
+        """List all map IDs in the database."""
+        cursor = self.conn.execute("SELECT id FROM maps")
+        return [row[0] for row in cursor.fetchall()]
