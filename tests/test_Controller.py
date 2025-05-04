@@ -29,7 +29,7 @@ class TestController(unittest.TestCase):
         self.assertEqual(data['message'], 'Map created successfully')
 
         stored_map = storage.load_map(data['map_id'])
-        self.assertEqual(stored_map, brick_map)
+        self.assertEqual(stored_map.to_json(), brick_map.to_json())
 
     def test_read_map(self):
         # First, create a map
@@ -58,7 +58,7 @@ class TestController(unittest.TestCase):
         data = response.get_json()
         self.assertEqual(response.status_code, 200)
         self.assertEqual(data['message'], f'Map with id {map_id} updated successfully')
-        self.assertEqual(stored_map, brick_map)
+        self.assertEqual(stored_map.to_json(), brick_map.to_json())
         self.assertEqual(stored_map.width, 6)
         self.assertEqual(stored_map.height, 6)
 
