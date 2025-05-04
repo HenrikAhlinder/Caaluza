@@ -37,10 +37,13 @@ class BrickMap:
         """Add a brick to the map at the specified position (x, y, z)."""
         if (self._point_in_bounds(x, y, z) and self._brick_in_bounds(x, y, brick_width, brick_depth)):
             for i in range(brick_width):  # Reserve horizontal block space
-                if self.map[x + i][y][z] is not None:
-                    raise ValueError("Space is already occupied.")
-                # The brick should only be added if all positions are empty. AI!
-                self.map[x + i][y][z] = brick
+                for j in range(brick_depth):  # Reserve depth-wise space as well
+                    if self.map[x + i][y + j][z] is not None:
+                        raise ValueError("Space is already occupied.")
+                # Ensure all positions are empty before adding the brick
+            for i in range(brick_width):
+                for j in range(brick_depth):
+                    self.map[x + i][y + j][z] = brick
         else:
             raise ValueError("Position out of bounds.")
         self.bricks.append(brick)  # Keep track of the added brick
