@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import json
 
 @dataclass
 class Point:
@@ -16,15 +17,16 @@ class Point:
 
     def to_json(self):
         """Convert Point to a JSON-serializable dictionary."""
-        return {
+        return json.dumps({
             'x': self.x,
             'y': self.y,
             'z': self.z
-        }
+        })
 
     @classmethod
     def from_json(cls, data):
         """Create a Point instance from a JSON dictionary."""
+        data = json.loads(data)
         return cls(x=data['x'], y=data['y'], z=data['z'])
 
     def __add__(self, other):
@@ -51,15 +53,16 @@ class Brick:
 
     def to_json(self):
         """Convert Brick to a JSON-serializable dictionary."""
-        return {
+        return json.dumps({
             'color': self.color,
             'width': self.width,
             'depth': self.depth
-        }
+        })
 
     @classmethod
     def from_json(cls, data):
         """Create a Brick instance from a JSON dictionary."""
+        data = json.loads(data)
         return cls(color=data['color'], width=data['width'], depth=data['depth'])
 
     def __hash__(self):
@@ -83,17 +86,18 @@ class BrickMap:
     
     def to_json(self):
         """Convert the BrickMap to a JSON serializable dictionary."""
-        return {
+        return json.dumps({
             'width': self.width,
             'height': self.height,
             'depth': self.depth,
             'map': [[[brick.to_json() if brick else None for brick in layer]
                      for layer in row] for row in self.map]
-        }
+        })
 
     @classmethod
     def from_json(cls, data):
         """Create a BrickMap instance from a JSON dictionary."""
+        data = json.loads(data)
         brick_map = cls(data['width'], data['height'], data['depth'])
         brick_map.map = [[[Brick.from_json(brick) if brick else None for brick in layer]
                           for layer in row] for row in data['map']]
