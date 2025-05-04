@@ -83,6 +83,7 @@ class BrickMap:
     
     def to_json(self):
         """Convert the BrickMap to a JSON serializable dictionary."""
+        # Use json-seiralzie to convert bricks instead of describe(). Also ford deserialize. AI!
         return {
             'width': self.width,
             'height': self.height,
