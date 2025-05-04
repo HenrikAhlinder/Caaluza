@@ -124,20 +124,31 @@ class BrickMap:
 
 # Create a BrickMap instance and add bricks to it
 if __name__ == "__main__":
-    # Draw the map in ASCII format. Use a simple representation for the bricks.  Z will always be 0. AI!
     brick_map = BrickMap(5, 5, 1)
     red_brick = Brick("red", 2, 1)
     blue_brick = Brick("blue", 1, 1)
-
+    
     # Add bricks to the map
     brick_map.add_brick(Point(0, 0, 0), red_brick)
     brick_map.add_brick(Point(2, 2, 0), blue_brick)
 
-    # Describe the map
-    print(brick_map.describe_map())
+    # Draw the map in ASCII format
+    width, height = brick_map.width, brick_map.height
+    for y in range(height):
+        row = ""
+        for x in range(width):
+            brick = brick_map.map[x][y][0]
+            row += brick.color[0].upper() if brick else "."
+        print(row)
 
     # Remove a brick from the map
     brick_map.remove_brick(0, 0, 0)
+    print("\nAfter removing a brick:\n")
 
-    # Describe the map again
-    print(brick_map.describe_map())
+    # Draw the map in ASCII format again
+    for y in range(height):
+        row = ""
+        for x in range(width):
+            brick = brick_map.map[x][y][0]
+            row += brick.color[0].upper() if brick else "."
+        print(row)
