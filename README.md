@@ -6,6 +6,7 @@ Companion app for Caluuza
 - [ ] Add a description of the app
 
 ## Endpoints
+# AI: Endpoints
 - [ ] Create map (Anyone)
 - [ ] Read map (Anyone)
 - [ ] Update map (creator)
