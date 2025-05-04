@@ -14,6 +14,19 @@ class Point:
     y: int
     z: int
 
+    def to_json(self):
+        """Convert Point to a JSON-serializable dictionary."""
+        return {
+            'x': self.x,
+            'y': self.y,
+            'z': self.z
+        }
+
+    @classmethod
+    def from_json(cls, data):
+        """Create a Point instance from a JSON dictionary."""
+        return cls(x=data['x'], y=data['y'], z=data['z'])
+
     def __add__(self, other):
         """Add two points and return a new Point object."""
         if isinstance(other, Point):
@@ -25,7 +38,6 @@ class Point:
 
 @dataclass
 class Brick:
-    # AI! Make brick (and point) JSON-serializable. Use this to rehydrate bricks from JSON.
     """
     A class to represent a LEGO-like brick.
     
@@ -36,6 +48,19 @@ class Brick:
     color: str
     width: int
     depth: int
+
+    def to_json(self):
+        """Convert Brick to a JSON-serializable dictionary."""
+        return {
+            'color': self.color,
+            'width': self.width,
+            'depth': self.depth
+        }
+
+    @classmethod
+    def from_json(cls, data):
+        """Create a Brick instance from a JSON dictionary."""
+        return cls(color=data['color'], width=data['width'], depth=data['depth'])
 
     def __hash__(self):
         """Make the Brick class hashable."""
