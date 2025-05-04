@@ -34,6 +34,9 @@ class BrickMap:
 
     def add_brick(self, x, y, z, brick):
         """Add a brick to the map at the specified position (x, y, z)."""
+        # Each brick is two-dimensional, and not on a single spot. We need to reservce space for the entire brick.
+        # This means that if the brick is 2x2, we need to reserve 4 spots in the map.
+        # AI!
         if 0 <= x < self.width and 0 <= y < self.height and 0 <= z < self.depth:
             self.map[x][y][z] = brick
         else:
