@@ -1,3 +1,22 @@
+from dataclasses import dataclass
+
+@dataclass
+class Point:
+    """
+    A class to represent a point in 3D space.
+    
+    Attributes:
+        x (int): The x-coordinate of the point.
+        y (int): The y-coordinate of the point.
+        z (int): The z-coordinate of the point.
+    """
+    # Make addition work for points. Always create a new point. AI!
+    x: int
+    y: int
+    z: int
+
+
+@dataclass
 class Brick:
     """
     A class to represent a LEGO-like brick.
@@ -6,9 +25,9 @@ class Brick:
         color (str): The color of the brick.
         size (int): The size of the brick in standard LEGO units.
     """
-    def __init__(self, color, size):
-        self.color = color
-        self.width, self.height = size
+    color: str
+    width: int
+    height: int
 
     def describe(self):
         """Return a string describing the brick."""
@@ -31,23 +50,27 @@ class BrickMap:
         self.depth = depth
         # Initialize a 3D array filled with `None` to represent an empty map
         self.map = [[[None for _ in range(depth)] for _ in range(height)] for _ in range(width)]
-        self.bricks = []  # List to keep track of added bricks
+        self.bricks = {}
 
-    def add_brick(self, x, y, z, brick, brick_width, brick_depth):
+    def add_brick(self, Point, brick, brick_width, brick_depth):
         """Add a brick to the map at the specified position (x, y, z)."""
-        if (self._point_in_bounds(x, y, z) and self._brick_in_bounds(x, y, brick_width, brick_depth)):
+        points_to_occupy = []
+
+        if (self._point_in_bounds(Point.x, Point.y, Point.z) and self._brick_in_bounds(Point.x, Point.y, brick_width, brick_depth)):
             for i in range(brick_width):  # Reserve horizontal block space
                 for j in range(brick_depth):  # Reserve depth-wise space as well
-                    if self.map[x + i][y + j][z] is not None:
+                    if self.map[Point.x + i][Point.y + j][Point.z] is not None:
                         raise ValueError("Space is already occupied.")
                 # Ensure all positions are empty before adding the brick
             for i in range(brick_width):
                 for j in range(brick_depth):
-                    self.map[x + i][y + j][z] = brick
+                    points_to_occupy.append(Point(Point.x + i, Point.y + j, Point.z))
         else:
             raise ValueError("Position out of bounds.")
 
-        self.bricks.append(brick)  # Keep track of the added brick
+        self.bricks[brick] = points_to_occupy  # Store the brick and its occupied positions
+        for point in points_to_occupy:
+            self.map[point.X][point.Y][point.Z] = brick  # Place the brick in the map
 
     def remove_brick(self, x, y, z):
         """Remove a brick from the map at the specified position (x, y, z)."""
