@@ -11,14 +11,15 @@ def create_map():
     """Create a new map."""
     # Parse request JSON
     data = request.get_json()
-    map_id = request.args.get('map_id', None)
+    map_id = data.get("map_id", None)
     brick_map = data.get('map', None)
+    if not map_id:
+        return jsonify({'error': 'Map ID is required'}), 400
+
     try:
         new_map = BrickMap.from_json(brick_map)  # Validate the data structure
-    except:
-        return jsonify({'error': 'Invalid map data'}), 400
-
-    # Generate unique map ID and store map
+    except Exception as e:
+        return jsonify({'error': f'Invalid map data: {str(e)}'}), 400
     storage.save_map(map_id, new_map)  # Save the map in storage
     return jsonify({'message': 'Map created successfully', 'map_id': map_id}), 201
 

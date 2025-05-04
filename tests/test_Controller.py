@@ -14,7 +14,7 @@ class TestController(unittest.TestCase):
         storage.conn.commit()
 
     def test_create_map(self):
-        brick_map = BrickMap(5, 5, 1)
+        brick_map = BrickMap(6, 6, 1)
         brick_map.add_brick(Point(0, 0, 0), Brick("red", 2, 1))
         brick_map.add_brick(Point(2, 2, 0), Brick("blue", 1, 1))
 
