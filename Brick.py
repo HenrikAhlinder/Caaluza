@@ -83,12 +83,11 @@ class BrickMap:
     
     def to_json(self):
         """Convert the BrickMap to a JSON serializable dictionary."""
-        # Use json-seiralzie to convert bricks instead of describe(). Also ford deserialize. AI!
         return {
             'width': self.width,
             'height': self.height,
             'depth': self.depth,
-            'map': [[[brick.describe() if brick else None for brick in layer]
+            'map': [[[brick.to_json() if brick else None for brick in layer]
                      for layer in row] for row in self.map]
         }
 
@@ -96,8 +95,7 @@ class BrickMap:
     def from_json(cls, data):
         """Create a BrickMap instance from a JSON dictionary."""
         brick_map = cls(data['width'], data['height'], data['depth'])
-        # Rehydrate Bricks if needed; for simplicity, this example assumes basic description strings
-        brick_map.map = [[[Brick(color="reconstructed", width=1, depth=1) if brick else None for brick in layer]
+        brick_map.map = [[[Brick.from_json(brick) if brick else None for brick in layer]
                           for layer in row] for row in data['map']]
         return brick_map
 
