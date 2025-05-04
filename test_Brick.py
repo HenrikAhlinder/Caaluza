@@ -38,7 +38,11 @@ class TestBrick(unittest.TestCase):
     def test_hash(self):
         brick1 = Brick("red", 2, 1)
         brick2 = Brick("red", 2, 1)
+        brick3 = Brick("red", 2, 2)
+        brick4 = Brick("blue", 2, 1)
         self.assertEqual(hash(brick1), hash(brick2))
+        self.assertNotEqual(hash(brick1), hash(brick3))
+        self.assertNotEqual(hash(brick1), hash(brick4))
 
 
 class TestBrickMap(unittest.TestCase):
