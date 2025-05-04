@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request
 
 app = Flask(__name__)
 
+# Use proper docstrings AI!
 @app.route('/create_map', methods=['POST'])
 def create_map():
     # Handle map creation
