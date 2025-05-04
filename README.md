@@ -1,8 +1,6 @@
 # Caaluza
 Companion app for Caluuza
 
-
-// Fix the markdown formatting to make checkboxes AI!
 # TO DO
 ## Generic
 - [ ] Add a description of the app
