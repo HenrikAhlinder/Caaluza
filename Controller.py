@@ -47,6 +47,7 @@ def read_map(map_id):
     Returns:
         JSON response with the retrieved map details.
     """
+    # Retrieve map from store AI!
     return jsonify({'message': f'Retrieved map with id {map_id}'})
 
 @app.route('/update-map/<map_id>', methods=['PUT'])
