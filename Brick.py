@@ -34,11 +34,20 @@ class BrickMap:
 
     def add_brick(self, x, y, z, brick):
         """Add a brick to the map at the specified position (x, y, z)."""
-        # Each brick is two-dimensional, and not on a single spot. We need to reservce space for the entire brick.
+        # Each brick is two-dimensional, and not on a single spot. We need to reserve space for the entire brick.
         # This means that if the brick is 2x2, we need to reserve 4 spots in the map.
-        # AI!
-        if 0 <= x < self.width and 0 <= y < self.height and 0 <= z < self.depth:
-            self.map[x][y][z] = brick
+        brick_width = brick.size  # Assuming the brick's size represents its width (e.g., 2 for 2x2)
+        brick_height = 1  # LEGO bricks are typically a single layer tall.
+
+        if (
+            0 <= x < self.width and 0 <= y < self.height and 0 <= z < self.depth and
+            x + brick_width - 1 < self.width and y + brick_height - 1 < self.height
+        ):
+            for i in range(brick_width):  # Reserve horizontal block space
+                for j in range(brick_height):  # Reserve vertical block space
+                    if self.map[x + i][y + j][z] is not None:
+                        raise ValueError("Space is already occupied.")
+                    self.map[x + i][y + j][z] = brick
         else:
             raise ValueError("Position out of bounds.")
 
