@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+# Write unit tests for the BrickMap class and its methods. AI!
 
 @dataclass
 class Point:
@@ -42,7 +43,7 @@ class Brick:
 
     def describe(self):
         """Return a string describing the brick."""
-        return f"A {self.color} brick of size {self.size}."
+        return f"A {self.color} brick of size {self.width}x{self.depth}."
 
 class BrickMap:
     """
@@ -81,18 +82,23 @@ class BrickMap:
         # All empty. Store the brick in the map
         self.bricks[brick] = points_to_occupy  # Store the brick and its occupied positions
         for point in points_to_occupy:
-            self.map[point.X][point.Y][point.Z] = brick  # Place the brick in the map
+            self.map[point.x][point.y][point.z] = brick  # Place the brick in the map
 
     def remove_brick(self, x, y, z):
         """Remove a brick from the map at the specified position (x, y, z)."""
         if not self._point_in_bounds(x, y, z):
             raise ValueError("Position out of bounds.")
 
-        # Clear map
-        brick = self.bricks.get(self.map[x][y][z], [])
+        brick = self.bricks.get(self.map[x][y][z], None)
+        if not brick:
+            raise ValueError("No brick found at the specified position.")
+        print(brick)
+
         points_to_clear = self.bricks.get(brick, [])
         if not points_to_clear:
-            return
+            raise ValueError("No occupied positions found for the specified brick.")
+
+        # Clear map
         for point in points_to_clear:
             self.map[point.x][point.y][point.z] = None
         del self.bricks[self.map[x][y][z]]
