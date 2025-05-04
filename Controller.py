@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request
 
 app = Flask(__name__)
 
-@app.route('/create_map', methods=['POST'])
+@app.route('/create-map', methods=['POST'])
 def create_map():
     """
     Create a new map.
@@ -10,9 +10,10 @@ def create_map():
     Returns:
         JSON response confirming map creation.
     """
+    # Use the brick model in Brick.py to create a new map. Store the map in a persistent store. AI!
     return jsonify({'message': 'Map created successfully'}), 201
 
-@app.route('/read_map/<map_id>', methods=['GET'])
+@app.route('/read-map/<map_id>', methods=['GET'])
 def read_map(map_id):
     """
     Retrieve a map by its ID.
@@ -25,7 +26,7 @@ def read_map(map_id):
     """
     return jsonify({'message': f'Retrieved map with id {map_id}'})
 
-@app.route('/update_map/<map_id>', methods=['PUT'])
+@app.route('/update-map/<map_id>', methods=['PUT'])
 def update_map(map_id):
     """
     Update a map by its ID.
@@ -36,10 +37,9 @@ def update_map(map_id):
     Returns:
         JSON response confirming map update.
     """
-    """
     return jsonify({'message': f'Map with id {map_id} updated successfully'})
 
-@app.route('/delete_map/<map_id>', methods=['DELETE'])
+@app.route('/delete-map/<map_id>', methods=['DELETE'])
 def delete_map(map_id):
     """
     Delete a map by its ID.
