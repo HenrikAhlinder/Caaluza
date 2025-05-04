@@ -47,8 +47,14 @@ def read_map(map_id):
     Returns:
         JSON response with the retrieved map details.
     """
-    # Retrieve map from store AI!
-    return jsonify({'message': f'Retrieved map with id {map_id}'})
+    # Retrieve map from store
+    if map_id not in maps_store:
+        return jsonify({'error': f'Map with id {map_id} not found'}), 404
+
+    brick_map = maps_store[map_id]
+    map_description = brick_map.describe_map()
+
+    return jsonify({'map_id': map_id, 'description': map_description}), 200
 
 @app.route('/update-map/<map_id>', methods=['PUT'])
 def update_map(map_id):
