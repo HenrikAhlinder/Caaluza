@@ -59,8 +59,8 @@ class TestController(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(data['message'], f'Map with id {map_id} updated successfully')
         self.assertEqual(stored_map.to_json(), brick_map.to_json())
-        self.assertEqual(stored_map.width, 6)
-        self.assertEqual(stored_map.height, 6)
+        self.assertEqual(stored_map.width, 5)
+        self.assertEqual(stored_map.height, 5)
 
     def test_delete_map(self):
         # First, create a map
