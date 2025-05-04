@@ -5,6 +5,7 @@ from Brick import BrickMap
 PERSIST_FILE = "maps_store.json"
 
 class MapStorage:
+    # Use SQLLite for persistent storage instead AI!
     """Class to manage the storage of maps."""
     # File to persist maps
     maps_store = {}
