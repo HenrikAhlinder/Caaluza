@@ -2,6 +2,11 @@ from flask import Flask, jsonify, request
 
 app = Flask(__name__)
 
+from Brick import Brick, BrickMap, Point
+
+# In-memory store for created maps
+maps_store = {}
+
 @app.route('/create-map', methods=['POST'])
 def create_map():
     """
@@ -10,8 +15,26 @@ def create_map():
     Returns:
         JSON response confirming map creation.
     """
-    # Use the brick model in Brick.py to create a new map. Store the map in a persistent store. AI!
-    return jsonify({'message': 'Map created successfully'}), 201
+    # Parse request JSON
+    data = request.get_json()
+    width = data.get("width", 5)
+    height = data.get("height", 5)
+    depth = data.get("depth", 1)
+    
+    # Create a new BrickMap instance
+    new_map = BrickMap(width, height, depth)
+
+    # Add a couple of bricks to demonstrate functionality
+    red_brick = Brick("red", 2, 1)
+    blue_brick = Brick("blue", 1, 1)
+    new_map.add_brick(Point(0, 0, 0), red_brick)
+    new_map.add_brick(Point(2, 2, 0), blue_brick)
+    
+    # Generate unique map ID and store map
+    map_id = f"map_{len(maps_store) + 1}"
+    maps_store[map_id] = new_map
+
+    return jsonify({'message': 'Map created successfully', 'map_id': map_id}), 201
 
 @app.route('/read-map/<map_id>', methods=['GET'])
 def read_map(map_id):
