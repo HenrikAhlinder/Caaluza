@@ -8,7 +8,7 @@ class Brick:
     """
     def __init__(self, color, size):
         self.color = color
-        self.size = size
+        self.width, self.height = size
 
     def describe(self):
         """Return a string describing the brick."""
@@ -31,25 +31,27 @@ class BrickMap:
         self.depth = depth
         # Initialize a 3D array filled with `None` to represent an empty map
         self.map = [[[None for _ in range(depth)] for _ in range(height)] for _ in range(width)]
+        self.bricks = []  # List to keep track of added bricks
 
-    def add_brick(self, x, y, z, brick):
+    def add_brick(self, x, y, z, brick, brick_width, brick_depth):
         """Add a brick to the map at the specified position (x, y, z)."""
-        # Each brick is two-dimensional, and not on a single spot. We need to reserve space for the entire brick.
-        # This means that if the brick is 2x2, we need to reserve 4 spots in the map.
-        brick_width = brick.size  # Assuming the brick's size represents its width (e.g., 2 for 2x2)
-        brick_height = 1  # LEGO bricks are typically a single layer tall.
-
-        if (
-            0 <= x < self.width and 0 <= y < self.height and 0 <= z < self.depth and
-            x + brick_width - 1 < self.width and y + brick_height - 1 < self.height
-        ):
+        if (self._point_in_bounds(x, y, z) and self._brick_in_bounds(x, y, brick_width, brick_depth)):
             for i in range(brick_width):  # Reserve horizontal block space
-                for j in range(brick_height):  # Reserve vertical block space
-                    if self.map[x + i][y + j][z] is not None:
-                        raise ValueError("Space is already occupied.")
-                    self.map[x + i][y + j][z] = brick
+                if self.map[x + i][y][z] is not None:
+                    raise ValueError("Space is already occupied.")
+                # The brick should only be added if all positions are empty. AI!
+                self.map[x + i][y][z] = brick
         else:
             raise ValueError("Position out of bounds.")
+        self.bricks.append(brick)  # Keep track of the added brick
+
+    def _point_in_bounds(self, x, y, z):
+        """Check if the given coordinates are within the map bounds."""
+        return 0 <= x < self.width and 0 <= y < self.height and 0 <= z < self.depth
+
+    def _brick_in_bounds(self, x, y, brick_width, brick_depth):
+        """Check if the brick can fit in the map at the specified position."""
+        return (x + brick_width - 1 < self.width and y - brick_depth < self.height)
 
     def remove_brick(self, x, y, z):
         """Remove a brick from the map at the specified position (x, y, z)."""
