@@ -25,6 +25,7 @@ class Point:
 
 @dataclass
 class Brick:
+    # AI! Make brick (and point) JSON-serializable. Use this to rehydrate bricks from JSON.
     """
     A class to represent a LEGO-like brick.
     
@@ -43,8 +44,6 @@ class Brick:
     def describe(self):
         """Return a string describing the brick."""
         return f"A {self.color} brick of size {self.width}x{self.depth}."
-
-import json
 
 class BrickMap:
     """
