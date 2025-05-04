@@ -46,7 +46,17 @@ class BrickMap:
                     self.map[x + i][y + j][z] = brick
         else:
             raise ValueError("Position out of bounds.")
+
         self.bricks.append(brick)  # Keep track of the added brick
+
+    def remove_brick(self, x, y, z):
+        """Remove a brick from the map at the specified position (x, y, z)."""
+        if 0 <= x < self.width and 0 <= y < self.height and 0 <= z < self.depth:
+            # Remove the entire brick from the map AI!
+            self.map[x][y][z] = None
+            self.bricks.remove(self.map[x][y][z])  # Remove from the list of bricks
+        else:
+            raise ValueError("Position out of bounds.")
 
     def _point_in_bounds(self, x, y, z):
         """Check if the given coordinates are within the map bounds."""
@@ -56,12 +66,6 @@ class BrickMap:
         """Check if the brick can fit in the map at the specified position."""
         return (x + brick_width - 1 < self.width and y - brick_depth < self.height)
 
-    def remove_brick(self, x, y, z):
-        """Remove a brick from the map at the specified position (x, y, z)."""
-        if 0 <= x < self.width and 0 <= y < self.height and 0 <= z < self.depth:
-            self.map[x][y][z] = None
-        else:
-            raise ValueError("Position out of bounds.")
 
     def describe_map(self):
         """Describe the map as a string showing non-empty positions."""
