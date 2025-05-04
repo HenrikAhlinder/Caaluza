@@ -8,7 +8,6 @@ class MapStorage:
 
     def __init__(self):
         """Initialize the SQLite database."""
-        # The storage was cahnged to use SQLite for persistent storage AI
         self.conn = sqlite3.connect(DB_FILE)
         self._create_table()
 

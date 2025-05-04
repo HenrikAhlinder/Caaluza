@@ -6,9 +6,12 @@ from Brick import Brick, BrickMap, Point
 
 class TestController(unittest.TestCase):
     def setUp(self):
-        # Make these unit tests work with sQLLITE3 storage. AI!
         self.client: FlaskClient = app.test_client()  # Create a test client
         self.client.testing = True
+
+        # Clear and reinitialize SQLite storage before each test
+        storage.conn.execute("DELETE FROM maps")  # Clear the SQLite table
+        storage.conn.commit()
 
     def test_create_map(self):
         brick_map = BrickMap(5, 5, 1)
