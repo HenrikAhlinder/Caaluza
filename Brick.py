@@ -45,6 +45,7 @@ class Brick:
         return f"A {self.color} brick of size {self.width}x{self.depth}."
 
 class BrickMap:
+    # Make BrickMap serializable to json, either by using a new class or modifyingthe existing one AI!
     """
     A class to control a map of LEGO-like bricks.
 
