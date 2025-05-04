@@ -52,9 +52,17 @@ class BrickMap:
     def remove_brick(self, x, y, z):
         """Remove a brick from the map at the specified position (x, y, z)."""
         if 0 <= x < self.width and 0 <= y < self.height and 0 <= z < self.depth:
-            # Remove the entire brick from the map AI!
-            self.map[x][y][z] = None
-            self.bricks.remove(self.map[x][y][z])  # Remove from the list of bricks
+            # Remove the entire brick from the map
+            brick = self.map[x][y][z]
+            if brick is None:
+                raise ValueError("No brick found at the specified position.")
+            
+            # Identify the brick dimensions and clear all its occupied spaces
+            for i in range(brick.width):
+                for j in range(brick.height):
+                    self.map[x + i][y + j][z] = None
+            
+            self.bricks.remove(brick)  # Remove from the list of bricks
         else:
             raise ValueError("Position out of bounds.")
 
