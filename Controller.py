@@ -22,6 +22,7 @@ def read_map(map_id):
 
     Returns:
         JSON response with the retrieved map details.
+    """
     return jsonify({'message': f'Retrieved map with id {map_id}'})
 
 @app.route('/update_map/<map_id>', methods=['PUT'])
@@ -35,6 +36,7 @@ def update_map(map_id):
     Returns:
         JSON response confirming map update.
     """
+    """
     return jsonify({'message': f'Map with id {map_id} updated successfully'})
 
 @app.route('/delete_map/<map_id>', methods=['DELETE'])
@@ -47,6 +49,7 @@ def delete_map(map_id):
 
     Returns:
         JSON response confirming map deletion.
+    """
     return jsonify({'message': f'Map with id {map_id} deleted successfully'})
 
 if __name__ == '__main__':
