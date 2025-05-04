@@ -16,28 +16,11 @@ class Point:
 
     def __add__(self, other):
         """Add two points and return a new Point object."""
-        if not isinstance(other, Point):
-            raise ValueError("Can only add another Point.")
-        return Point(self.x + other.x, self.y + other.y, self.z + other.z)
-
-    @staticmethod
-    def from_tuple(coords):
-        """
-        Construct a Point from a tuple of coordinates.
-
-        Args:
-            coords (tuple): A tuple of three integers representing (x, y, z).
-
-        Returns:
-            Point: A Point object.
-
-        Raises:
-            ValueError: If the tuple is not 3D.
-        """
-        if len(coords) != 3:
-            raise ValueError("Tuple must have exactly 3 elements to construct a Point.")
-        return Point(*coords)
-
+        if isinstance(other, Point):
+            return Point(self.x + other.x, self.y + other.y, self.z + other.z)
+        if isinstance(other, tuple) and len(other) == 3:
+            return Point(self.x + other[0], self.y + other[1], self.z + other[2])
+        raise ValueError("Can only add another Point.")
 
 
 @dataclass
@@ -49,9 +32,10 @@ class Brick:
         color (str): The color of the brick.
         size (int): The size of the brick in standard LEGO units.
     """
+    # Make this hashable AI!
     color: str
     width: int
-    height: int
+    depth: int
 
     def describe(self):
         """Return a string describing the brick."""
@@ -76,42 +60,40 @@ class BrickMap:
         self.map = [[[None for _ in range(depth)] for _ in range(height)] for _ in range(width)]
         self.bricks = {}
 
-    def add_brick(self, Point, brick, brick_width, brick_depth):
+    def add_brick(self, Point, brick):
         """Add a brick to the map at the specified position (x, y, z)."""
         points_to_occupy = []
 
-        if (self._point_in_bounds(Point.x, Point.y, Point.z) and self._brick_in_bounds(Point.x, Point.y, brick_width, brick_depth)):
-            for i in range(brick_width):  # Reserve horizontal block space
-                for j in range(brick_depth):  # Reserve depth-wise space as well
+        if (self._point_in_bounds(Point.x, Point.y, Point.z) and self._brick_in_bounds(Point.x, Point.y, brick.width, brick.depth)):
+            # Ensure all positions are empty before adding the brick
+            for i in range(brick.width):  # Reserve horizontal block space
+                for j in range(brick.depth):  # Reserve depth-wise space as well
                     if self.map[Point.x + i][Point.y + j][Point.z] is not None:
                         raise ValueError("Space is already occupied.")
-                # Ensure all positions are empty before adding the brick
-            for i in range(brick_width):
-                for j in range(brick_depth):
-                    points_to_occupy.append(Point + (i, j, Point.z))
+                    else:
+                        points_to_occupy.append(Point + (i, j, Point.z))
         else:
             raise ValueError("Position out of bounds.")
 
+        # All empty. Store the brick in the map
         self.bricks[brick] = points_to_occupy  # Store the brick and its occupied positions
         for point in points_to_occupy:
             self.map[point.X][point.Y][point.Z] = brick  # Place the brick in the map
 
     def remove_brick(self, x, y, z):
         """Remove a brick from the map at the specified position (x, y, z)."""
-        if 0 <= x < self.width and 0 <= y < self.height and 0 <= z < self.depth:
-            # Remove the entire brick from the map
-            brick = self.map[x][y][z]
-            if brick is None:
-                raise ValueError("No brick found at the specified position.")
-            
-            # Identify the brick dimensions and clear all its occupied spaces
-            for i in range(brick.width):
-                for j in range(brick.height):
-                    self.map[x + i][y + j][z] = None
-            
-            self.bricks.remove(brick)  # Remove from the list of bricks
-        else:
+        if not self._point_in_bounds(x, y, z):
             raise ValueError("Position out of bounds.")
+
+        # Clear map
+        brick = self.bricks.get(self.map[x][y][z], [])
+        points_to_clear = self.bricks.get(brick, [])
+        if not points_to_clear:
+            return
+        for point in points_to_clear:
+            self.map[point.x][point.y][point.z] = None
+        del self.bricks[self.map[x][y][z]]
+        
 
     def _point_in_bounds(self, x, y, z):
         """Check if the given coordinates are within the map bounds."""
@@ -133,3 +115,22 @@ class BrickMap:
                     if brick:
                         description += f"({x}, {y}, {z}): {brick.describe()}\n"
         return description
+
+# Create a BrickMap instance and add bricks to it
+if __name__ == "__main__":
+    brick_map = BrickMap(5, 5, 1)
+    red_brick = Brick("red", 2, 1)
+    blue_brick = Brick("blue", 1, 1)
+
+    # Add bricks to the map
+    brick_map.add_brick(Point(0, 0, 0), red_brick)
+    brick_map.add_brick(Point(2, 2, 0), blue_brick)
+
+    # Describe the map
+    print(brick_map.describe_map())
+
+    # Remove a brick from the map
+    brick_map.remove_brick(0, 0, 0)
+
+    # Describe the map again
+    print(brick_map.describe_map())
