@@ -44,8 +44,9 @@ class Brick:
         """Return a string describing the brick."""
         return f"A {self.color} brick of size {self.width}x{self.depth}."
 
+import json
+
 class BrickMap:
-    # Make BrickMap serializable to json, either by using a new class or modifyingthe existing one AI!
     """
     A class to control a map of LEGO-like bricks.
 
@@ -55,6 +56,25 @@ class BrickMap:
         depth (int): The depth of the map.
         map (list): A 3D array of bricks. Starts with a bottom plate (z=0).
     """
+    
+    def to_json(self):
+        """Convert the BrickMap to a JSON serializable dictionary."""
+        return {
+            'width': self.width,
+            'height': self.height,
+            'depth': self.depth,
+            'map': [[[brick.describe() if brick else None for brick in layer]
+                     for layer in row] for row in self.map]
+        }
+
+    @classmethod
+    def from_json(cls, data):
+        """Create a BrickMap instance from a JSON dictionary."""
+        brick_map = cls(data['width'], data['height'], data['depth'])
+        # Rehydrate Bricks if needed; for simplicity, this example assumes basic description strings
+        brick_map.map = [[[Brick(color="reconstructed", width=1, depth=1) if brick else None for brick in layer]
+                          for layer in row] for row in data['map']]
+        return brick_map
 
     def __init__(self, width=5, height=5, depth=1):
         self.width = width
