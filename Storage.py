@@ -1,5 +1,5 @@
 import sqlite3
-from Brick import BrickMap
+from Brick import BrickMap, Point, Brick
 
 DB_FILE = "maps_store.sqlite"
 
@@ -8,6 +8,7 @@ class MapStorage:
 
     def __init__(self):
         """Initialize the SQLite database."""
+        # The storage was cahnged to use SQLite for persistent storage AI
         self.conn = sqlite3.connect(DB_FILE)
         self._create_table()
 
@@ -46,3 +47,12 @@ class MapStorage:
         """List all map IDs in the database."""
         cursor = self.conn.execute("SELECT id FROM maps")
         return [row[0] for row in cursor.fetchall()]
+
+if __name__ == "__main__":
+    storage = MapStorage()
+    # Example usage
+    brick_map = BrickMap(5, 5, 1)
+    brick_map.add_brick(Point(0, 0, 0), Brick("red", 2, 1))
+    storage.save_map("map_1", brick_map)
+    loaded_map = storage.load_map("map_1")
+    print(loaded_map.to_json())  # Should print the JSON representation of the map
