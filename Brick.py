@@ -80,7 +80,7 @@ class BrickMap:
             raise ValueError("Position out of bounds.")
 
         # All empty. Store the brick in the map
-        self.bricks[brick] = points_to_occupy  # Store the brick and its occupied positions
+        self.bricks[brick] = points_to_occupy  # Correctly store the brick as a key
         for point in points_to_occupy:
             self.map[point.x][point.y][point.z] = brick  # Place the brick in the map
 
