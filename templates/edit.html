@@ -274,7 +274,27 @@
         });
 
 
-        // Delete brick on right-click ai!
+        // Delete brick on right-click
+        window.addEventListener('mousedown', (event) => {
+            if (event.button === 2) { // Right mouse button
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObjects(bricks);
+
+                if (intersects.length > 0) {
+                    const intersectedBrick = intersects[0].object;
+
+                    // Remove the brick from the scene
+                    scene.remove(intersectedBrick);
+
+                    // Remove the brick from the bricks array
+                    const index = bricks.indexOf(intersectedBrick);
+                    if (index > -1) {
+                        bricks.splice(index, 1);
+                    }
+                }
+                event.preventDefault(); // Prevent browser context menu
+            }
+        });
 
         // Render loop
         function animate() {
