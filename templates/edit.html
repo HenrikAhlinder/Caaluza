@@ -190,7 +190,6 @@
 
         var selectedBrick = null; // Variable to store the selected brick
 
-        // Highlight the selected brick. ai!
         const brickOptions = [
             { name: 'Green Brick', color: 0x00ff00 },
             { name: 'Red Brick', color: 0xff0000 },
@@ -198,6 +197,7 @@
         ];
 
         let selectedBrickColor = brickOptions[0].color; // Default to the first option
+        let activeButton = null; // Track the currently active button
 
         brickOptions.forEach(option => {
             const button = document.createElement('button');
@@ -206,9 +206,22 @@
             button.style.border = '1px solid #ccc';
             button.style.background = '#fff';
             button.style.cursor = 'pointer';
+
+            // Add event listener to handle button selection and highlight
             button.addEventListener('click', () => {
                 selectedBrickColor = option.color;
+
+                // Highlight the selected button
+                if (activeButton) {
+                    activeButton.style.background = '#fff';
+                    activeButton.style.color = 'black';
+                }
+                button.style.background = '#4CAF50';
+                button.style.color = 'white';
+
+                activeButton = button;
             });
+
             brickSelector.appendChild(button);
         });
 
