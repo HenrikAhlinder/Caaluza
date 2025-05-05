@@ -74,27 +74,27 @@
                 new THREE.MeshLambertMaterial({ color: 0x00ff00 })
             );
             newBrick.position.set(
-                // Fix syntax errors AI!
-                // Calculate position from mouse cursor
+                // Predefined tools for raycasting and mouse tracking
                 const mouse = new THREE.Vector2();
                 const raycaster = new THREE.Raycaster();
                 const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0); // Ground plane
                 const planeIntersect = new THREE.Vector3();
 
-                // Fetch mouse coordinates
+                // Fetch mouse coordinates and update raycaster
                 window.addEventListener('mousemove', (event) => {
                     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
                     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
                 });
 
-                // Use raycaster to project mouse onto 3D scene
+                // Create brick and place it based on mouse position
                 raycaster.setFromCamera(mouse, camera);
                 raycaster.ray.intersectPlane(plane, planeIntersect);
 
-                // Position new brick on ground plane
-                planeIntersect.x,
-                0.5, // Elevate above plane
-                planeIntersect.z
+                newBrick.position.set(
+                    planeIntersect.x,
+                    0.5, // Elevate above plane
+                    planeIntersect.z
+                );
             ); // Randomly position bricks
             bricks.push(newBrick);
             scene.add(newBrick);
