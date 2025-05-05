@@ -87,7 +87,32 @@
         buttonContainer.style.flexDirection = 'column';
         buttonContainer.style.gap = '5px';
         document.body.appendChild(buttonContainer);
-        // Make the bricks look like LEGO bricks, i.e. add the top studs (the bottom ones are not necessary) ai!
+
+        // Make the bricks look like LEGO bricks, i.e., add the top studs
+        function addStudsToBrick(brick) {
+            const studRadius = 0.2;
+            const studHeight = 0.1;
+            const studMaterial = new THREE.MeshLambertMaterial({ color: 0x808080 }); // Grey studs
+            const gridWidth = 2;
+            const gridDepth = 2;
+
+            for (let dx = 0; dx < gridWidth; dx++) {
+                for (let dz = 0; dz < gridDepth; dz++) {
+                    const stud = new THREE.Mesh(
+                        new THREE.CylinderGeometry(studRadius, studRadius, studHeight, 32),
+                        studMaterial
+                    );
+                    stud.position.set(
+                        brick.position.x - 0.5 + dx + 0.5, // Offset for center position
+                        brick.position.y + 0.55, // Slightly above the brick top
+                        brick.position.z - 0.5 + dz + 0.5
+                    );
+                    scene.add(stud);
+                }
+            }
+        }
+
+        bricks.forEach((brick) => addStudsToBrick(brick));
 
         const views = [
             { name: 'Top', position: { x: 2.5, y: 20, z: 2.5 } },
