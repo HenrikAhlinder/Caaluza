@@ -167,6 +167,8 @@
         brickSelector.innerHTML = '<strong>Choose a Brick:</strong>';
         document.body.appendChild(brickSelector);
 
+        var selectedBrick = null; // Variable to store the selected brick
+
         const brickOptions = [
             { name: 'Green Brick', color: 0x00ff00 },
             { name: 'Red Brick', color: 0xff0000 },
@@ -188,20 +190,20 @@
             brickSelector.appendChild(button);
         });
 
+        // Allow picking up a brick and moving it with the mouse left button ai!
         window.addEventListener('click', () => {
             const newBrick = new THREE.Mesh(
-                new THREE.BoxGeometry(1, 1, 1),
+                new THREE.BoxGeometry(2, 1, 2),
                 new THREE.MeshLambertMaterial({ color: selectedBrickColor })
             );
             raycaster.setFromCamera(mouse, camera);
             raycaster.ray.intersectPlane(plane, planeIntersect);
-            // Snap the new brick into the nearest grid positions
 
-            // Set the position of the new brick based on mouse intersection and snap to grid
+            // Snap the new brick into the nearest grid positions
             newBrick.position.set(
-                Math.floor(planeIntersect.x) + 0.5, // Center the brick on the grid
+                Math.floor(planeIntersect.x),
                 0.5, // Elevate above plane
-                Math.floor(planeIntersect.z) + 0.5 // Center the brick on the grid
+                Math.floor(planeIntersect.z)
             );
             bricks.push(newBrick);
             scene.add(newBrick);
