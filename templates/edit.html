@@ -40,12 +40,12 @@
         renderer.setPixelRatio(window.devicePixelRatio);
         document.body.appendChild(renderer.domElement);
 
+
         // Grid setup
         const gridSize = 5;
         const gridHelper = new THREE.GridHelper(gridSize, gridSize, 0x00ff00, 0x555555); // Green and grey grid
         gridHelper.position.set(2.5, 0, 2.5); // Center the grid on 5x5 map
         scene.add(gridHelper);
-
         // Position the camera to face the grid top-down
         camera.lookAt(gridHelper.position);
 
@@ -57,6 +57,9 @@
         const ambientLight = new THREE.AmbientLight(0x404040);
         scene.add(ambientLight);
 
+        const bricks = [];
+
+        // Can you refactor to move the rotation logic to a separate function, or rather a file? ai!
         // Rotate camera around the center of the grid with the right mouse button
         let isRightMouseDown = false;
         const cameraRotationSpeed = 0.005;
@@ -91,8 +94,8 @@
         // Make the bricks look like LEGO bricks, i.e., add the top studs
         function addStudsToBrick(brick) {
             const studRadius = 0.2;
-            const studHeight = 0.1;
-            const studMaterial = new THREE.MeshLambertMaterial({ color: 0x808080 }); // Grey studs
+            const studHeight = 0.3;
+            const studMaterial = new THREE.MeshLambertMaterial({ color: brick.color }); // Grey studs
             const gridWidth = 2;
             const gridDepth = 2;
 
@@ -161,9 +164,6 @@
         window.addEventListener('contextmenu', (event) => {
             event.preventDefault(); // Disable context menu on right-click
         });
-
-        // Store bricks
-        const bricks = [];
 
          // Predefined tools for raycasting and mouse tracking
          const mouse = new THREE.Vector2();
