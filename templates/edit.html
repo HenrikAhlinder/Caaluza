@@ -93,9 +93,9 @@
 
             // Set the position of the new brick based on mouse intersection and snap to grid
             newBrick.position.set(
-                Math.round(planeIntersect.x) + 0.5, // Center the brick on the grid
-                0.0, // Elevate above plane
-                Math.round(planeIntersect.z) + 0.5 // Center the brick on the grid
+                Math.floor(planeIntersect.x) + 0.5, // Center the brick on the grid
+                0.5, // Elevate above plane
+                Math.floor(planeIntersect.z) + 0.5 // Center the brick on the grid
             );
             bricks.push(newBrick);
             scene.add(newBrick);
