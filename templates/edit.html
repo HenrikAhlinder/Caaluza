@@ -33,7 +33,9 @@
         // Basic scene setup
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(2.5, 4, 8); // Adjusted for a top-down 5x5 grid view
+        // Set the camera position to view a 5x5 grid from above
+        camera.position.set(2.5, 10, 2.5); // Adjusted for a top-down 5x5 grid view
+        // camera.position.set(2.5, 4, 8); // Adjusted for a top-down 5x5 grid view
         const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('three-canvas') });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
@@ -91,9 +93,10 @@
 
             // Set the position of the new brick based on mouse intersection and snap to grid
             newBrick.position.set(
-                Math.round(planeIntersect.x),
-                0.5, // Elevate above plane
-                Math.round(planeIntersect.z)
+                // Find the grid that the mouse is over and snap to it ai!
+                Math.round(planeIntersect.x) + 0.5, // Center the brick on the grid
+                0.0, // Elevate above plane
+                Math.round(planeIntersect.z) + 0.5 // Center the brick on the grid
             );
             bricks.push(newBrick);
             scene.add(newBrick);
