@@ -40,6 +40,26 @@
         renderer.setPixelRatio(window.devicePixelRatio);
         document.body.appendChild(renderer.domElement);
 
+        const views = [
+            { name: 'Top', position: { x: 2.5, y: 20, z: 2.5 } },
+            { name: '0 deg', position: { x: -15, y: 2.5, z: 2.5 } },
+            { name: '90 deg', position: { x: 2.5, y: 2.5, z: 20 } },
+            { name: '180 deg', position: { x: 20, y: 2.5, z: 2.5 } },
+            { name: '270 deg', position: { x: 2.5, y: 2.5, z: -15 } },
+        ];
+        views.forEach(view => {
+            const button = document.createElement('button');
+            button.innerText = view.name;
+            button.style.padding = '5px';
+            button.style.border = '1px solid #ccc';
+            button.style.background = '#fff';
+            button.style.cursor = 'pointer';
+            button.addEventListener('click', () => {
+                camera.position.set(view.position.x, view.position.y, view.position.z);
+                camera.lookAt(gridCenter);
+            });
+            buttonContainer.appendChild(button);
+        });
 
         // Grid setup
         const gridSize = 5;
@@ -115,28 +135,6 @@
             }
         }
 
-        const views = [
-            { name: 'Top', position: { x: 2.5, y: 20, z: 2.5 } },
-            { name: '0 deg', position: { x: -15, y: 2.5, z: 2.5 } },
-            { name: '90 deg', position: { x: 2.5, y: 2.5, z: 20 } },
-            { name: '180 deg', position: { x: 20, y: 2.5, z: 2.5 } },
-            { name: '270 deg', position: { x: 2.5, y: 2.5, z: -15 } },
-        ];
-
-        views.forEach(view => {
-            const button = document.createElement('button');
-            button.innerText = view.name;
-            button.style.padding = '5px';
-            button.style.border = '1px solid #ccc';
-            button.style.background = '#fff';
-            button.style.cursor = 'pointer';
-            button.addEventListener('click', () => {
-                camera.position.set(view.position.x, view.position.y, view.position.z);
-                camera.lookAt(gridCenter);
-            });
-            buttonContainer.appendChild(button);
-        });
-
         window.addEventListener('mousemove', (event) => {
             if (isRightMouseDown) {
                 const deltaX = event.clientX - lastMouseX;
@@ -192,6 +190,7 @@
 
         var selectedBrick = null; // Variable to store the selected brick
 
+        // Highlight the selected brick. ai!
         const brickOptions = [
             { name: 'Green Brick', color: 0x00ff00 },
             { name: 'Red Brick', color: 0xff0000 },
