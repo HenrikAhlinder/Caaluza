@@ -58,44 +58,6 @@
         const ambientLight = new THREE.AmbientLight(0x404040);
         scene.add(ambientLight);
 
-        // Enable camera movement with the right mouse button
-        let isRightMouseDown = false;
-        const cameraRotationSpeed = 0.005;
-        let lastMouseX = 0;
-        let lastMouseY = 0;
-
-        window.addEventListener('mousedown', (event) => {
-            if (event.button === 2) { // Right mouse button
-                isRightMouseDown = true;
-                lastMouseX = event.clientX;
-                lastMouseY = event.clientY;
-            }
-        });
-
-        window.addEventListener('mouseup', (event) => {
-            if (event.button === 2) { // Right mouse button
-                isRightMouseDown = false;
-            }
-        });
-
-        window.addEventListener('mousemove', (event) => {
-            if (isRightMouseDown) {
-                const deltaX = event.clientX - lastMouseX;
-                const deltaY = event.clientY - lastMouseY;
-
-                camera.rotation.y -= deltaX * cameraRotationSpeed;
-                camera.rotation.x -= deltaY * cameraRotationSpeed;
-                camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x)); // Clamp vertical rotation
-
-                lastMouseX = event.clientX;
-                lastMouseY = event.clientY;
-            }
-        });
-
-        window.addEventListener('contextmenu', (event) => {
-            event.preventDefault(); // Disable context menu on right-click
-        });
-
         // Rotate camera around the center of the grid with the right mouse button
         let isRightMouseDown = false;
         const cameraRotationSpeed = 0.005;
@@ -129,10 +91,10 @@
 
         const views = [
             { name: 'Top', position: { x: 2.5, y: 10, z: 2.5 } },
-            { name: 'Left', position: { x: -10, y: 2.5, z: 2.5 } },
-            { name: 'Right', position: { x: 15, y: 2.5, z: 2.5 } },
-            { name: 'Front', position: { x: 2.5, y: 2.5, z: 15 } },
-            { name: 'Back', position: { x: 2.5, y: 2.5, z: -10 } },
+            { name: '0 deg', position: { x: -10, y: 2.5, z: 2.5 } },
+            { name: '90 deg', position: { x: 2.5, y: 2.5, z: 15 } },
+            { name: '180 deg', position: { x: 15, y: 2.5, z: 2.5 } },
+            { name: '270 deg', position: { x: 2.5, y: 2.5, z: -10 } },
         ];
 
         views.forEach(view => {
@@ -177,7 +139,7 @@
         });
 
         // Store bricks
-        const bricks = [brick];
+        const bricks = [];
 
          // Predefined tools for raycasting and mouse tracking
          const mouse = new THREE.Vector2();
@@ -192,6 +154,7 @@
         });
 
         // Add a brick on click
+        // Show a list of bricks to choose from (for now, just a green box). Make the user select a brick and place it on the grid. ai!
         window.addEventListener('click', () => {
             const newBrick = new THREE.Mesh(
                 new THREE.BoxGeometry(1, 1, 1),
