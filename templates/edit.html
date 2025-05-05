@@ -190,7 +190,6 @@
 
         var selectedBrick = null; // Variable to store the selected brick
 
-        // Make these radio buttons ai!
         const brickOptions = [
             { name: 'Green', color: 0x00ff00 },
             { name: 'Red', color: 0xff0000 },
@@ -198,32 +197,31 @@
         ];
 
         let selectedBrickColor = brickOptions[0].color; // Default to the first option
-        let activeButton = null; // Track the currently active button
 
-        brickOptions.forEach(option => {
-            const button = document.createElement('button');
-            button.innerText = option.name;
-            button.style.padding = '5px';
-            button.style.border = '1px solid #ccc';
-            button.style.background = '#fff';
-            button.style.cursor = 'pointer';
+        brickOptions.forEach((option, index) => {
+            const label = document.createElement('label');
+            label.style.display = 'flex';
+            label.style.alignItems = 'center';
+            label.style.cursor = 'pointer';
+            label.style.marginBottom = '5px';
 
-            // Add event listener to handle button selection and highlight
-            button.addEventListener('click', () => {
-                selectedBrickColor = option.color;
+            const radio = document.createElement('input');
+            radio.type = 'radio';
+            radio.name = 'brick-color';
+            radio.value = option.color;
+            radio.style.marginRight = '8px';
 
-                // Highlight the selected button
-                if (activeButton) {
-                    activeButton.style.background = '#fff';
-                    activeButton.style.color = 'black';
-                }
-                button.style.background = '#4CAF50';
-                button.style.color = 'white';
+            if (index === 0) {
+                radio.checked = true; // Default selection
+            }
 
-                activeButton = button;
+            radio.addEventListener('change', () => {
+                selectedBrickColor = option.color; // Update the selected color
             });
 
-            brickSelector.appendChild(button);
+            label.appendChild(radio);
+            label.appendChild(document.createTextNode(option.name));
+            brickSelector.appendChild(label);
         });
 
         // Allow picking up a brick and moving it with the left mouse button
