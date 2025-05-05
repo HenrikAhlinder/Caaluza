@@ -40,6 +40,16 @@
         renderer.setPixelRatio(window.devicePixelRatio);
         document.body.appendChild(renderer.domElement);
 
+        // Add shortcut buttons to show the grid from each side (top, left, right, front, back)
+        const buttonContainer = document.createElement('div');
+        buttonContainer.style.position = 'fixed';
+        buttonContainer.style.top = '10px';
+        buttonContainer.style.left = '10px';
+        buttonContainer.style.display = 'flex';
+        buttonContainer.style.flexDirection = 'column';
+        buttonContainer.style.gap = '5px';
+        document.body.appendChild(buttonContainer);
+
         const views = [
             { name: 'Top', position: { x: 2.5, y: 20, z: 2.5 } },
             { name: '0 deg', position: { x: -15, y: 2.5, z: 2.5 } },
@@ -100,21 +110,11 @@
             }
         });
 
-        // Add shortcut buttons to show the grid from each side (top, left, right, front, back)
-        const buttonContainer = document.createElement('div');
-        buttonContainer.style.position = 'fixed';
-        buttonContainer.style.top = '10px';
-        buttonContainer.style.left = '10px';
-        buttonContainer.style.display = 'flex';
-        buttonContainer.style.flexDirection = 'column';
-        buttonContainer.style.gap = '5px';
-        document.body.appendChild(buttonContainer);
-
         // Make the bricks look like LEGO bricks, i.e., add the top studs
         function addStudsToBrick(brick) {
             const studRadius = 0.2;
             const studHeight = 0.3;
-            const studMaterial = new THREE.MeshLambertMaterial({ color: brick.color }); // Grey studs
+            const studMaterial = new THREE.MeshLambertMaterial({ color: brick.material.color }); // Grey studs
             const gridWidth = 2;
             const gridDepth = 2;
 
@@ -190,10 +190,11 @@
 
         var selectedBrick = null; // Variable to store the selected brick
 
+        // Make these radio buttons ai!
         const brickOptions = [
-            { name: 'Green Brick', color: 0x00ff00 },
-            { name: 'Red Brick', color: 0xff0000 },
-            { name: 'Blue Brick', color: 0x0000ff },
+            { name: 'Green', color: 0x00ff00 },
+            { name: 'Red', color: 0xff0000 },
+            { name: 'Blue', color: 0x0000ff },
         ];
 
         let selectedBrickColor = brickOptions[0].color; // Default to the first option
