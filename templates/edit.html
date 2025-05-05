@@ -275,7 +275,6 @@
 
 
         // Delete brick on right-click
-        // ALso delete the studs on the brick ai! 
         window.addEventListener('mousedown', (event) => {
             if (event.button === 2) { // Right mouse button
                 raycaster.setFromCamera(mouse, camera);
@@ -284,8 +283,11 @@
                 if (intersects.length > 0) {
                     const intersectedBrick = intersects[0].object;
 
-                    // Remove the brick from the scene
+                    // Remove the brick and its studs from the scene
                     scene.remove(intersectedBrick);
+                    scene.children = scene.children.filter(
+                        (child) => child.userData.parentBrick !== intersectedBrick
+                    );
 
                     // Remove the brick from the bricks array
                     const index = bricks.indexOf(intersectedBrick);
