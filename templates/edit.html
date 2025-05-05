@@ -96,6 +96,45 @@
             event.preventDefault(); // Disable context menu on right-click
         });
 
+        // I want to rotate the grid, not the camera. AI!
+        // Enable camera movement with the right mouse button
+        let isRightMouseDown = false;
+        const cameraRotationSpeed = 0.005;
+        let lastMouseX = 0;
+        let lastMouseY = 0;
+
+        window.addEventListener('mousedown', (event) => {
+            if (event.button === 2) { // Right mouse button
+                isRightMouseDown = true;
+                lastMouseX = event.clientX;
+                lastMouseY = event.clientY;
+            }
+        });
+
+        window.addEventListener('mouseup', (event) => {
+            if (event.button === 2) { // Right mouse button
+                isRightMouseDown = false;
+            }
+        });
+
+        window.addEventListener('mousemove', (event) => {
+            if (isRightMouseDown) {
+                const deltaX = event.clientX - lastMouseX;
+                const deltaY = event.clientY - lastMouseY;
+
+                camera.rotation.y -= deltaX * cameraRotationSpeed;
+                camera.rotation.x -= deltaY * cameraRotationSpeed;
+                camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x)); // Clamp vertical rotation
+
+                lastMouseX = event.clientX;
+                lastMouseY = event.clientY;
+            }
+        });
+
+        window.addEventListener('contextmenu', (event) => {
+            event.preventDefault(); // Disable context menu on right-click
+        });
+
         // Store bricks
         const bricks = [brick];
 
