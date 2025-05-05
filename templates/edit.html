@@ -116,8 +116,38 @@
                 isRightMouseDown = false;
             }
         });
-        // Add shortcut buttons to show the grid from each side (top, left, right, front, back). AI!
 
+        // Add shortcut buttons to show the grid from each side (top, left, right, front, back)
+        const buttonContainer = document.createElement('div');
+        buttonContainer.style.position = 'fixed';
+        buttonContainer.style.top = '10px';
+        buttonContainer.style.left = '10px';
+        buttonContainer.style.display = 'flex';
+        buttonContainer.style.flexDirection = 'column';
+        buttonContainer.style.gap = '5px';
+        document.body.appendChild(buttonContainer);
+
+        const views = [
+            { name: 'Top', position: { x: 2.5, y: 10, z: 2.5 } },
+            { name: 'Left', position: { x: -10, y: 2.5, z: 2.5 } },
+            { name: 'Right', position: { x: 15, y: 2.5, z: 2.5 } },
+            { name: 'Front', position: { x: 2.5, y: 2.5, z: 15 } },
+            { name: 'Back', position: { x: 2.5, y: 2.5, z: -10 } },
+        ];
+
+        views.forEach(view => {
+            const button = document.createElement('button');
+            button.innerText = view.name;
+            button.style.padding = '5px';
+            button.style.border = '1px solid #ccc';
+            button.style.background = '#fff';
+            button.style.cursor = 'pointer';
+            button.addEventListener('click', () => {
+                camera.position.set(view.position.x, view.position.y, view.position.z);
+                camera.lookAt(gridCenter);
+            });
+            buttonContainer.appendChild(button);
+        });
 
         window.addEventListener('mousemove', (event) => {
             if (isRightMouseDown) {
