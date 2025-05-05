@@ -90,7 +90,7 @@
         const bricks = [];
 
         // Rotate camera around the center of the grid with the right mouse button
-        let isRightMouseDown = false;
+        let shouldCameraMove = false;
         const cameraRotationSpeed = 0.005;
         let lastMouseX = 0;
         let lastMouseY = 0;
@@ -98,7 +98,7 @@
 
         window.addEventListener('mousedown', (event) => {
             if (event.button === 1) { // Middle mouse button
-                isRightMouseDown = true;
+                shouldCameraMove = true;
                 lastMouseX = event.clientX;
                 lastMouseY = event.clientY;
             }
@@ -106,7 +106,7 @@
 
         window.addEventListener('mouseup', (event) => {
             if (event.button === 1) { // Middle mouse button
-                isRightMouseDown = false;
+                shouldCameraMove = false;
             }
         });
 
@@ -136,7 +136,7 @@
         }
 
         window.addEventListener('mousemove', (event) => {
-            if (isRightMouseDown) {
+            if (shouldCameraMove) {
                 const deltaX = event.clientX - lastMouseX;
                 const deltaY = event.clientY - lastMouseY;
 
@@ -272,6 +272,9 @@
                 scene.add(newBrick);
             }
         });
+
+
+        // Delete brick on right-click ai!
 
         // Render loop
         function animate() {
