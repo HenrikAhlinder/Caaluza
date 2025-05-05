@@ -87,13 +87,13 @@
             );
             raycaster.setFromCamera(mouse, camera);
             raycaster.ray.intersectPlane(plane, planeIntersect);
-            // Make the new brick snap into the grid. Ai!
+            // Snap the new brick into the nearest grid positions
 
-            // Set the position of the new brick based on mouse intersection
+            // Set the position of the new brick based on mouse intersection and snap to grid
             newBrick.position.set(
-                planeIntersect.x,
+                Math.round(planeIntersect.x),
                 0.5, // Elevate above plane
-                planeIntersect.z
+                Math.round(planeIntersect.z)
             );
             bricks.push(newBrick);
             scene.add(newBrick);
