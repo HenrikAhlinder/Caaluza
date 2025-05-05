@@ -103,10 +103,10 @@
                         studMaterial
                     );
                     stud.position.set(
-                        // Set the stud in the center of each grid cell the brick occupies ai!
-                        brick.position.x - 0.5 + dx + 0.5, // Offset for center position
-                        brick.position.y + 0.55, // Slightly above the brick top
-                        brick.position.z - 0.5 + dz + 0.5
+                        // Center each stud on the corresponding grid cell occupied by the brick
+                        brick.position.x + dx - (gridWidth - 1) / 2, // Offset for centering based on grid width
+                        brick.position.y + 0.55, // Slightly above the top surface of the brick
+                        brick.position.z + dz - (gridDepth - 1) / 2 // Offset for centering based on grid depth
                     );
                     scene.add(stud);
                 }
