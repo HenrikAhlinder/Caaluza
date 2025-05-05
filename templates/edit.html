@@ -154,11 +154,44 @@
         });
 
         // Add a brick on click
-        // Show a list of bricks to choose from (for now, just a green box). Make the user select a brick and place it on the grid. ai!
+        const brickSelector = document.createElement('div');
+        brickSelector.style.position = 'absolute';
+        brickSelector.style.top = '10px';
+        brickSelector.style.right = '10px';
+        brickSelector.style.background = 'white';
+        brickSelector.style.border = '1px solid #ccc';
+        brickSelector.style.padding = '10px';
+        brickSelector.style.display = 'flex';
+        brickSelector.style.flexDirection = 'column';
+        brickSelector.style.gap = '5px';
+        brickSelector.innerHTML = '<strong>Choose a Brick:</strong>';
+        document.body.appendChild(brickSelector);
+
+        const brickOptions = [
+            { name: 'Green Brick', color: 0x00ff00 },
+            { name: 'Red Brick', color: 0xff0000 },
+            { name: 'Blue Brick', color: 0x0000ff },
+        ];
+
+        let selectedBrickColor = brickOptions[0].color; // Default to the first option
+
+        brickOptions.forEach(option => {
+            const button = document.createElement('button');
+            button.innerText = option.name;
+            button.style.padding = '5px';
+            button.style.border = '1px solid #ccc';
+            button.style.background = '#fff';
+            button.style.cursor = 'pointer';
+            button.addEventListener('click', () => {
+                selectedBrickColor = option.color;
+            });
+            brickSelector.appendChild(button);
+        });
+
         window.addEventListener('click', () => {
             const newBrick = new THREE.Mesh(
                 new THREE.BoxGeometry(1, 1, 1),
-                new THREE.MeshLambertMaterial({ color: 0x00ff00 })
+                new THREE.MeshLambertMaterial({ color: selectedBrickColor })
             );
             raycaster.setFromCamera(mouse, camera);
             raycaster.ray.intersectPlane(plane, planeIntersect);
