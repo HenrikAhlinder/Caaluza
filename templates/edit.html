@@ -190,8 +190,26 @@
             brickSelector.appendChild(button);
         });
 
-        // Allow picking up a brick and moving it with the mouse left button ai!
-        window.addEventListener('click', () => {
+        // Allow picking up a brick and moving it with the left mouse button
+        window.addEventListener('mousedown', (event) => {
+            if (event.button === 0) { // Check if it's the left mouse button
+                const newBrick = new THREE.Mesh(
+                    new THREE.BoxGeometry(2, 1, 2),
+                    new THREE.MeshLambertMaterial({ color: selectedBrickColor })
+                );
+                raycaster.setFromCamera(mouse, camera);
+                raycaster.ray.intersectPlane(plane, planeIntersect);
+
+                // Snap the new brick into the nearest grid positions
+                newBrick.position.set(
+                    Math.round(planeIntersect.x),
+                    0.5, // Elevate above plane
+                    Math.round(planeIntersect.z)
+                );
+                bricks.push(newBrick);
+                scene.add(newBrick);
+            }
+        });
             const newBrick = new THREE.Mesh(
                 new THREE.BoxGeometry(2, 1, 2),
                 new THREE.MeshLambertMaterial({ color: selectedBrickColor })
