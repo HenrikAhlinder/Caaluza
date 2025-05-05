@@ -103,6 +103,7 @@
                         studMaterial
                     );
                     stud.position.set(
+                        // Set the stud in the center of each grid cell the brick occupies ai!
                         brick.position.x - 0.5 + dx + 0.5, // Offset for center position
                         brick.position.y + 0.55, // Slightly above the brick top
                         brick.position.z - 0.5 + dz + 0.5
@@ -111,8 +112,6 @@
                 }
             }
         }
-
-        bricks.forEach((brick) => addStudsToBrick(brick));
 
         const views = [
             { name: 'Top', position: { x: 2.5, y: 20, z: 2.5 } },
@@ -231,6 +230,7 @@
                     0.5, // Elevate above plane
                     Math.round(planeIntersect.z)
                 );
+                addStudsToBrick(newBrick);
                 bricks.push(newBrick);
                 scene.add(newBrick);
             }
