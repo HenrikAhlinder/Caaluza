@@ -13,6 +13,7 @@ Companion app for Caluuza
 - [ ] Get map projection.
 - [ ] Metadata?
 
+# Use a good templating language for python and write a simple main page web site. It should have buttons Play and Edit. AI!
 ## Views
 - [ ] Main menu
 - [ ] Play menu
