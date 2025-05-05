@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
 app = Flask(__name__)
 
 from Brick import Brick, BrickMap, Point
@@ -77,5 +77,8 @@ def create_dummy_map():
     storage.save_map(map_id, new_map)
     return jsonify({'message': 'Map created successfully', 'map_id': map_id}), 201
 
-if __name__ == '__main__':
+@app.route('/')
+def main_menu():
+    """Main menu page with Play and Edit buttons."""
+    return render_template('main.html')
     app.run(debug=True)
