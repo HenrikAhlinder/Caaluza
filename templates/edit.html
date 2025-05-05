@@ -85,17 +85,14 @@
                 new THREE.BoxGeometry(1, 1, 1),
                 new THREE.MeshLambertMaterial({ color: 0x00ff00 })
             );
-            // Fix syntax error AI!
-            newBrick.position.set(
-                // Create brick and place it based on mouse position
-                raycaster.setFromCamera(mouse, camera);
-                raycaster.ray.intersectPlane(plane, planeIntersect);
+            raycaster.setFromCamera(mouse, camera);
+            raycaster.ray.intersectPlane(plane, planeIntersect);
 
-                newBrick.position.set(
-                    planeIntersect.x,
-                    0.5, // Elevate above plane
-                    planeIntersect.z
-                );
+            // Set the position of the new brick based on mouse intersection
+            newBrick.position.set(
+                planeIntersect.x,
+                0.5, // Elevate above plane
+                planeIntersect.z
             );
             bricks.push(newBrick);
             scene.add(newBrick);
