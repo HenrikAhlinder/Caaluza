@@ -39,14 +39,6 @@
         renderer.setPixelRatio(window.devicePixelRatio);
         document.body.appendChild(renderer.domElement);
 
-        // Lighting
-        const light = new THREE.PointLight(0xffffff, 1, 100);
-        light.position.set(10, 10, 10);
-        scene.add(light);
-        
-        const ambientLight = new THREE.AmbientLight(0x404040);
-        scene.add(ambientLight);
-
         // Grid setup
         const gridSize = 5;
         const gridHelper = new THREE.GridHelper(gridSize, gridSize, 0x00ff00, 0x555555); // Green and grey grid
@@ -63,10 +55,6 @@
 
         const ambientLight = new THREE.AmbientLight(0x404040);
         scene.add(ambientLight);
-
-        // Grid helper
-        const gridHelper = new THREE.GridHelper(20, 20);
-        scene.add(gridHelper);
 
         // A sample LEGO-like brick (initially visible)
         const brick = new THREE.Mesh(
@@ -86,6 +74,7 @@
                 new THREE.MeshLambertMaterial({ color: 0x00ff00 })
             );
             newBrick.position.set(
+                # Place the brick at the mouse cursor ai!
                 Math.random() * 10 - 5,
                 0.5,
                 Math.random() * 10 - 5
