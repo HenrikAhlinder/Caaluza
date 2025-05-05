@@ -81,4 +81,11 @@ def create_dummy_map():
 def main_menu():
     """Main menu page with Play and Edit buttons."""
     return render_template('main.html')
+
+@app.route('/edit')
+def edit():
+    """Edit menu."""
+    return render_template('edit.html')
+
+if __name__ == '__main__':
     app.run(debug=True)
