@@ -89,6 +89,7 @@
         camera.lookAt(gridHelper.position);
 
         // Lighting
+        // Make on light for each view defined in 'views'. AI!
         const light = new THREE.PointLight(0xffffff, 1, 100);
         light.position.set(10, 10, 10);
         scene.add(light);
