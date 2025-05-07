@@ -153,10 +153,14 @@
             }
 
             addStuds() {
-                // Make the outline of the stud black. ai!
+                // Add a black outline to the stud for better visibility.
                 const studRadius = 0.2;
                 const studHeight = 0.3;
-                const studMaterial = new THREE.MeshLambertMaterial({ color: this.color }); // Fixed grey studs
+                const studMaterial = new THREE.MeshLambertMaterial({
+                    color: this.color, // Use the brick's color
+                    emissive: 0x000000, // Add a black outline effect
+                    emissiveIntensity: 0.5 // Adjust intensity for the outline
+                });
                 const studsX = this.size.width;
                 const studsZ = this.size.depth;
 
