@@ -162,6 +162,13 @@
             addToScene() {
                 scene.add(this.mesh);
             }
+
+            removeFromScene() {
+                scene.remove(this.mesh);
+                this.mesh.geometry.dispose();
+                this.mesh.material.dispose();
+                this.mesh = null; // Clear reference to the mesh
+            }
         }
 
         window.addEventListener('mousemove', (event) => {
@@ -287,16 +294,12 @@
         window.addEventListener('mousedown', (event) => {
             if (event.button === 2) { // Right mouse button
                 raycaster.setFromCamera(mouse, camera);
-                const intersects = raycaster.intersectObjects(bricks);
+                const intersects = raycaster.intersectObjects(bricks.map(brick => brick.mesh));
 
                 if (intersects.length > 0) {
+                    // Cast intersectedBrick to Brick and call removeFromScene ai!
                     const intersectedBrick = intersects[0].object;
-
-                    // Remove the brick and its studs from the scene
-                    scene.remove(intersectedBrick);
-                    scene.children = scene.children.filter(
-                        (child) => child.userData.parentBrick !== intersectedBrick
-                    );
+                    intersectedBrick.removeFromScene()
 
                     // Remove the brick from the bricks array
                     const index = bricks.indexOf(intersectedBrick);
