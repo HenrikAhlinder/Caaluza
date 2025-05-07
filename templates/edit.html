@@ -42,7 +42,6 @@
             0.1, 
             1000
         );
-        camera.position.set(5.5, 20, 2.5); // Default for top-down view
         const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('three-canvas') });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
@@ -79,6 +78,27 @@
             });
             buttonContainer.appendChild(button);
         });
+        camera.position.set(2.5, 20, 2.5); // Default camera position
+
+        // Lighting
+        // Create one light for each view in the 'views' array
+        views.forEach(view => {
+            // skip first view
+            if (view.name === 'Top') return;
+            const light = new THREE.DirectionalLight(0xffffff, 0.5);
+            light.position.set(view.position.x, view.position.y + 10, view.position.z); // Adjust position above each view
+            light.castShadow = true; // Enable shadows for better visual quality
+            scene.add(light);
+        });
+
+        const light = new THREE.DirectionalLight(0xffffff, 0.2);
+        light.position.set(5, 25, 5); // Adjust position above each view
+        light.castShadow = true; // Enable shadows for better visual quality
+        scene.add(light);
+
+        // Ambient light for overall illumination
+        const ambientLight = new THREE.AmbientLight(0x404040, 0.5); // Soft white light
+        scene.add(ambientLight);
 
         // Grid setup
         const gridSize = 5;
@@ -88,17 +108,6 @@
         // Position the camera to face the grid top-down
         camera.lookAt(gridHelper.position);
 
-        // Lighting
-        // Create one light for each view in the 'views' array
-        views.forEach(view => {
-            const light = new THREE.DirectionalLight(0xffffff, 0.8);
-            light.position.set(view.position.x, view.position.y + 10, view.position.z); // Adjust position above each view
-            light.castShadow = true; // Enable shadows for better visual quality
-            scene.add(light);
-        });
-
-        const ambientLight = new THREE.AmbientLight(0x404040);
-        scene.add(ambientLight);
 
         const bricks = [];
 
@@ -166,6 +175,7 @@
                     }
                 }
             }
+
             addToScene() {
                 scene.add(this.mesh);
             }
