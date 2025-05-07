@@ -137,7 +137,6 @@
             }
 
             addStuds() {
-                // Add these studs to this.mesh ai!
                 const studRadius = 0.2;
                 const studHeight = 0.3;
                 const studMaterial = new THREE.MeshLambertMaterial({ color: 0x444444 }); // Fixed grey studs
@@ -156,6 +155,7 @@
                             this.position.z + z - studsZ / 2 + 0.5
                         );
                         stud.userData.parentBrick = this.mesh; // Link studs to the parent brick
+                        this.mesh.add(stud); // Add the stud as a child of the brick's mesh
                     }
                 }
             }
