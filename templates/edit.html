@@ -89,10 +89,13 @@
         camera.lookAt(gridHelper.position);
 
         // Lighting
-        // Make on light for each view defined in 'views'. AI!
-        const light = new THREE.PointLight(0xffffff, 1, 100);
-        light.position.set(10, 10, 10);
-        scene.add(light);
+        // Create one light for each view in the 'views' array
+        views.forEach(view => {
+            const light = new THREE.DirectionalLight(0xffffff, 0.8);
+            light.position.set(view.position.x, view.position.y + 10, view.position.z); // Adjust position above each view
+            light.castShadow = true; // Enable shadows for better visual quality
+            scene.add(light);
+        });
 
         const ambientLight = new THREE.AmbientLight(0x404040);
         scene.add(ambientLight);
