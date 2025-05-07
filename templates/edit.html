@@ -133,11 +133,11 @@
                 );
                 this.mesh.position.copy(position);
 
-                // Add studs to the brick
                 this.addStuds();
             }
 
             addStuds() {
+                // Add these studs to this.mesh ai!
                 const studRadius = 0.2;
                 const studHeight = 0.3;
                 const studMaterial = new THREE.MeshLambertMaterial({ color: 0x444444 }); // Fixed grey studs
@@ -156,9 +156,13 @@
                             this.position.z + z - studsZ / 2 + 0.5
                         );
                         stud.userData.parentBrick = this.mesh; // Link studs to the parent brick
-                        scene.add(stud);
                     }
                 }
+            }
+
+            addToScene() {
+            scene.add(this.mesh);
+                scene.add(stud);
             }
         }
 
@@ -263,6 +267,7 @@
                     newBrickY = intersectedBrick.position.y + 1; // Stack on top of the intersected brick
                 }
 
+                raycaster.ray.intersectPlane(plane, planeIntersect);
                 // Create a new brick using the Brick class
                 const newBrick = new Brick(
                     new THREE.Vector3(
@@ -272,39 +277,7 @@
                     ),
                     selectedBrickColor
                 );
-                bricks.push(newBrick.mesh);
-                scene.add(newBrick.mesh);
-                );
-
-                raycaster.ray.intersectPlane(plane, planeIntersect);
-
-                // Snap the new brick into the nearest grid positions
-                newBrick.position.set(
-                    Math.round(planeIntersect.x),
-                    newBrickY, // Set updated elevation
-                    Math.round(planeIntersect.z)
-                );
-                addStudsToBrick(newBrick);
                 bricks.push(newBrick);
-                scene.add(newBrick);
-            }
-            if (event.button === 0) { // Check if it's the left mouse button
-                const newBrick = new THREE.Mesh(
-                    new THREE.BoxGeometry(2, 1, 2),
-                    new THREE.MeshLambertMaterial({ color: selectedBrickColor })
-                );
-                raycaster.setFromCamera(mouse, camera);
-                raycaster.ray.intersectPlane(plane, planeIntersect);
-
-                // Snap the new brick into the nearest grid positions
-                newBrick.position.set(
-                    Math.round(planeIntersect.x),
-                    0.5, // Elevate above plane
-                    Math.round(planeIntersect.z)
-                );
-                addStudsToBrick(newBrick);
-                bricks.push(newBrick);
-                scene.add(newBrick);
             }
         });
 
