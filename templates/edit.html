@@ -32,9 +32,17 @@
     <script>
         // Basic scene setup
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-        let default_cameraPosition = new THREE.Vector3(5.5, 20, 2.5); // Adjusted for a top-down 5x5 grid view
-        camera.position.set(20, 20, 2.5); // Adjusted for a top-down 5x5 grid view
+        const aspectRatio = window.innerWidth / window.innerHeight;
+        const orthoSize = 15; // Adjust this value for zoom level
+        const camera = new THREE.OrthographicCamera(
+            -orthoSize * aspectRatio, 
+            orthoSize * aspectRatio, 
+            orthoSize, 
+            -orthoSize, 
+            0.1, 
+            1000
+        );
+        camera.position.set(5.5, 20, 2.5); // Default for top-down view
         const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('three-canvas') });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
@@ -50,6 +58,7 @@
         buttonContainer.style.gap = '5px';
         document.body.appendChild(buttonContainer);
 
+        // Predefined views adjusted for Orthographic Camera
         const views = [
             { name: 'Top', position: { x: 2.5, y: 20, z: 2.5 } },
             { name: '0 deg', position: { x: -15, y: 2.5, z: 2.5 } },
