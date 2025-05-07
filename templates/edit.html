@@ -298,10 +298,15 @@
 
                 if (intersects.length > 0) {
                     const intersectedBrick = intersects[0].object.userData.parentBrick; // Retrieve the parent Brick
-                    // I get 'cannot read properties of undefined (reading 'removeFromScene')' ai!
-                    intersectedBrick.removeFromScene(); // Call removeFromScene on the Brick instance
+                    if (intersectedBrick) { // Ensure parentBrick is defined
+                        intersectedBrick.removeFromScene(); // Call removeFromScene on the Brick instance
 
-                    // Remove the brick from the bricks array
+                        // Remove the brick from the bricks array
+                        const index = bricks.indexOf(intersectedBrick);
+                        if (index > -1) {
+                            bricks.splice(index, 1);
+                        }
+                    }
                     const index = bricks.indexOf(intersectedBrick);
                     if (index > -1) {
                         bricks.splice(index, 1);
