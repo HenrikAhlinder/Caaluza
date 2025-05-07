@@ -149,11 +149,10 @@
                             new THREE.CylinderGeometry(studRadius, studRadius, studHeight, 32),
                             studMaterial
                         );
-                        // The studs are no longer on the brick. Help me fix it. ai!
                         stud.position.set(
-                            this.position.x - studsX / 2 + 0.5,
-                            this.position.y + this.size.height / 2 + 0.1, // Place studs slightly above
-                            this.position.z - studsZ / 2 + 0.5
+                            x - studsX / 2 + 0.5,
+                            this.size.height / 2 + 0.1, // Place studs slightly above
+                            z - studsZ / 2 + 0.5
                         );
                         stud.userData.parentBrick = this.mesh; // Link studs to the parent brick
                         this.mesh.add(stud); // Add the stud as a child of the brick's mesh
