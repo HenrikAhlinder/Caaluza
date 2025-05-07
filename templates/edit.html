@@ -297,9 +297,8 @@
                 const intersects = raycaster.intersectObjects(bricks.map(brick => brick.mesh));
 
                 if (intersects.length > 0) {
-                    // Cast intersectedBrick to Brick and call removeFromScene ai!
-                    const intersectedBrick = intersects[0].object;
-                    intersectedBrick.removeFromScene()
+                    const intersectedBrick = intersects[0].object.userData.parentBrick; // Retrieve the parent Brick
+                    intersectedBrick.removeFromScene(); // Call removeFromScene on the Brick instance
 
                     // Remove the brick from the bricks array
                     const index = bricks.indexOf(intersectedBrick);
