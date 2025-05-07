@@ -264,15 +264,39 @@
         brickSelector.innerHTML = '<strong>Choose a Brick:</strong>';
         document.body.appendChild(brickSelector);
 
-        // In this GUI, there are exactly one of each brick. One 1x1 yellow, one 1x1 red, one 1x2 yellow, one 1x2 red, etc. AI
-        // I'd like to select one brick and place it one the grid. After that, the brick should not be possible to place again. AI!
+        // Implement GUI where each brick can be selected and placed only once.
         var selectedBrick = null; // Variable to store the selected brick
 
         const brickOptions = [
-            { name: 'Green', color: 0x00ff00 },
-            { name: 'Red', color: 0xff0000 },
-            { name: 'Blue', color: 0x0000ff },
+            { name: '1x1 Yellow', color: 0xffff00, size: { width: 1, height: 1, depth: 1 } },
+            { name: '1x1 Red', color: 0xff0000, size: { width: 1, height: 1, depth: 1 } },
+            { name: '1x2 Yellow', color: 0xffff00, size: { width: 1, height: 1, depth: 2 } },
+            { name: '1x2 Red', color: 0xff0000, size: { width: 1, height: 1, depth: 2 } },
         ];
+
+        brickOptions.forEach((option, index) => {
+            const button = document.createElement('button');
+            button.innerText = option.name;
+            button.style.padding = '5px';
+            button.style.border = '1px solid #ccc';
+            button.style.background = '#fff';
+            button.style.cursor = 'pointer';
+
+            button.addEventListener('click', () => {
+                if (selectedBrick) {
+                    alert('You have already selected a brick. Please place it before selecting another.');
+                    return;
+                }
+                selectedBrick = option;
+
+                // Disable button after selection
+                button.disabled = true;
+                button.style.cursor = 'not-allowed';
+                button.style.opacity = '0.6';
+            });
+
+            brickSelector.appendChild(button);
+        });
 
         let selectedBrickColor = brickOptions[0].color; // Default to the first option
 
