@@ -142,17 +142,11 @@
 
                 // Create the main brick
                 // Add an outline to the brick for better visibility.
-                // Adjust the position so the mesh is aligned by its top-left corner.
+                // make the meshs origin point its top left corner. ai!
                 const material = new THREE.MeshLambertMaterial({ color: color });
                 this.mesh = new THREE.Mesh(
                     new THREE.BoxGeometry(size.width, size.height, size.depth),
                     material
-                );
-                // Adjust the position to align the mesh to the top-left corner
-                this.mesh.position.set(
-                    position.x - size.width / 2,
-                    position.y,
-                    position.z - size.depth / 2
                 );
 
                 // Add visible outline using THREE.LineSegments for edges
