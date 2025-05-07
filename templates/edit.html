@@ -302,9 +302,19 @@
         // Allow placing bricks on top of another brick with the left mouse button
         window.addEventListener('mousedown', (event) => {
             if (event.button === 0) { // Check if it's the left mouse button
-                // Only place bricks if at least some part of the mesh is inside the grid. ai!
 
                 raycaster.setFromCamera(mouse, camera);
+
+                raycaster.ray.intersectPlane(plane, planeIntersect);
+
+                // Ensure the new brick position is within grid bounds
+                const positionX = Math.round(planeIntersect.x);
+                const positionZ = Math.round(planeIntersect.z);
+
+                if (positionX < 0 || positionX >= gridSize || positionZ < 0 || positionZ >= gridSize) {
+                    return; // Do not place the brick outside the grid
+                }
+
                 // Intersect with each brick.mesh to allow stacking bricks on top of each other.
                 const intersects = raycaster.intersectObjects(bricks.map(brick => brick.mesh));
                 let newBrickY = 0.5; // Default elevation above ground
