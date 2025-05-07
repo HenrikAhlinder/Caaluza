@@ -263,10 +263,17 @@
                     newBrickY = intersectedBrick.position.y + 1; // Stack on top of the intersected brick
                 }
 
-                // Use the brick class here instead to create a new brick. ai!
-                const newBrick = new THREE.Mesh(
-                    new THREE.BoxGeometry(2, 1, 2),
-                    new THREE.MeshLambertMaterial({ color: selectedBrickColor })
+                // Create a new brick using the Brick class
+                const newBrick = new Brick(
+                    new THREE.Vector3(
+                        Math.round(planeIntersect.x),
+                        newBrickY, // Set adjusted elevation
+                        Math.round(planeIntersect.z)
+                    ),
+                    selectedBrickColor
+                );
+                bricks.push(newBrick.mesh);
+                scene.add(newBrick.mesh);
                 );
 
                 raycaster.ray.intersectPlane(plane, planeIntersect);
