@@ -135,13 +135,14 @@
 
         // Create a Brick class to encapsulate the brick and its studs
         class Brick {
-            constructor(position, color, size = { width: 2, height: 1, depth: 2 }) {
+            constructor(position, color, size) {
                 this.position = position;
                 this.color = color;
                 this.size = size;
 
                 // Create the main brick
                 // Add an outline to the brick for better visibility.
+                // make the mesh placed by its top left corner. ai!
                 const material = new THREE.MeshLambertMaterial({ color: color });
                 this.mesh = new THREE.Mesh(
                     new THREE.BoxGeometry(size.width, size.height, size.depth),
@@ -283,11 +284,8 @@
             button.style.cursor = 'pointer';
 
             button.addEventListener('click', () => {
-                if (selectedBrick) {
-                    alert('You have already selected a brick. Please place it before selecting another.');
-                    return;
-                }
                 selectedBrick = option;
+                console.log(`Selected Brick: ${option.name}`);
 
                 // Disable button after selection
                 button.disabled = true;
@@ -298,40 +296,14 @@
             brickSelector.appendChild(button);
         });
 
-        let selectedBrickColor = brickOptions[0].color; // Default to the first option
-
-        brickOptions.forEach((option, index) => {
-            const label = document.createElement('label');
-            label.style.display = 'flex';
-            label.style.alignItems = 'center';
-            label.style.cursor = 'pointer';
-            label.style.marginBottom = '5px';
-
-            const radio = document.createElement('input');
-            radio.type = 'radio';
-            radio.name = 'brick-color';
-            radio.value = option.color;
-            radio.style.marginRight = '8px';
-
-            if (index === 0) {
-                radio.checked = true; // Default selection
-            }
-
-            radio.addEventListener('change', () => {
-                selectedBrickColor = option.color; // Update the selected color
-            });
-
-            label.appendChild(radio);
-            label.appendChild(document.createTextNode(option.name));
-            brickSelector.appendChild(label);
-        });
-
         // Allow placing bricks on top of another brick with the left mouse button
         window.addEventListener('mousedown', (event) => {
             if (event.button === 0) { // Check if it's the left mouse button
+                if (selectedBrick === null) {
+                    return; // No brick selected
+                }
 
                 raycaster.setFromCamera(mouse, camera);
- 
                 raycaster.ray.intersectPlane(plane, planeIntersect);
 
                 // Ensure the new brick position is within grid bounds
@@ -350,17 +322,12 @@
                     newBrickY = intersectedBrick.position.y + 1; // Stack on top of the intersected brick
                 }
 
-                raycaster.ray.intersectPlane(plane, planeIntersect);
-                // Create a new brick using the Brick class
                 const newBrick = new Brick(
-                    new THREE.Vector3(
-                        Math.round(planeIntersect.x),
-                        newBrickY, // Set adjusted elevation
-                        Math.round(planeIntersect.z)
-                    ),
-                    selectedBrickColor,
-                    selectedBrick.size // Use the selected size from the selected brick
+                    new THREE.Vector3( positionX-0.5, newBrickY, positionZ),
+                    selectedBrick.color,
+                    selectedBrick.size
                 );
+                selectedBrick = null;
                 bricks.push(newBrick);
                 newBrick.addToScene();
             }
