@@ -264,6 +264,8 @@
         brickSelector.innerHTML = '<strong>Choose a Brick:</strong>';
         document.body.appendChild(brickSelector);
 
+        // In this GUI, there are exactly one of each brick. One 1x1 yellow, one 1x1 red, one 1x2 yellow, one 1x2 red, etc. AI
+        // I'd like to select one brick and place it one the grid. After that, the brick should not be possible to place again. AI!
         var selectedBrick = null; // Variable to store the selected brick
 
         const brickOptions = [
