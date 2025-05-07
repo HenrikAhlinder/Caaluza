@@ -59,7 +59,7 @@
 
         // Predefined views adjusted for Orthographic Camera
         const views = [
-            { name: 'Top', position: { x: 2.5, y: 20, z: 2.5 } },
+            { name: 'Top', position: { x: 2.5, y: 10, z: 2.5 } },
             { name: '0 deg', position: { x: -15, y: 0.0, z: 2.5 } },
             { name: '90 deg', position: { x: 2.5, y: 0.0, z: 20 } },
             { name: '180 deg', position: { x: 20, y: 0.0, z: 2.5 } },
@@ -92,7 +92,7 @@
         });
 
         const light = new THREE.DirectionalLight(0xffffff, 0.2);
-        light.position.set(5, 25, 5); // Adjust position above each view
+        light.position.set(6, 25, 6); // Adjust position above each view
         light.castShadow = true; // Enable shadows for better visual quality
         scene.add(light);
 
@@ -101,7 +101,7 @@
         scene.add(ambientLight);
 
         // Grid setup
-        const gridSize = 5;
+        const gridSize = 6;
         const gridHelper = new THREE.GridHelper(gridSize, gridSize, 0x00ff00, 0x555555); // Green and grey grid
         gridHelper.position.set(2.5, 0, 2.5); // Center the grid on 5x5 map
         scene.add(gridHelper);
@@ -304,7 +304,7 @@
             if (event.button === 0) { // Check if it's the left mouse button
 
                 raycaster.setFromCamera(mouse, camera);
-
+ 
                 raycaster.ray.intersectPlane(plane, planeIntersect);
 
                 // Ensure the new brick position is within grid bounds
