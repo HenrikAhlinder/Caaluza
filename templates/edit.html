@@ -312,7 +312,7 @@
                 const positionX = Math.round(planeIntersect.x);
                 const positionZ = Math.round(planeIntersect.z);
 
-                if (positionX < 0 || positionX >= gridSize || positionZ < 0 || positionZ >= gridSize) {
+                if (positionX < 0 || positionX >= gridSize+1.0 || positionZ < 0 || positionZ >= gridSize+1.0) {
                     return; // Do not place the brick outside the grid
                 }
 
