@@ -119,11 +119,50 @@
             }
         });
 
-        // Make the bricks look like LEGO bricks, i.e., add the top studs
-        // Create a brick class that encapsulates the brick and the added studs. ai!
-        function addStudsToBrick(brick) {
-            const studRadius = 0.2;
-            const studHeight = 0.3;
+        // Create a Brick class to encapsulate the brick and its studs
+        class Brick {
+            constructor(position, color, size = { width: 2, height: 1, depth: 2 }) {
+                this.position = position;
+                this.color = color;
+                this.size = size;
+
+                // Create the main brick
+                this.mesh = new THREE.Mesh(
+                    new THREE.BoxGeometry(size.width, size.height, size.depth),
+                    new THREE.MeshLambertMaterial({ color: color })
+                );
+                this.mesh.position.copy(position);
+
+                // Add studs to the brick
+                this.addStuds();
+            }
+
+            addStuds() {
+                const studRadius = 0.2;
+                const studHeight = 0.3;
+                const studMaterial = new THREE.MeshLambertMaterial({ color: 0x444444 }); // Fixed grey studs
+                const studsX = this.size.width;
+                const studsZ = this.size.depth;
+
+                for (let x = 0; x < studsX; x++) {
+                    for (let z = 0; z < studsZ; z++) {
+                        const stud = new THREE.Mesh(
+                            new THREE.CylinderGeometry(studRadius, studRadius, studHeight, 32),
+                            studMaterial
+                        );
+                        stud.position.set(
+                            this.position.x + x - studsX / 2 + 0.5,
+                            this.position.y + this.size.height / 2 + 0.1, // Place studs slightly above
+                            this.position.z + z - studsZ / 2 + 0.5
+                        );
+                        stud.userData.parentBrick = this.mesh; // Link studs to the parent brick
+                        scene.add(stud);
+                    }
+                }
+            }
+        }
+
+        // Remove the previous addStudsToBrick function
             const studMaterial = new THREE.MeshLambertMaterial({ color: brick.material.color }); // Grey studs
             const gridWidth = 2;
             const gridDepth = 2;
