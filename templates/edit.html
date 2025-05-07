@@ -14,22 +14,22 @@
             position: fixed;
             top: 10px;
             right: 10px;
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
+        padding: 10px 20px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
         }
         #save-btn:hover {
-            background-color: #45a049;
+        background-color: #45a049;
         }
-    </style>
-</head>
-<body>
-    <canvas id="three-canvas"></canvas>
-    <button id="save-btn">Save</button>
-    <script>
+        </style>
+    </head>
+    <body>
+        <canvas id="three-canvas"></canvas>
+        <button id="save-btn">Save</button>
+        <script>
         // Basic scene setup
         const scene = new THREE.Scene();
         const aspectRatio = window.innerWidth / window.innerHeight;
@@ -201,11 +201,11 @@
             event.preventDefault(); // Disable context menu on right-click
         });
 
-         // Predefined tools for raycasting and mouse tracking
-         const mouse = new THREE.Vector2();
-                 const raycaster = new THREE.Raycaster();
-                 const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0); // Ground plane
-                 const planeIntersect = new THREE.Vector3();
+        // Predefined tools for raycasting and mouse tracking
+        const mouse = new THREE.Vector2();
+        const raycaster = new THREE.Raycaster();
+        const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0); // Ground plane
+        const planeIntersect = new THREE.Vector3();
 
         // Fetch mouse coordinates and update raycaster
         window.addEventListener('mousemove', (event) => {
@@ -338,6 +338,6 @@
             link.download = 'scene.json';
             link.click();
         });
-    </script>
-</body>
+        </script>
+    </body>
 </html>
