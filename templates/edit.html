@@ -166,11 +166,9 @@
                 // Add a black outline to the stud for better visibility.
                 const studRadius = 0.2;
                 const studHeight = 0.3;
-                // Use the method of LineSegments and create an outline for the stud. ai!
+                // Create an outline for the stud using LineSegments for better visibility.
                 const studMaterial = new THREE.MeshLambertMaterial({
-                    color: this.color, // Use the brick's color
-                    emissive: 0x000000, // Add a black outline effect
-                    emissiveIntensity: 0.5 // Adjust intensity for the outline
+                    color: this.color // Use the brick's color
                 });
 
                 const studsX = this.size.width;
@@ -178,15 +176,22 @@
 
                 for (let x = 0; x < studsX; x++) {
                     for (let z = 0; z < studsZ; z++) {
-                        const stud = new THREE.Mesh(
-                            new THREE.CylinderGeometry(studRadius, studRadius, studHeight, 32),
-                            studMaterial
-                        );
+                        const studGeometry = new THREE.CylinderGeometry(studRadius, studRadius, studHeight, 32);
+                        const stud = new THREE.Mesh(studGeometry, studMaterial);
                         stud.position.set(
                             x - studsX / 2 + 0.5,
                             this.size.height / 2 + 0.1, // Place studs slightly above
                             z - studsZ / 2 + 0.5
                         );
+
+                        // Create the outline for the stud
+                        const studEdges = new THREE.EdgesGeometry(studGeometry);
+                        const studOutline = new THREE.LineSegments(
+                            studEdges,
+                            new THREE.LineBasicMaterial({ color: 0x000000 }) // Black outline
+                        );
+                        stud.add(studOutline); // Add the outline as a child of the stud
+
                         stud.userData.parentBrick = this.mesh; // Link studs to the parent brick
                         this.mesh.add(stud); // Add the stud as a child of the brick's mesh
                     }
