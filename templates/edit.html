@@ -162,28 +162,6 @@
             }
         }
 
-        // Remove the previous addStudsToBrick function
-            const studMaterial = new THREE.MeshLambertMaterial({ color: brick.material.color }); // Grey studs
-            const gridWidth = 2;
-            const gridDepth = 2;
-
-            for (let dx = 0; dx < gridWidth; dx++) {
-                for (let dz = 0; dz < gridDepth; dz++) {
-                    const stud = new THREE.Mesh(
-                        new THREE.CylinderGeometry(studRadius, studRadius, studHeight, 32),
-                        studMaterial
-                    );
-                    stud.position.set(
-                        // Center each stud on the corresponding grid cell occupied by the brick
-                        brick.position.x + dx - (gridWidth - 1) / 2, // Offset for centering based on grid width
-                        brick.position.y + 0.55, // Slightly above the top surface of the brick
-                        brick.position.z + dz - (gridDepth - 1) / 2 // Offset for centering based on grid depth
-                    );
-                    scene.add(stud);
-                }
-            }
-        }
-
         window.addEventListener('mousemove', (event) => {
             if (shouldCameraMove) {
                 const deltaX = event.clientX - lastMouseX;
@@ -285,6 +263,7 @@
                     newBrickY = intersectedBrick.position.y + 1; // Stack on top of the intersected brick
                 }
 
+                // Use the brick class here instead to create a new brick. ai!
                 const newBrick = new THREE.Mesh(
                     new THREE.BoxGeometry(2, 1, 2),
                     new THREE.MeshLambertMaterial({ color: selectedBrickColor })
