@@ -140,10 +140,20 @@
                 this.size = size;
 
                 // Create the main brick
-                // Add an outline to the brick for better visibility. ai!
+                // Add an outline to the brick for better visibility.
+                const material = new THREE.MeshLambertMaterial({ color: color });
                 this.mesh = new THREE.Mesh(
                     new THREE.BoxGeometry(size.width, size.height, size.depth),
-                    new THREE.MeshLambertMaterial({ color: color })
+                    material
+                );
+
+                // Add visible outline using THREE.LineSegments for edges
+                const edges = new THREE.EdgesGeometry(new THREE.BoxGeometry(size.width, size.height, size.depth));
+                const outline = new THREE.LineSegments(
+                    edges,
+                    new THREE.LineBasicMaterial({ color: 0x000000 }) // Black outline color
+                );
+                this.mesh.add(outline); // Attach the outline as a child of the brick
                 );
                 this.mesh.position.copy(position);
                 this.addStuds();
