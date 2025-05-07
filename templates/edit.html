@@ -154,7 +154,6 @@
                     new THREE.LineBasicMaterial({ color: 0x000000 }) // Black outline color
                 );
                 this.mesh.add(outline); // Attach the outline as a child of the brick
-                );
                 this.mesh.position.copy(position);
                 this.addStuds();
             }
@@ -167,11 +166,13 @@
                 // Add a black outline to the stud for better visibility.
                 const studRadius = 0.2;
                 const studHeight = 0.3;
+                // Use the method of LineSegments and create an outline for the stud. ai!
                 const studMaterial = new THREE.MeshLambertMaterial({
                     color: this.color, // Use the brick's color
                     emissive: 0x000000, // Add a black outline effect
                     emissiveIntensity: 0.5 // Adjust intensity for the outline
                 });
+
                 const studsX = this.size.width;
                 const studsZ = this.size.depth;
 
