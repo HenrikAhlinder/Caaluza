@@ -132,8 +132,11 @@
                     new THREE.MeshLambertMaterial({ color: color })
                 );
                 this.mesh.position.copy(position);
-
                 this.addStuds();
+            }
+
+            isthisBrick(mesh) {
+                return this.mesh === mesh || this.mesh.children.includes(mesh);
             }
 
             addStuds() {
@@ -297,17 +300,12 @@
                 const intersects = raycaster.intersectObjects(bricks.map(brick => brick.mesh));
 
                 if (intersects.length > 0) {
-                    const intersectedBrick = intersects[0].object.userData.parentBrick; // Retrieve the parent Brick
-                    if (intersectedBrick) { // Ensure parentBrick is defined
-                        intersectedBrick.removeFromScene(); // Call removeFromScene on the Brick instance
+                    const intersectedMesh = intersects[0].object; // Retrieve the parent Brick
+                    scene.remove(intersectedMesh);
 
-                        // Remove the brick from the bricks array
-                        const index = bricks.indexOf(intersectedBrick);
-                        if (index > -1) {
-                            bricks.splice(index, 1);
-                        }
-                    }
-                    const index = bricks.indexOf(intersectedBrick);
+                    // dispose brick and remove from brick list
+                    brick = bricks.find(brick => brick.isthisBrick(intersectedMesh));
+                    const index = bricks.indexOf(brick);
                     if (index > -1) {
                         bricks.splice(index, 1);
                     }
