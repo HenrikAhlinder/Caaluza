@@ -47,6 +47,8 @@
         renderer.setPixelRatio(window.devicePixelRatio);
         document.body.appendChild(renderer.domElement);
 
+        const gridCenter = new THREE.Vector3(3, 0, 3); // Center of the 5x5 grid
+
         // Add shortcut buttons to show the grid from each side (top, left, right, front, back)
         const buttonContainer = document.createElement('div');
         buttonContainer.style.position = 'fixed';
@@ -78,7 +80,7 @@
             });
             buttonContainer.appendChild(button);
         });
-        camera.position.set(2.5, 20, 2.5); // Default camera position
+        camera.position.set(gridCenter.x, 20, gridCenter.z); // Default camera position
 
         // Lighting
         // Create one light for each view in the 'views' array
@@ -103,7 +105,7 @@
         // Grid setup
         const gridSize = 6;
         const gridHelper = new THREE.GridHelper(gridSize, gridSize, 0x00ff00, 0x555555); // Green and grey grid
-        gridHelper.position.set(2.5, 0, 2.5); // Center the grid on 5x5 map
+        gridHelper.position.set(gridCenter.x, 0, gridCenter.z); // Center the grid on 5x5 map
         scene.add(gridHelper);
         // Position the camera to face the grid top-down
         camera.lookAt(gridHelper.position);
@@ -116,7 +118,6 @@
         const cameraRotationSpeed = 0.005;
         let lastMouseX = 0;
         let lastMouseY = 0;
-        const gridCenter = new THREE.Vector3(2.5, 0, 2.5); // Center of the 5x5 grid
 
         window.addEventListener('mousedown', (event) => {
             if (event.button === 1) { // Middle mouse button
