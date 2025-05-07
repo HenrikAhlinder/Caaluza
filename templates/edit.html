@@ -140,6 +140,7 @@
                 this.size = size;
 
                 // Create the main brick
+                // Add an outline to the brick for better visibility. ai!
                 this.mesh = new THREE.Mesh(
                     new THREE.BoxGeometry(size.width, size.height, size.depth),
                     new THREE.MeshLambertMaterial({ color: color })
