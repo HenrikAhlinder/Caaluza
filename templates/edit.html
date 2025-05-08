@@ -149,13 +149,6 @@
                     material
                 );
 
-                // Shift the position of the mesh to align its origin with its top-left corner
-                this.mesh.position.set(
-                    position.x - size.width / 2,
-                    position.y,
-                    position.z - size.depth / 2
-                );
-
                 // Add visible outline using THREE.LineSegments for edges
                 const edges = new THREE.EdgesGeometry(new THREE.BoxGeometry(size.width, size.height, size.depth));
                 const outline = new THREE.LineSegments(
@@ -163,7 +156,12 @@
                     new THREE.LineBasicMaterial({ color: 0x000000 }) // Black outline color
                 );
                 this.mesh.add(outline); // Attach the outline as a child of the brick
-                this.mesh.position.copy(position);
+                // Shift the position of the mesh to align its origin with its top-left corner
+                this.mesh.position.set(
+                    position.x + (size.width / 2) + 0.5,
+                    position.y,
+                    position.z + (size.depth / 2)
+                );
                 this.addStuds();
             }
 
@@ -277,9 +275,21 @@
 
         const brickOptions = [
             { name: '1x1 Yellow', color: 0xffff00, size: { width: 1, height: 1, depth: 1 } },
-            { name: '1x1 Red', color: 0xff0000, size: { width: 1, height: 1, depth: 1 } },
             { name: '1x2 Yellow', color: 0xffff00, size: { width: 1, height: 1, depth: 2 } },
+            { name: '1x4 Yellow', color: 0xffff00, size: { width: 1, height: 1, depth: 3 } },
+            { name: '1x4 Yellow', color: 0xffff00, size: { width: 1, height: 1, depth: 4 } },
+            { name: '1x1 Red', color: 0xff0000, size: { width: 1, height: 1, depth: 1 } },
             { name: '1x2 Red', color: 0xff0000, size: { width: 1, height: 1, depth: 2 } },
+            { name: '1x3 Red', color: 0xff0000, size: { width: 1, height: 1, depth: 3 } },
+            { name: '1x4 Red', color: 0xff0000, size: { width: 1, height: 1, depth: 4 } },
+            { name: '1x1 Blue', color: 0x0000ff, size: { width: 1, height: 1, depth: 1 } },
+            { name: '1x2 Blue', color: 0x0000ff, size: { width: 1, height: 1, depth: 2 } },
+            { name: '1x3 Blue', color: 0x0000ff, size: { width: 1, height: 1, depth: 3 } },
+            { name: '1x4 Blue', color: 0x0000ff, size: { width: 1, height: 1, depth: 4 } },
+            { name: '1x1 Green', color: 0x00FF00, size: { width: 1, height: 1, depth: 1 } },
+            { name: '1x2 Green', color: 0x00FF00, size: { width: 1, height: 1, depth: 2 } },
+            { name: '1x3 Green', color: 0x00FF00, size: { width: 1, height: 1, depth: 3 } },
+            { name: '1x4 Green', color: 0x00FF00, size: { width: 1, height: 1, depth: 4 } },
         ];
 
         brickOptions.forEach((option, index) => {
