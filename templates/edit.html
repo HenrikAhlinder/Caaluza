@@ -301,55 +301,77 @@
             button.style.background = '#fff';
             button.style.cursor = 'pointer';
 
-            button.addEventListener('click', () => {
-                selectedBrick = option;
-                console.log(`Selected Brick: ${option.name}`);
+            button.addEventListener('mousedown', (event) => {
+                if (!currentlyDraggedBrick) {
+                    // Create a new brick and start dragging
+                    const newBrick = new Brick(new THREE.Vector3(1000, 0.5, 1000), option.color, option.size, option.name);
+                    bricks.push(newBrick);
+                    newBrick.addToScene();
 
-                // Disable button after selection
-                button.disabled = true;
-                button.style.cursor = 'not-allowed';
-                button.style.opacity = '0.6';
+                    // Track the brick for dragging
+                    currentlyDraggedBrick = newBrick;
+                    dragOffset.set(0, 0, 0); // No offset for a newly created brick
+
+                    // Disable button after selection
+                    button.disabled = true;
+                    button.style.cursor = 'not-allowed';
+                    button.style.opacity = '0.6';
+                }
             });
 
             brickSelector.appendChild(button);
         });
 
-        // Allow placing bricks on top of another brick with the left mouse button
+        let currentlyDraggedBrick = null; // Tracks the brick being dragged
+        let dragOffset = new THREE.Vector3(); // Tracks offset between click point and the brick's center
+
         window.addEventListener('mousedown', (event) => {
-            if (event.button === 0) { // Check if it's the left mouse button
-                if (selectedBrick === null) {
-                    return; // No brick selected
-                }
-
+            if (event.button === 0 && !currentlyDraggedBrick) {
                 raycaster.setFromCamera(mouse, camera);
-                raycaster.ray.intersectPlane(plane, planeIntersect);
 
-                // Ensure the new brick position is within grid bounds
-                const positionX = Math.round(planeIntersect.x);
-                const positionZ = Math.round(planeIntersect.z);
-
-                if (positionX < 0 || positionX >= gridSize+1.0 || positionZ < 0 || positionZ >= gridSize+1.0) {
-                    return; // Do not place the brick outside the grid
-                }
-
-                // Intersect with each brick.mesh to allow stacking bricks on top of each other.
                 const intersects = raycaster.intersectObjects(bricks.map(brick => brick.mesh));
-                let newBrickY = 0.5; // Default elevation above ground
                 if (intersects.length > 0) {
-                    const intersectedBrick = intersects[0].object;
-                    newBrickY = intersectedBrick.position.y + 1; // Stack on top of the intersected brick
+                    // Start dragging the clicked brick
+                    const intersectedMesh = intersects[0].object;
+                    currentlyDraggedBrick = bricks.find(brick => brick.isthisBrick(intersectedMesh));
+                    const brickPosition = currentlyDraggedBrick.mesh.position;
+                    
+                    // Calculate the offset between the click and the brick center
+                    dragOffset.copy(intersects[0].point).sub(brickPosition);
                 }
+            }
+        });
 
-                const newBrick = new Brick(
-                    new THREE.Vector3( positionX-0.5, newBrickY, positionZ),
-                    selectedBrick.color,
-                    selectedBrick.size,
-                    selectedBrick.name
+        window.addEventListener('mousemove', (event) => {
+            if (currentlyDraggedBrick) {
+                // Update position while dragging
+                raycaster.setFromCamera(mouse, camera);
+                raycaster.ray.intersectPlane(plane, planeIntersect); // Intersect with the ground plane
+                if (planeIntersect) {
+                    // Adjust position based on the offset
+                    const gridSize = 1; // Snap to grid steps (e.g., LEGO standard)
+                    const snappedX = Math.round((planeIntersect.x - dragOffset.x) / gridSize) * gridSize - 0.5;
+                    const snappedZ = Math.round((planeIntersect.z - dragOffset.z) / gridSize) * gridSize;
 
-                );
-                selectedBrick = null;
-                bricks.push(newBrick);
-                newBrick.addToScene();
+                    currentlyDraggedBrick.mesh.position.set(snappedX, currentlyDraggedBrick.mesh.position.y, snappedZ);
+                }
+            }
+
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        });
+
+        // Mouse up: Place the brick in the scene
+        window.addEventListener('mouseup', (event) => {
+            if (event.button === 0 && currentlyDraggedBrick) { // Left mouse button
+                const snappedX = Math.round(currentlyDraggedBrick.mesh.position.x)-0.5;
+                const snappedZ = Math.round(currentlyDraggedBrick.mesh.position.z);
+
+                // Snap final position
+                currentlyDraggedBrick.mesh.position.set(snappedX, 0.5, snappedZ); // Default height 0.5
+
+                // Stop dragging
+                currentlyDraggedBrick = null;
             }
         });
 
