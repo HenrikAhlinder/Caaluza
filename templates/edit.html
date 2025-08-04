@@ -250,6 +250,7 @@
         const raycaster = new THREE.Raycaster();
         const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0); // Ground plane
         const planeIntersect = new THREE.Vector3();
+        const verticalStep = 1;
 
         // Fetch mouse coordinates and update raycaster
         window.addEventListener('mousemove', (event) => {
@@ -277,7 +278,7 @@
         const brickOptions = [
             { name: '1x1 Yellow', color: 0xffff00, size: { width: 1, height: 1, depth: 1 } },
             { name: '1x2 Yellow', color: 0xffff00, size: { width: 1, height: 1, depth: 2 } },
-            { name: '1x4 Yellow', color: 0xffff00, size: { width: 1, height: 1, depth: 3 } },
+            { name: '1x3 Yellow', color: 0xffff00, size: { width: 1, height: 1, depth: 3 } },
             { name: '1x4 Yellow', color: 0xffff00, size: { width: 1, height: 1, depth: 4 } },
             { name: '1x1 Red', color: 0xff0000, size: { width: 1, height: 1, depth: 1 } },
             { name: '1x2 Red', color: 0xff0000, size: { width: 1, height: 1, depth: 2 } },
@@ -350,7 +351,7 @@
                 if (planeIntersect) {
                     // Adjust position based on the offset
                     const gridSize = 1; // Snap to grid steps (e.g., LEGO standard)
-                    const snappedX = Math.round((planeIntersect.x - dragOffset.x) / gridSize) * gridSize - 0.5;
+                    const snappedX = Math.round((planeIntersect.x - dragOffset.x) / gridSize) * gridSize;
                     const snappedZ = Math.round((planeIntersect.z - dragOffset.z) / gridSize) * gridSize;
 
                     currentlyDraggedBrick.mesh.position.set(snappedX, currentlyDraggedBrick.mesh.position.y, snappedZ);
@@ -364,14 +365,26 @@
         // Mouse up: Place the brick in the scene
         window.addEventListener('mouseup', (event) => {
             if (event.button === 0 && currentlyDraggedBrick) { // Left mouse button
-                const snappedX = Math.round(currentlyDraggedBrick.mesh.position.x)-0.5;
-                const snappedZ = Math.round(currentlyDraggedBrick.mesh.position.z);
-
-                // Snap final position
-                currentlyDraggedBrick.mesh.position.set(snappedX, 0.5, snappedZ); // Default height 0.5
-
                 // Stop dragging
                 currentlyDraggedBrick = null;
+            }
+        });
+
+        // Handle Keyboard Input for Vertical Movement (W/S keys)
+        window.addEventListener('keydown', (event) => {
+            if (currentlyDraggedBrick) {
+                switch (event.key) {
+                    case 'w': // Move up
+                        currentlyDraggedBrick.mesh.position.y += verticalStep;
+                        break;
+
+                    case 's': // Move down
+                        currentlyDraggedBrick.mesh.position.y -= verticalStep;
+                        break;
+
+                    default:
+                        break;
+                }
             }
         });
 
@@ -394,7 +407,7 @@
                     }
 
                     // enable the button for the deleted brick
-                    const button = Array.from(brickSelector.children).find(btn => btn.innerText === brick.mesh.name);
+                    const button = Array.from(brickSelector.children).find(btn => btn.innerText === brick.buttonName);
                     if (button) {
                         button.disabled = false;
                         button.style.cursor = 'pointer';
