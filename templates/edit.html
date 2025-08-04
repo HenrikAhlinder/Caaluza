@@ -384,6 +384,10 @@
                         currentlyDraggedBrick.mesh.position.y -= verticalStep;
                         break;
 
+                    case 'r': // rotate
+                        currentlyDraggedBrick.mesh.rotation.y += Math.PI / 2; // Rotate 90 degrees
+                        break;
+
                     default:
                         break;
                 }
