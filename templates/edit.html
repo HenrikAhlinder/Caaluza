@@ -61,7 +61,7 @@
 
         // Predefined views adjusted for Orthographic Camera
         const views = [
-            { name: 'Top', position: { x: 2.5, y: 10, z: 2.5 } },
+            { name: 'Top', position: { x: 3, y: 10, z: 3 } },
             { name: '0 deg', position: { x: -15, y: 0.0, z: 3.0 } },
             { name: '90 deg', position: { x: 3, y: 0.0, z: 20 } },
             { name: '180 deg', position: { x: 20, y: 0.0, z: 3 } },
@@ -113,7 +113,7 @@
 
         const bricks = [];
 
-        // Rotate camera around the center of the grid with the right mouse button
+        // Rotate camera around the center of the grid with the center mouse button
         let shouldCameraMove = false;
         const cameraRotationSpeed = 0.005;
         let lastMouseX = 0;
@@ -135,10 +135,11 @@
 
         // Create a Brick class to encapsulate the brick and its studs
         class Brick {
-            constructor(position, color, size) {
+            constructor(position, color, size, name) {
                 this.position = position;
                 this.color = color;
                 this.size = size;
+                this.buttonName = name;
 
                 // Create the main brick
                 // Add an outline to the brick for better visibility.
@@ -342,7 +343,9 @@
                 const newBrick = new Brick(
                     new THREE.Vector3( positionX-0.5, newBrickY, positionZ),
                     selectedBrick.color,
-                    selectedBrick.size
+                    selectedBrick.size,
+                    selectedBrick.name
+
                 );
                 selectedBrick = null;
                 bricks.push(newBrick);
@@ -366,6 +369,14 @@
                     const index = bricks.indexOf(brick);
                     if (index > -1) {
                         bricks.splice(index, 1);
+                    }
+
+                    // enable the button for the deleted brick
+                    const button = Array.from(brickSelector.children).find(btn => btn.innerText === brick.mesh.name);
+                    if (button) {
+                        button.disabled = false;
+                        button.style.cursor = 'pointer';
+                        button.style.opacity = '1';
                     }
                 }
                 event.preventDefault(); // Prevent browser context menu
