@@ -140,18 +140,20 @@
                 this.color = color;
                 this.size = size;
                 this.buttonName = name;
-
+                // Create a geometry centered at the origin
+                // Adjust the geometry to align its top-left corner as the anchor point
+                const geometry = new THREE.BoxGeometry(size.width, size.height, size.depth);
+                geometry.translate(-size.width / 2, size.height, -size.depth / 2);
                 // Create the main brick
                 // Add an outline to the brick for better visibility.
                 // Adjust the brick's origin point to the top-left corner.
                 const material = new THREE.MeshLambertMaterial({ color: color });
                 this.mesh = new THREE.Mesh(
-                    new THREE.BoxGeometry(size.width, size.height, size.depth),
+                    geometry,
                     material
                 );
-
                 // Add visible outline using THREE.LineSegments for edges
-                const edges = new THREE.EdgesGeometry(new THREE.BoxGeometry(size.width, size.height, size.depth));
+                const edges = new THREE.EdgesGeometry(geometry);
                 const outline = new THREE.LineSegments(
                     edges,
                     new THREE.LineBasicMaterial({ color: 0x000000 }) // Black outline color
@@ -164,7 +166,7 @@
                     position.z + (size.depth / 2)
                 );
                 this.addStuds();
-            }
+                }
 
             isthisBrick(mesh) {
                 return this.mesh === mesh || this.mesh.children.includes(mesh);
@@ -187,9 +189,9 @@
                         const studGeometry = new THREE.CylinderGeometry(studRadius, studRadius, studHeight, 32);
                         const stud = new THREE.Mesh(studGeometry, studMaterial);
                         stud.position.set(
-                            x - studsX / 2 + 0.5,
-                            this.size.height / 2 + 0.1, // Place studs slightly above
-                            z - studsZ / 2 + 0.5
+                            -x - 0.5,
+                            this.size.height + 0.5, // Place studs slightly above
+                            -z - 0.5
                         );
 
                         // Create the outline for the stud
@@ -305,7 +307,7 @@
             button.addEventListener('mousedown', (event) => {
                 if (!currentlyDraggedBrick) {
                     // Create a new brick and start dragging
-                    const newBrick = new Brick(new THREE.Vector3(1000, 0.5, 1000), option.color, option.size, option.name);
+                    const newBrick = new Brick(new THREE.Vector3(1000, -0.5, 1000), option.color, option.size, option.name);
                     bricks.push(newBrick);
                     newBrick.addToScene();
 
