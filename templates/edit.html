@@ -316,27 +316,37 @@
         brickSelector.innerHTML = '<strong>Choose a Brick:</strong>';
         document.body.appendChild(brickSelector);
 
+        // Generate brick options using loops
+        const colors = [
+            { name: 'Yellow', hex: 0xffff00 },
+            { name: 'Red', hex: 0xff0000 },
+            { name: 'Blue', hex: 0x0000ff },
+            { name: 'Green', hex: 0x00FF00 }
+        ];
+
+        const sizes = [
+            { name: '1x1', width: 1, depth: 1 },
+            { name: '1x2', width: 1, depth: 2 },
+            { name: '1x3', width: 1, depth: 3 },
+            { name: '1x4', width: 1, depth: 4 },
+            { name: '2x2', width: 2, depth: 2 },
+            { name: '2x3', width: 2, depth: 3 },
+            { name: '2x4', width: 2, depth: 4 }
+        ];
+
+        const brickOptions = [];
+        colors.forEach(color => {
+            sizes.forEach(size => {
+                brickOptions.push({
+                    name: `${size.name} ${color.name}`,
+                    color: color.hex,
+                    size: { width: size.width, height: 1, depth: size.depth }
+                });
+            });
+        });
+
         // Implement GUI where each brick can be selected and placed only once.
         var selectedBrick = null; // Variable to store the selected brick
-
-        const brickOptions = [
-            { name: '1x1 Yellow', color: 0xffff00, size: { width: 1, height: 1, depth: 1 } },
-            { name: '1x2 Yellow', color: 0xffff00, size: { width: 1, height: 1, depth: 2 } },
-            { name: '1x3 Yellow', color: 0xffff00, size: { width: 1, height: 1, depth: 3 } },
-            { name: '1x4 Yellow', color: 0xffff00, size: { width: 1, height: 1, depth: 4 } },
-            { name: '1x1 Red', color: 0xff0000, size: { width: 1, height: 1, depth: 1 } },
-            { name: '1x2 Red', color: 0xff0000, size: { width: 1, height: 1, depth: 2 } },
-            { name: '1x3 Red', color: 0xff0000, size: { width: 1, height: 1, depth: 3 } },
-            { name: '1x4 Red', color: 0xff0000, size: { width: 1, height: 1, depth: 4 } },
-            { name: '1x1 Blue', color: 0x0000ff, size: { width: 1, height: 1, depth: 1 } },
-            { name: '1x2 Blue', color: 0x0000ff, size: { width: 1, height: 1, depth: 2 } },
-            { name: '1x3 Blue', color: 0x0000ff, size: { width: 1, height: 1, depth: 3 } },
-            { name: '1x4 Blue', color: 0x0000ff, size: { width: 1, height: 1, depth: 4 } },
-            { name: '1x1 Green', color: 0x00FF00, size: { width: 1, height: 1, depth: 1 } },
-            { name: '1x2 Green', color: 0x00FF00, size: { width: 1, height: 1, depth: 2 } },
-            { name: '1x3 Green', color: 0x00FF00, size: { width: 1, height: 1, depth: 3 } },
-            { name: '1x4 Green', color: 0x00FF00, size: { width: 1, height: 1, depth: 4 } },
-        ];
 
         brickOptions.forEach((option, index) => {
             const button = document.createElement('button');
