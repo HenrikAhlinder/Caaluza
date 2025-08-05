@@ -315,6 +315,22 @@
                     currentlyDraggedBrick = newBrick;
                     dragOffset.set(0, 0, 0); // No offset for a newly created brick
 
+                    // Create and add ghost brick
+                    ghostBrick = createGhostBrick(currentlyDraggedBrick);
+                    scene.add(ghostBrick);
+
+                    // Position ghost brick immediately at cursor location
+                    raycaster.setFromCamera(mouse, camera);
+                    raycaster.ray.intersectPlane(plane, planeIntersect);
+                    if (planeIntersect) {
+                        const gridSize = 1;
+                        const snappedX = Math.round(planeIntersect.x / gridSize) * gridSize;
+                        const snappedZ = Math.round(planeIntersect.z / gridSize) * gridSize;
+                        
+                        currentlyDraggedBrick.mesh.position.set(snappedX, currentlyDraggedBrick.mesh.position.y, snappedZ);
+                        ghostBrick.position.set(snappedX, -0.5, snappedZ);
+                    }
+
                     // Disable button after selection
                     button.disabled = true;
                     button.style.cursor = 'not-allowed';
@@ -327,6 +343,40 @@
 
         let currentlyDraggedBrick = null; // Tracks the brick being dragged
         let dragOffset = new THREE.Vector3(); // Tracks offset between click point and the brick's center
+        let ghostBrick = null; // Ghost brick to show outline on floor
+
+        // Create ghost brick for floor preview
+        function createGhostBrick(originalBrick) {
+            const ghostGeometry = new THREE.BoxGeometry(
+                originalBrick.size.width, 
+                originalBrick.size.height, 
+                originalBrick.size.depth
+            );
+            ghostGeometry.translate(-originalBrick.size.width / 2, originalBrick.size.height, -originalBrick.size.depth / 2);
+            
+            const ghostMaterial = new THREE.MeshLambertMaterial({ 
+                color: "white",
+                transparent: true,
+                opacity: 0.3,
+                wireframe: true
+            });
+            
+            const ghost = new THREE.Mesh(ghostGeometry, ghostMaterial);
+            
+            // Add wireframe outline
+            const edges = new THREE.EdgesGeometry(ghostGeometry);
+            const outline = new THREE.LineSegments(
+                edges,
+                new THREE.LineBasicMaterial({ 
+                    color: "white",
+                    transparent: true,
+                    opacity: 0.6
+                })
+            );
+            ghost.add(outline);
+            
+            return ghost;
+        }
 
         window.addEventListener('mousedown', (event) => {
             if (event.button === 0 && !currentlyDraggedBrick) {
@@ -341,6 +391,14 @@
                     
                     // Calculate the offset between the click and the brick center
                     dragOffset.copy(intersects[0].point).sub(brickPosition);
+                    
+                    // Create and add ghost brick
+                    ghostBrick = createGhostBrick(currentlyDraggedBrick);
+                    scene.add(ghostBrick);
+                    
+                    // Position ghost brick immediately at floor level below the brick and copy rotation
+                    ghostBrick.position.set(brickPosition.x, -0.5, brickPosition.z);
+                    ghostBrick.rotation.copy(currentlyDraggedBrick.mesh.rotation);
                 }
             }
         });
@@ -357,6 +415,11 @@
                     const snappedZ = Math.round((planeIntersect.z - dragOffset.z) / gridSize) * gridSize;
 
                     currentlyDraggedBrick.mesh.position.set(snappedX, currentlyDraggedBrick.mesh.position.y, snappedZ);
+                    
+                    // Update ghost brick position on floor
+                    if (ghostBrick) {
+                        ghostBrick.position.set(snappedX, -0.5, snappedZ); // Place at floor level
+                    }
                 }
             }
 
@@ -367,6 +430,14 @@
         // Mouse up: Place the brick in the scene
         window.addEventListener('mouseup', (event) => {
             if (event.button === 0 && currentlyDraggedBrick) { // Left mouse button
+                // Remove ghost brick
+                if (ghostBrick) {
+                    scene.remove(ghostBrick);
+                    ghostBrick.geometry.dispose();
+                    ghostBrick.material.dispose();
+                    ghostBrick = null;
+                }
+                
                 // Stop dragging
                 currentlyDraggedBrick = null;
             }
@@ -386,6 +457,10 @@
 
                     case 'r': // rotate
                         currentlyDraggedBrick.mesh.rotation.y += Math.PI / 2; // Rotate 90 degrees
+                        // Update ghost brick rotation if it exists
+                        if (ghostBrick) {
+                            ghostBrick.rotation.copy(currentlyDraggedBrick.mesh.rotation);
+                        }
                         break;
 
                     default:
