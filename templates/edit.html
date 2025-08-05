@@ -115,7 +115,7 @@
 
         // Add studs to the baseplate
         const studRadius = 0.2;
-        const studHeight = 0.15;
+        const studHeight = 0.35;
         const studMaterial = new THREE.MeshLambertMaterial({ color: 0x808080 }); // Same gray as baseplate
 
         for (let x = 0; x < gridSize; x++) {
@@ -126,7 +126,7 @@
                 // Position studs on top of the baseplate
                 stud.position.set(
                     gridCenter.x - gridSize/2 + 0.5 + x,
-                    baseplateHeight/2 + studHeight/2,
+                    baseplateHeight/2,
                     gridCenter.z - gridSize/2 + 0.5 + z
                 );
                 
