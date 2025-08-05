@@ -102,14 +102,56 @@
         const ambientLight = new THREE.AmbientLight(0x404040, 0.5); // Soft white light
         scene.add(ambientLight);
 
-        // Grid setup
+        // Create LEGO baseplate instead of grid helper
         const gridSize = 6;
-        const gridHelper = new THREE.GridHelper(gridSize, gridSize, 0x00ff00, 0x555555); // Green and grey grid
-        gridHelper.position.set(gridCenter.x, 0, gridCenter.z); // Center the grid on 5x5 map
-        scene.add(gridHelper);
-        // Position the camera to face the grid top-down
-        camera.lookAt(gridHelper.position);
+        const baseplateHeight = 0.2;
+        const baseplateGeometry = new THREE.BoxGeometry(gridSize, baseplateHeight, gridSize);
+        const baseplateMaterial = new THREE.MeshLambertMaterial({ color: 0x808080 }); // Gray color
+        const baseplate = new THREE.Mesh(baseplateGeometry, baseplateMaterial);
+        
+        // Position the baseplate at the grid center
+        baseplate.position.set(gridCenter.x, -baseplateHeight/2, gridCenter.z);
+        scene.add(baseplate);
 
+        // Add studs to the baseplate
+        const studRadius = 0.2;
+        const studHeight = 0.15;
+        const studMaterial = new THREE.MeshLambertMaterial({ color: 0x808080 }); // Same gray as baseplate
+
+        for (let x = 0; x < gridSize; x++) {
+            for (let z = 0; z < gridSize; z++) {
+                const studGeometry = new THREE.CylinderGeometry(studRadius, studRadius, studHeight, 16);
+                const stud = new THREE.Mesh(studGeometry, studMaterial);
+                
+                // Position studs on top of the baseplate
+                stud.position.set(
+                    gridCenter.x - gridSize/2 + 0.5 + x,
+                    baseplateHeight/2 + studHeight/2,
+                    gridCenter.z - gridSize/2 + 0.5 + z
+                );
+                
+                // Add black outline to studs
+                const studEdges = new THREE.EdgesGeometry(studGeometry);
+                const studOutline = new THREE.LineSegments(
+                    studEdges,
+                    new THREE.LineBasicMaterial({ color: 0x000000 })
+                );
+                stud.add(studOutline);
+                
+                scene.add(stud);
+            }
+        }
+
+        // Add black outline to the baseplate
+        const baseplateEdges = new THREE.EdgesGeometry(baseplateGeometry);
+        const baseplateOutline = new THREE.LineSegments(
+            baseplateEdges,
+            new THREE.LineBasicMaterial({ color: 0x000000 })
+        );
+        baseplate.add(baseplateOutline);
+
+        // Position the camera to face the grid top-down
+        camera.lookAt(gridCenter);
 
         const bricks = [];
 
