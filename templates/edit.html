@@ -468,9 +468,10 @@
 
                     currentlyDraggedBrick.mesh.position.set(snappedX, currentlyDraggedBrick.mesh.position.y, snappedZ);
                     
-                    // Update ghost brick position on floor
+                    // Update ghost brick position on floor and visibility
                     if (ghostBrick) {
                         ghostBrick.position.set(snappedX, -0.5, snappedZ); // Place at floor level
+                        ghostBrick.visible = currentlyDraggedBrick.mesh.position.y > -0.5;
                     }
                 }
             }
@@ -501,10 +502,18 @@
                 switch (event.key) {
                     case 'w': // Move up
                         currentlyDraggedBrick.mesh.position.y += verticalStep;
+                        // Update ghost brick visibility
+                        if (ghostBrick) {
+                            ghostBrick.visible = currentlyDraggedBrick.mesh.position.y > -0.5;
+                        }
                         break;
 
                     case 's': // Move down
                         currentlyDraggedBrick.mesh.position.y -= verticalStep;
+                        // Update ghost brick visibility
+                        if (ghostBrick) {
+                            ghostBrick.visible = currentlyDraggedBrick.mesh.position.y > -0.5;
+                        }
                         break;
 
                     case 'r': // rotate
