@@ -13,13 +13,16 @@
         #save-btn {
             position: fixed;
             top: 10px;
-            right: 10px;
+            right: 150px;
         padding: 10px 20px;
         background-color: #4CAF50;
         color: white;
         border: none;
         border-radius: 5px;
         cursor: pointer;
+        z-index: 1000;
+        font-size: 14px;
+        font-weight: bold;
         }
         #save-btn:hover {
         background-color: #45a049;
@@ -48,6 +51,7 @@
         document.body.appendChild(renderer.domElement);
 
         const gridCenter = new THREE.Vector3(3, 0, 3); // Center of the 5x5 grid
+        const groundlevel = -0.5;
 
         // Add shortcut buttons to show the grid from each side (top, left, right, front, back)
         const buttonContainer = document.createElement('div');
@@ -248,6 +252,19 @@
                         this.mesh.add(stud); // Add the stud as a child of the brick's mesh
                     }
                 }
+            }
+
+            getGridSquaresCovered() {
+                const bbox = new THREE.Box3().setFromObject(this.mesh);
+                let squares = [];
+                const y = Math.round(bbox.min.y);
+
+                for (let x=Math.round(bbox.min.x); x < Math.round(bbox.max.x); x++) {
+                    for (let z=Math.round(bbox.min.z); z < Math.round(bbox.max.z); z++) {
+                        squares.push({ x: x, y: y, z: z });
+                    }
+                }
+                return squares;
             }
 
             addToScene() {
@@ -585,19 +602,32 @@
         // Save scene as JSON
         const saveButton = document.getElementById('save-btn');
         saveButton.addEventListener('click', () => {
-            const json = JSON.stringify(bricks.map(brick => ({
-                position: {
-                    x: brick.position.x,
-                    y: brick.position.y,
-                    z: brick.position.z
-                },
-                color: brick.material.color.getHex()
-            })));
+            const serializedBricks = bricks.map(brick => {
+            return {
+                    color: brick.color,
+                    name: brick.buttonName,
+                    gridSquaresCovered: brick.getGridSquaresCovered()
+                };
+            });
+            
+            const sceneData = {
+                bricks: serializedBricks,
+                metadata: {
+                    gridSize: gridSize,
+                    timestamp: new Date().toISOString(),
+                    version: "1.0"
+                }
+            };
+            
+            const json = JSON.stringify(sceneData, null, 2);
             const blob = new Blob([json], { type: 'application/json' });
             const link = document.createElement('a');
+            
+            console.log('Saving scene data:', sceneData);
+
             link.href = URL.createObjectURL(blob);
-            link.download = 'scene.json';
-            link.click();
+            // link.download = 'lego_construction.json';
+            // link.click();
         });
         </script>
     </body>
