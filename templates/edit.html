@@ -313,7 +313,10 @@
         brickSelector.style.display = 'flex';
         brickSelector.style.flexDirection = 'column';
         brickSelector.style.gap = '5px';
-        brickSelector.innerHTML = '<strong>Choose a Brick:</strong>';
+        brickSelector.style.maxHeight = '400px';
+        brickSelector.style.overflowY = 'auto';
+        brickSelector.style.width = '120px';
+        brickSelector.innerHTML = '<strong>Bricks:</strong>';
         document.body.appendChild(brickSelector);
 
         // Generate brick options using loops
@@ -334,63 +337,74 @@
             { name: '2x4', width: 2, depth: 4 }
         ];
 
-        const brickOptions = [];
-        colors.forEach(color => {
-            sizes.forEach(size => {
-                brickOptions.push({
-                    name: `${size.name} ${color.name}`,
-                    color: color.hex,
-                    size: { width: size.width, height: 1, depth: size.depth }
-                });
-            });
-        });
-
         // Implement GUI where each brick can be selected and placed only once.
         var selectedBrick = null; // Variable to store the selected brick
 
-        brickOptions.forEach((option, index) => {
-            const button = document.createElement('button');
-            button.innerText = option.name;
-            button.style.padding = '5px';
-            button.style.border = '1px solid #ccc';
-            button.style.background = '#fff';
-            button.style.cursor = 'pointer';
+        colors.forEach(color => {
+            // Create color group header
+            const colorHeader = document.createElement('div');
+            colorHeader.style.fontWeight = 'bold';
+            colorHeader.style.fontSize = '12px';
+            colorHeader.style.color = `#${color.hex.toString(16).padStart(6, '0')}`;
+            colorHeader.style.marginTop = '5px';
+            colorHeader.innerText = color.name;
+            brickSelector.appendChild(colorHeader);
 
-            button.addEventListener('mousedown', (event) => {
-                if (!currentlyDraggedBrick) {
-                    // Create a new brick and start dragging
-                    const newBrick = new Brick(new THREE.Vector3(1000, -0.5, 1000), option.color, option.size, option.name);
-                    bricks.push(newBrick);
-                    newBrick.addToScene();
+            // Create container for size buttons
+            const sizeContainer = document.createElement('div');
+            sizeContainer.style.display = 'grid';
+            sizeContainer.style.gridTemplateColumns = '1fr 1fr';
+            sizeContainer.style.gap = '2px';
+            brickSelector.appendChild(sizeContainer);
 
-                    // Track the brick for dragging
-                    currentlyDraggedBrick = newBrick;
-                    dragOffset.set(0, 0, 0); // No offset for a newly created brick
+            sizes.forEach(size => {
+                const button = document.createElement('button');
+                const name = `${size.name} ${color.name}`;
+                button.innerText = `${size.name}`;
+                button.title = name; // Tooltip for full name
+                button.style.padding = '3px';
+                button.style.border = '1px solid #ccc';
+                button.style.background = '#fff';
+                button.style.cursor = 'pointer';
+                button.style.fontSize = '10px';
+                button.style.minHeight = '20px';
 
-                    // Create and add ghost brick
-                    ghostBrick = createGhostBrick(currentlyDraggedBrick);
-                    scene.add(ghostBrick);
+                button.addEventListener('mousedown', (event) => {
+                    if (!currentlyDraggedBrick) {
+                        // Create a new brick and start dragging
+                        const newBrick = new Brick(new THREE.Vector3(1000, -0.5, 1000), color.hex, { width: size.width, height: 1, depth: size.depth }, name);
+                        bricks.push(newBrick);
+                        newBrick.addToScene();
 
-                    // Position ghost brick immediately at cursor location
-                    raycaster.setFromCamera(mouse, camera);
-                    raycaster.ray.intersectPlane(plane, planeIntersect);
-                    if (planeIntersect) {
-                        const gridSize = 1;
-                        const snappedX = Math.round(planeIntersect.x / gridSize) * gridSize;
-                        const snappedZ = Math.round(planeIntersect.z / gridSize) * gridSize;
-                        
-                        currentlyDraggedBrick.mesh.position.set(snappedX, currentlyDraggedBrick.mesh.position.y, snappedZ);
-                        ghostBrick.position.set(snappedX, -0.5, snappedZ);
+                        // Track the brick for dragging
+                        currentlyDraggedBrick = newBrick;
+                        dragOffset.set(0, 0, 0); // No offset for a newly created brick
+
+                        // Create and add ghost brick
+                        ghostBrick = createGhostBrick(currentlyDraggedBrick);
+                        scene.add(ghostBrick);
+
+                        // Position ghost brick immediately at cursor location
+                        raycaster.setFromCamera(mouse, camera);
+                        raycaster.ray.intersectPlane(plane, planeIntersect);
+                        if (planeIntersect) {
+                            const gridSize = 1;
+                            const snappedX = Math.round(planeIntersect.x / gridSize) * gridSize;
+                            const snappedZ = Math.round(planeIntersect.z / gridSize) * gridSize;
+                            
+                            currentlyDraggedBrick.mesh.position.set(snappedX, currentlyDraggedBrick.mesh.position.y, snappedZ);
+                            ghostBrick.position.set(snappedX, -0.5, snappedZ);
+                        }
+
+                        // Disable button after selection
+                        button.disabled = true;
+                        button.style.cursor = 'not-allowed';
+                        button.style.opacity = '0.6';
                     }
+                });
 
-                    // Disable button after selection
-                    button.disabled = true;
-                    button.style.cursor = 'not-allowed';
-                    button.style.opacity = '0.6';
-                }
+                sizeContainer.appendChild(button);
             });
-
-            brickSelector.appendChild(button);
         });
 
         let currentlyDraggedBrick = null; // Tracks the brick being dragged
@@ -549,7 +563,8 @@
                     }
 
                     // enable the button for the deleted brick
-                    const button = Array.from(brickSelector.children).find(btn => btn.innerText === brick.buttonName);
+                    const buttons = brickSelector.querySelectorAll('button');
+                    const button = Array.from(buttons).find(btn => btn.title === brick.buttonName);
                     if (button) {
                         button.disabled = false;
                         button.style.cursor = 'pointer';
