@@ -24,7 +24,7 @@ class Point:
         })
 
     @classmethod
-    def from_json(cls, data):
+    def from_dict(cls, data):
         """Create a Point instance from a JSON dictionary."""
         data = json.loads(data)
         return cls(x=data['x'], y=data['y'], z=data['z'])
@@ -44,34 +44,30 @@ class Brick:
     A class to represent a LEGO-like brick.
     
     Attributes:
-        color (str): The color of the brick.
-        size (int): The size of the brick in standard LEGO units.
+        xs list[int]: X-coordinates the brick occupies.
+        zs list[int]: Z-coordinates the brick occupies.
+        color: The color of the brick.
+        name: The name of the brick (optional).
     """
     color: str
-    width: int
-    depth: int
+    name: str
+    xs: list[int]
+    zs: list[int]
+    y: int
 
     def to_json(self):
         """Convert Brick to a JSON-serializable dictionary."""
         return json.dumps({
             'color': self.color,
-            'width': self.width,
-            'depth': self.depth
+            'xs': self.xs,
+            'zs': self.zs,
+            'y': self.y,
+            'name': self.name,
         })
 
     @classmethod
-    def from_json(cls, data):
-        """Create a Brick instance from a JSON dictionary."""
-        data = json.loads(data)
-        return cls(color=data['color'], width=data['width'], depth=data['depth'])
-
-    def __hash__(self):
-        """Make the Brick class hashable."""
-        return hash((self.color, self.width, self.depth))
-
-    def describe(self):
-        """Return a string describing the brick."""
-        return f"A {self.color} brick of size {self.width}x{self.depth}."
+    def from_dict(cls, data):
+        return cls(color=data['color'], xs=data['xs'], zs=data['zs'], y=data['y'], name=data['name'])
 
 class BrickMap:
     """
@@ -81,32 +77,46 @@ class BrickMap:
         width (int): The width of the map.
         height (int): The height of the map.
         depth (int): The depth of the map.
+        name (str): The name of the map.
+        timestamp (datetime): The timestamp of the map creation.
         map (list): A 3D array of bricks. Starts with a bottom plate (z=0).
     """
-    
-    def to_json(self):
-        """Convert the BrickMap to a JSON serializable dictionary."""
-        return json.dumps({
-            'width': self.width,
-            'height': self.height,
-            'depth': self.depth,
-            'map': [[[brick.to_json() if brick else None for brick in layer]
-                     for layer in row] for row in self.map]
-        })
 
+    def to_json(self):
+        """Convert BrickMap to a JSON-serializable dictionary."""
+        return json.dumps({
+            'metadata': {
+                'width': self.width,
+                'height': self.height,
+                'depth': self.depth,
+                'name': self.name,
+                'timestamp': self.timestamp
+            },
+            'bricks': [brick.to_json() for brick in self.bricks.keys()]
+        })
+    
     @classmethod
-    def from_json(cls, data):
+    def from_dict(cls, data):
         """Create a BrickMap instance from a JSON dictionary."""
-        data = json.loads(data)
-        brick_map = cls(data['width'], data['height'], data['depth'])
-        brick_map.map = [[[Brick.from_json(brick) if brick else None for brick in layer]
-                          for layer in row] for row in data['map']]
+
+        print(data)
+        metadata = data.get('metadata', {})
+        if len(metadata) == 0:
+            raise ValueError("Metadata is required to create a BrickMap.")
+        brick_map = cls(metadata["width"], metadata["height"], metadata["depth"], name=metadata["name"], timestamp=metadata["timestamp"])
+        bricks = data.get('bricks', [])
+        if not isinstance(bricks, list) or len(bricks) == 0:
+            raise ValueError("Bricks data is required to create a BrickMap.")
+        brick_map.map = [Brick.from_dict(brick) for brick in bricks]
+
         return brick_map
 
-    def __init__(self, width=5, height=5, depth=1):
+    def __init__(self, width=6, height=1, depth=6, name="Default Map", timestamp=None):
         self.width = width
         self.height = height
         self.depth = depth
+        self.name = name
+        self.timestamp = timestamp
         # Initialize a 3D array filled with `None` to represent an empty map
         self.map = [[[None for _ in range(depth)] for _ in range(height)] for _ in range(width)]
         self.bricks = {}
@@ -169,34 +179,3 @@ class BrickMap:
                     if brick:
                         description += f"({x}, {y}, {z}): {brick.describe()}\n"
         return description
-
-# Create a BrickMap instance and add bricks to it
-if __name__ == "__main__":
-    brick_map = BrickMap(5, 5, 1)
-    red_brick = Brick("red", 2, 1)
-    blue_brick = Brick("blue", 1, 1)
-    
-    # Add bricks to the map
-    brick_map.add_brick(Point(0, 0, 0), red_brick)
-    brick_map.add_brick(Point(2, 2, 0), blue_brick)
-
-    # Draw the map in ASCII format
-    width, height = brick_map.width, brick_map.height
-    for y in range(height):
-        row = ""
-        for x in range(width):
-            brick = brick_map.map[x][y][0]
-            row += brick.color[0].upper() if brick else "."
-        print(row)
-
-    # Remove a brick from the map
-    brick_map.remove_brick(0, 0, 0)
-    print("\nAfter removing a brick:\n")
-
-    # Draw the map in ASCII format again
-    for y in range(height):
-        row = ""
-        for x in range(width):
-            brick = brick_map.map[x][y][0]
-            row += brick.color[0].upper() if brick else "."
-        print(row)

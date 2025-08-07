@@ -603,31 +603,60 @@
         const saveButton = document.getElementById('save-btn');
         saveButton.addEventListener('click', () => {
             const serializedBricks = bricks.map(brick => {
+            const gridSquaresCovered = brick.getGridSquaresCovered();
+            let xs = [];
+            let zs = [];
+            let y = null;
+            gridSquaresCovered.forEach(square => {
+                xs.push(square.x);
+                zs.push(square.z);
+                y = square.y;
+            });
             return {
                     color: brick.color,
                     name: brick.buttonName,
-                    gridSquaresCovered: brick.getGridSquaresCovered()
+                    xs: xs,
+                    zs: zs,
+                    y: y
                 };
             });
             
             const sceneData = {
                 bricks: serializedBricks,
                 metadata: {
-                    gridSize: gridSize,
+                    name: "TODO",
+                    width: gridSize,
+                    height: 1,
+                    depth: gridSize,
                     timestamp: new Date().toISOString(),
                     version: "1.0"
                 }
             };
             
-            const json = JSON.stringify(sceneData, null, 2);
-            const blob = new Blob([json], { type: 'application/json' });
-            const link = document.createElement('a');
-            
             console.log('Saving scene data:', sceneData);
 
-            link.href = URL.createObjectURL(blob);
-            // link.download = 'lego_construction.json';
-            // link.click();
+            // POST to /save-map endpoint
+            fetch('/save-map', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(sceneData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Error saving map: ' + data.error);
+                } else {
+                    alert('Map saved successfully! ID: ' + data.map_id);
+                }
+                console.log('Save response:', data);
+            })
+            .catch(error => {
+                console.error('Error saving map:', error);
+                alert('Failed to save map: ' + error.message);
+            });
+
         });
         </script>
     </body>
