@@ -27,10 +27,18 @@ def create_map():
         new_map = BrickMap.from_dict(data)  # Validate the data structure
     except Exception as e:
         return jsonify({'error': f'Invalid map data: {str(e)}'}), 400
-    # storage.save_map(data.get("map_id", "default_map"), new_map)  # Save the map in storage
-    print(new_map.to_json())
-
+    storage.save_map(data.get("map_id", "default_map"), new_map)  # Save the map in storage
     return jsonify({'message': 'Map created successfully', 'map_id': data.get("map_id", "default_map")}), 201
+
+@app.route('/load/<string:map_id>', methods=['GET'])
+def load_map(map_id):
+    """Load an existing map."""
+    map_data = storage.load_map(map_id)
+
+    if not map_data:
+        return jsonify({'error': 'Map not found'}), 404
+    return jsonify({'map_id': map_id, 'map': map_data.to_dict()}), 200
+
 
 if __name__ == '__main__':
     app.run(debug=True)

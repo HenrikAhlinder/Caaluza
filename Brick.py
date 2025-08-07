@@ -55,15 +55,20 @@ class Brick:
     zs: list[int]
     y: int
 
-    def to_json(self):
-        """Convert Brick to a JSON-serializable dictionary."""
-        return json.dumps({
+    def to_dict(self):
+        """Convert Brick to a dictionary."""
+        return {
             'color': self.color,
             'xs': self.xs,
             'zs': self.zs,
             'y': self.y,
             'name': self.name,
-        })
+        }
+
+    @classmethod
+    def from_json(cls, data):
+        data = json.loads(data)
+        return cls(color=data['color'], xs=data['xs'], zs=data['zs'], y=data['y'], name=data['name'])
 
     @classmethod
     def from_dict(cls, data):
@@ -82,9 +87,9 @@ class BrickMap:
         map (list): A 3D array of bricks. Starts with a bottom plate (z=0).
     """
 
-    def to_json(self):
+    def to_dict(self):
         """Convert BrickMap to a JSON-serializable dictionary."""
-        return json.dumps({
+        return {
             'metadata': {
                 'width': self.width,
                 'height': self.height,
@@ -92,22 +97,36 @@ class BrickMap:
                 'name': self.name,
                 'timestamp': self.timestamp
             },
-            'bricks': [brick.to_json() for brick in self.bricks.keys()]
-        })
-    
-    @classmethod
-    def from_dict(cls, data):
-        """Create a BrickMap instance from a JSON dictionary."""
+            'bricks': [brick.to_dict() for brick in self.bricks]
+        }
 
-        print(data)
+    @classmethod
+    def from_json(cls, data):
+        data = json.loads(data)
+
         metadata = data.get('metadata', {})
         if len(metadata) == 0:
             raise ValueError("Metadata is required to create a BrickMap.")
         brick_map = cls(metadata["width"], metadata["height"], metadata["depth"], name=metadata["name"], timestamp=metadata["timestamp"])
+
         bricks = data.get('bricks', [])
         if not isinstance(bricks, list) or len(bricks) == 0:
             raise ValueError("Bricks data is required to create a BrickMap.")
-        brick_map.map = [Brick.from_dict(brick) for brick in bricks]
+        brick_map.bricks = [Brick.from_json(brick) for brick in bricks]
+
+        return brick_map
+    
+    @classmethod
+    def from_dict(cls, data):
+        metadata = data.get('metadata', {})
+        if len(metadata) == 0:
+            raise ValueError("Metadata is required to create a BrickMap.")
+        brick_map = cls(metadata["width"], metadata["height"], metadata["depth"], name=metadata["name"], timestamp=metadata["timestamp"])
+
+        bricks = data.get('bricks', [])
+        if not isinstance(bricks, list) or len(bricks) == 0:
+            raise ValueError("Bricks data is required to create a BrickMap.")
+        brick_map.bricks = [Brick.from_dict(brick) for brick in bricks]
 
         return brick_map
 
@@ -117,65 +136,4 @@ class BrickMap:
         self.depth = depth
         self.name = name
         self.timestamp = timestamp
-        # Initialize a 3D array filled with `None` to represent an empty map
-        self.map = [[[None for _ in range(depth)] for _ in range(height)] for _ in range(width)]
-        self.bricks = {}
-
-    def add_brick(self, Point, brick):
-        """Add a brick to the map at the specified position (x, y, z)."""
-        points_to_occupy = []
-
-        if (self._point_in_bounds(Point.x, Point.y, Point.z) and self._brick_in_bounds(Point.x, Point.y, brick.width, brick.depth)):
-            # Ensure all positions are empty before adding the brick
-            for i in range(brick.width):  # Reserve horizontal block space
-                for j in range(brick.depth):  # Reserve depth-wise space as well
-                    if self.map[Point.x + i][Point.y + j][Point.z] is not None:
-                        raise ValueError("Space is already occupied.")
-                    else:
-                        points_to_occupy.append(Point + (i, j, Point.z))
-        else:
-            raise ValueError("Position out of bounds.")
-
-        # All empty. Store the brick in the map
-        self.bricks[brick] = points_to_occupy  # Correctly store the brick as a key
-        for point in points_to_occupy:
-            self.map[point.x][point.y][point.z] = brick  # Place the brick in the map
-
-    def remove_brick(self, x, y, z):
-        """Remove a brick from the map at the specified position (x, y, z)."""
-        if not self._point_in_bounds(x, y, z):
-            raise ValueError("Position out of bounds.")
-
-        brick = self.map[x][y][z]  # Retrieve the brick at the given position
-        if not brick:
-            raise ValueError("No brick found at the specified position.")
-
-        points_to_clear = self.bricks.get(brick, [])
-        if not points_to_clear:
-            raise ValueError("No occupied positions found for the specified brick.")
-
-        for point in points_to_clear:
-            self.map[point.x][point.y][point.z] = None  # Clear the space on the map
-        del self.bricks[brick]  # Remove the brick from the dictionary of bricks
-        
-
-    def _point_in_bounds(self, x, y, z):
-        """Check if the given coordinates are within the map bounds."""
-        return 0 <= x < self.width and 0 <= y < self.height and 0 <= z < self.depth
-
-    def _brick_in_bounds(self, x, y, brick_width, brick_depth):
-        """Check if the brick can fit in the map at the specified position."""
-        return (x + brick_width - 1 < self.width and y - brick_depth < self.height)
-
-
-    def describe_map(self):
-        """Describe the map as a string showing non-empty positions."""
-        description = "Brick Map:\n"
-        for z in range(self.depth):
-            description += f"Layer {z}:\n"
-            for y in range(self.height):
-                for x in range(self.width):
-                    brick = self.map[x][y][z]
-                    if brick:
-                        description += f"({x}, {y}, {z}): {brick.describe()}\n"
-        return description
+        self.bricks = []

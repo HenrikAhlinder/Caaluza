@@ -75,8 +75,6 @@ scene.add(ambientLight);
 // Create LEGO baseplate instead of grid helper
 const gridSize = 6;
 const baseplateHeight = 0.2;
-
-// Position the baseplate at the grid center
 const baseplate = new Brick(
     new THREE.Vector3(gridSize, -baseplateHeight, gridSize),
     0x808080,
@@ -89,7 +87,6 @@ baseplate.addToScene(scene)
 camera.lookAt(gridCenter);
 
 const bricks = [];
-
 // Rotate camera around the center of the grid with the center mouse button
 let shouldCameraMove = false;
 const cameraRotationSpeed = 0.005;
@@ -184,9 +181,6 @@ const sizes = [
     { name: '2x3', width: 2, depth: 3 },
     { name: '2x4', width: 2, depth: 4 }
 ];
-
-// Implement GUI where each brick can be selected and placed only once.
-var selectedBrick = null; // Variable to store the selected brick
 
 colors.forEach(color => {
     // Create color group header
@@ -487,4 +481,104 @@ saveButton.addEventListener('click', () => {
         alert('Failed to save map: ' + error.message);
     });
 
+    
+
+});
+
+// Add load button
+const loadButton = document.createElement('button');
+loadButton.id = 'load-btn';
+loadButton.innerText = 'Load';
+loadButton.style.position = 'fixed';
+loadButton.style.top = '10px';
+loadButton.style.right = '10px';
+loadButton.style.padding = '10px 20px';
+loadButton.style.backgroundColor = '#2196F3';
+loadButton.style.color = 'white';
+loadButton.style.border = 'none';
+loadButton.style.borderRadius = '5px';
+loadButton.style.cursor = 'pointer';
+loadButton.style.zIndex = '1000';
+loadButton.style.fontSize = '14px';
+loadButton.style.fontWeight = 'bold';
+loadButton.addEventListener('mouseenter', () => {
+    loadButton.style.backgroundColor = '#1976D2';
+});
+loadButton.addEventListener('mouseleave', () => {
+    loadButton.style.backgroundColor = '#2196F3';
+});
+document.body.appendChild(loadButton);
+
+// Load scene from JSON
+loadButton.addEventListener('click', () => {
+    const map_id = "default_map";
+    fetch(`/load/${map_id}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Load response:', data);
+        if (data.error) {
+            alert('Error loading map: ' + data.error);
+            return;
+        }
+        
+        // Clear existing bricks
+        bricks.forEach(brick => {
+            brick.removeFromScene(scene);
+        });
+        bricks.length = 0;
+        
+        // Re-enable all brick selector buttons
+        const buttons = brickSelector.querySelectorAll('button');
+        buttons.forEach(button => {
+            button.disabled = false;
+            button.style.cursor = 'pointer';
+            button.style.opacity = '1';
+        });
+        
+        data = data.map;
+        // Load bricks from data
+        if (data.bricks && Array.isArray(data.bricks)) {
+            data.bricks.forEach(brickData => {
+                // Find matching color and size for the brick
+                const colorMatch = colors.find(c => c.hex === brickData.color);
+                const brickColor = colorMatch ? colorMatch.hex : 0x808080; // Default to gray
+                
+                // Calculate brick dimensions from xs and zs arrays
+                const minX = Math.min(...brickData.xs);
+                const maxX = Math.max(...brickData.xs);
+                const minZ = Math.min(...brickData.zs);
+                const maxZ = Math.max(...brickData.zs);
+                const width = maxX - minX + 1;
+                const depth = maxZ - minZ + 1;
+                
+                // Create new brick
+                const newBrick = new Brick(
+                    new THREE.Vector3(maxX+1, brickData.y, maxZ+1),
+                    brickColor,
+                    { width: width, height: 1, depth: depth },
+                    brickData.name || `${width}x${depth} ${brickData.color}`
+                );
+                
+                bricks.push(newBrick);
+                newBrick.addToScene(scene);
+                
+                // Disable corresponding button
+                const button = Array.from(buttons).find(btn => btn.title === newBrick.buttonName);
+                if (button) {
+                    button.disabled = true;
+                    button.style.cursor = 'not-allowed';
+                    button.style.opacity = '0.6';
+                }
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error loading map:', error);
+        alert('Failed to load map: ' + error.message);
+    });
 });
