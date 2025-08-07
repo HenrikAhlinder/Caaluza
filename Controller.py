@@ -17,9 +17,9 @@ def edit():
     """Edit menu."""
     return render_template('edit.html')
 
-@app.route('/save-map', methods=['POST'])
-def create_map():
-    """Create a new map."""
+@app.route('/save/<string:map_id>', methods=['POST'])
+def save_map(map_id):
+    """Save an existing map."""
     # Parse request JSON
     data = request.get_json()
 
@@ -27,8 +27,8 @@ def create_map():
         new_map = BrickMap.from_dict(data)  # Validate the data structure
     except Exception as e:
         return jsonify({'error': f'Invalid map data: {str(e)}'}), 400
-    storage.save_map(data.get("map_id", "default_map"), new_map)  # Save the map in storage
-    return jsonify({'message': 'Map created successfully', 'map_id': data.get("map_id", "default_map")}), 201
+    storage.save_map(map_id, new_map)  # Save the map in storage
+    return jsonify({'message': 'Map created successfully', 'map_id': map_id}), 201
 
 @app.route('/load/<string:map_id>', methods=['GET'])
 def load_map(map_id):

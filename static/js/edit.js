@@ -423,9 +423,43 @@ function animate() {
 }
 animate();
 
+const titleContainer = document.createElement('div');
+titleContainer.style.position = 'fixed';
+titleContainer.style.top = '10%';
+titleContainer.style.left = '50%';
+titleContainer.style.transform = 'translate(-50%, -50%)';
+titleContainer.style.display = 'flex';
+titleContainer.style.alignItems = 'center';
+titleContainer.style.gap = '5px';
+titleContainer.style.zIndex = '1000';
+document.body.appendChild(titleContainer);
+const titleLabel = document.createElement('label');
+titleLabel.innerText = 'Title:';
+titleLabel.style.color = 'white';
+titleLabel.style.fontSize = '14px';
+titleLabel.style.fontWeight = 'bold';
+titleLabel.style.textShadow = '1px 1px 2px rgba(0,0,0,0.8)';
+titleContainer.appendChild(titleLabel);
+
+const titleTextbox = document.createElement('input');
+titleTextbox.type = 'text';
+titleTextbox.value = '';
+titleTextbox.style.padding = '5px';
+titleTextbox.style.border = '1px solid #ccc';
+titleTextbox.style.borderRadius = '3px';
+titleTextbox.style.fontSize = '14px';
+titleTextbox.style.width = '150px';
+titleContainer.appendChild(titleTextbox);
+
 // Save scene as JSON
 const saveButton = document.getElementById('save-btn');
 saveButton.addEventListener('click', () => {
+    const name = titleTextbox.value.trim();
+    if (!name) {
+        alert('Please enter a title for the map.');
+        return;
+    }
+
     const serializedBricks = bricks.map(brick => {
     const gridSquaresCovered = brick.getGridSquaresCovered();
     let xs = [];
@@ -448,7 +482,7 @@ saveButton.addEventListener('click', () => {
     const sceneData = {
         bricks: serializedBricks,
         metadata: {
-            name: "TODO",
+            name: name,
             width: gridSize,
             height: 1,
             depth: gridSize,
@@ -460,7 +494,7 @@ saveButton.addEventListener('click', () => {
     console.log('Saving scene data:', sceneData);
 
     // POST to /save-map endpoint
-    fetch('/save-map', {
+    fetch(`/save/${name}`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -484,14 +518,14 @@ saveButton.addEventListener('click', () => {
     
 
 });
-
-// Add load button
+// Move load button to center (above title)
 const loadButton = document.createElement('button');
 loadButton.id = 'load-btn';
 loadButton.innerText = 'Load';
 loadButton.style.position = 'fixed';
-loadButton.style.top = '10px';
-loadButton.style.right = '10px';
+loadButton.style.top = '10%';
+loadButton.style.left = '70%';
+loadButton.style.transform = 'translate(-50%, -50%)';
 loadButton.style.padding = '10px 20px';
 loadButton.style.backgroundColor = '#2196F3';
 loadButton.style.color = 'white';
@@ -511,7 +545,11 @@ document.body.appendChild(loadButton);
 
 // Load scene from JSON
 loadButton.addEventListener('click', () => {
-    const map_id = "default_map";
+    const map_id = titleTextbox.value.trim();
+    if (!map_id) {
+        alert('Please enter a title for the map to load.');
+        return;
+    }
     fetch(`/load/${map_id}`, {
         method: 'GET',
         headers: {
