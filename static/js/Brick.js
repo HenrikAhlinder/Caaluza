@@ -43,8 +43,8 @@ export class Brick {
 
     addStuds() {
         // Add a black outline to the stud for better visibility.
-        const studRadius = 0.2;
-        const studHeight = 0.3;
+        const studRadius = 0.27;
+        const studHeight = 0.2;
         // Create an outline for the stud using LineSegments for better visibility.
         const studMaterial = new THREE.MeshLambertMaterial({
             color: this.color // Use the brick's color
