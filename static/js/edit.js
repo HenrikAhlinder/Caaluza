@@ -4,13 +4,11 @@ import { Brick } from './brick.js'
 const gridCenter = new THREE.Vector3(3, 0, 3);
 const gridSize = 6;
 const brickSelector = document.querySelector('.brick-selector');
-const colors = [
-    { name: 'Yellow', hex: 0xffff00 },
-    { name: 'Red', hex: 0xff0000 },
-    { name: 'Blue', hex: 0x0000ff },
-    { name: 'Green', hex: 0x00FF00 }
-];
 const bricks = [];
+const playerCameras = createPlayerCameras(views);
+const aspectRatio = window.innerWidth / window.innerHeight;
+const orthoSize = 15;
+
 let shouldCameraMove = false;
 const cameraRotationSpeed = 0.005;
 let lastMouseX = 0;
@@ -20,21 +18,24 @@ let lastMouseY = 0;
 const scene = new THREE.Scene();
 
 // Define cameras for each view
-const cameras = {};
-const aspectRatio = window.innerWidth / window.innerHeight;
-const orthoSize = 15; // Adjust this value for zoom level
-views.forEach(view => {
-    cameras[view.name] = new THREE.OrthographicCamera(
-        -orthoSize * aspectRatio,
-        orthoSize * aspectRatio,
-        orthoSize,
-        -orthoSize,
-        0.1,
-        1000
-    );
-    cameras[view.name].position.set(view.position.x, view.position.y, view.position.z);
-    cameras[view.name].lookAt(gridCenter);
-});
+function createPlayerCameras(views) {
+    const playerCameras = {};
+    const orthoSize = 15;
+    const aspectRatio = window.innerWidth / window.innerHeight;
+    views.forEach(view => {
+        playerCameras[view.name] = new THREE.OrthographicCamera(
+            -orthoSize * aspectRatio,
+            orthoSize * aspectRatio,
+            orthoSize,
+            -orthoSize,
+            0.1,
+            1000
+        );
+        playerCameras[view.name].position.set(view.position.x, view.position.y, view.position.z);
+        playerCameras[view.name].lookAt(gridCenter);
+    });
+    return playerCameras;
+}
 
 function setupViewButtons(buttonContainer, cameras) {
     buttonContainer.querySelectorAll('.view-button').forEach(button => {
@@ -58,7 +59,6 @@ const mainCamera = new THREE.OrthographicCamera(
 mainCamera.position.set(gridCenter.x, 25, gridCenter.z);
 mainCamera.lookAt(gridCenter);
 
-cameras["Main"] = mainCamera;
 let activeCamera = mainCamera;
 
 const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('three-canvas') });
@@ -508,7 +508,7 @@ loadButton.addEventListener('click', () => {
 
 function initialize() {
     setupBaseplate();
-    setupViewButtons(buttonContainer, cameras);
+    setupViewButtons(buttonContainer, playerCameras);
     // setupMainCamera();
     // setupLighting();
     // setupViewButtons();
