@@ -5,23 +5,47 @@ const gridCenter = new THREE.Vector3(3, 0, 3);
 const gridSize = 6;
 const brickSelector = document.querySelector('.brick-selector');
 const bricks = [];
-const playerCameras = createPlayerCameras(views);
 const aspectRatio = window.innerWidth / window.innerHeight;
 const orthoSize = 15;
+
+let currentlyDraggedBrick = null;
+let dragOffset = new THREE.Vector3();
+let ghostBrick = null; // Ghost brick to show outline on floor
+const titleTextbox = document.getElementById('title-textbox');
 
 let shouldCameraMove = false;
 const cameraRotationSpeed = 0.005;
 let lastMouseX = 0;
 let lastMouseY = 0;
 
+// Predefined tools for raycasting and mouse tracking
+const mouse = new THREE.Vector2();
+const raycaster = new THREE.Raycaster();
+const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0); // Ground plane
+const planeIntersect = new THREE.Vector3();
+const verticalStep = 1;
+
 // Basic scene setup
 const scene = new THREE.Scene();
+const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('three-canvas') });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
+document.body.appendChild(renderer.domElement);
+
+createPlayerCameras(views);
+const mainCamera = createMainCamera();
+let activeCamera = mainCamera;
+
+setupBaseplate();
 
 // Define cameras for each view
+// TODO: Can I just drop playerCameras here without it being deallocated?
 function createPlayerCameras(views) {
     const playerCameras = {};
     const orthoSize = 15;
     const aspectRatio = window.innerWidth / window.innerHeight;
+    const buttonContainer = document.querySelector('.button-container');
+
     views.forEach(view => {
         playerCameras[view.name] = new THREE.OrthographicCamera(
             -orthoSize * aspectRatio,
@@ -33,38 +57,41 @@ function createPlayerCameras(views) {
         );
         playerCameras[view.name].position.set(view.position.x, view.position.y, view.position.z);
         playerCameras[view.name].lookAt(gridCenter);
-    });
-    return playerCameras;
-}
 
-function setupViewButtons(buttonContainer, cameras) {
+        const light = new THREE.DirectionalLight(0xffffff, 1.2);
+        light.position.set(view.position.x, view.position.y, view.position.z); // Adjust position above each view
+        light.lookAt(gridCenter);
+        light.castShadow = false;
+        scene.add(light);
+
+        buttonContainer.querySelector(`.view-button.${view.name}`).addEventListener('click', () => {
+            activeCamera = playerCameras[view.name];
+        });
+    });
+
     buttonContainer.querySelectorAll('.view-button').forEach(button => {
         const viewName = button.textContent.trim();
         button.addEventListener('click', () => {
-            if (cameras[viewName]) {
-                activeCamera = cameras[viewName];
+            if (playerCameras[viewName]) {
+                activeCamera = playerCameras[viewName];
             }
         });
     });
 }
 
-const mainCamera = new THREE.OrthographicCamera(
-        -orthoSize * aspectRatio,
-        orthoSize * aspectRatio,
-        orthoSize,
-        -orthoSize,
-        0.1,
-        1000
-);
-mainCamera.position.set(gridCenter.x, 25, gridCenter.z);
-mainCamera.lookAt(gridCenter);
-
-let activeCamera = mainCamera;
-
-const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('three-canvas') });
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(window.devicePixelRatio);
-document.body.appendChild(renderer.domElement);
+function createMainCamera() {
+    const mainCamera = new THREE.OrthographicCamera(
+            -orthoSize * aspectRatio,
+            orthoSize * aspectRatio,
+            orthoSize,
+            -orthoSize,
+            0.1,
+            1000
+    );
+    mainCamera.position.set(gridCenter.x, 25, gridCenter.z);
+    mainCamera.lookAt(gridCenter);
+    return mainCamera;
+}
 
 function setupBaseplate() {
     const baseplateHeight = 0.2;
@@ -76,11 +103,6 @@ function setupBaseplate() {
     );
     baseplate.addToScene(scene);
 }
-
-const buttonContainer = document.querySelector('.button-container');
-const titleTextbox = document.getElementById('title-textbox');
-const saveButton = document.getElementById('save-btn');
-const loadButton = document.getElementById('load-btn');
 
 // Setup event listeners for brick selector buttons
 brickSelector.querySelectorAll('.size-button').forEach(button => {
@@ -109,26 +131,6 @@ brickSelector.querySelectorAll('.size-button').forEach(button => {
         }
     });
 });
-
-// Lighting
-// Create one light for each view in the 'views' array
-views.forEach(view => {
-    // skip first view
-    if (view.name === 'Top') return;
-    const light = new THREE.DirectionalLight(0xffffff, 0.5);
-    light.position.set(view.position.x, view.position.y + 10, view.position.z); // Adjust position above each view
-    light.castShadow = true; // Enable shadows for better visual quality
-    scene.add(light);
-});
-
-const light = new THREE.DirectionalLight(0xffffff, 0.2);
-light.position.set(6, 25, 6); // Adjust position above each view
-light.castShadow = true; // Enable shadows for better visual quality
-scene.add(light);
-
-// Ambient light for overall illumination
-const ambientLight = new THREE.AmbientLight(0x404040, 0.5); // Soft white light
-scene.add(ambientLight);
 
 window.addEventListener('mousedown', (event) => {
     if (event.button === 1) { // Middle mouse button
@@ -174,22 +176,11 @@ window.addEventListener('contextmenu', (event) => {
     event.preventDefault(); // Disable context menu on right-click
 });
 
-// Predefined tools for raycasting and mouse tracking
-const mouse = new THREE.Vector2();
-const raycaster = new THREE.Raycaster();
-const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0); // Ground plane
-const planeIntersect = new THREE.Vector3();
-const verticalStep = 1;
-
 // Fetch mouse coordinates and update raycaster
 window.addEventListener('mousemove', (event) => {
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 });
-
-let currentlyDraggedBrick = null; // Tracks the brick being dragged
-let dragOffset = new THREE.Vector3(); // Tracks offset between click point and the brick's center
-let ghostBrick = null; // Ghost brick to show outline on floor
 
 // Create ghost brick for floor preview
 function createGhostBrick(originalBrick) {
@@ -354,15 +345,7 @@ window.addEventListener('mousedown', (event) => {
     }
 });
 
-// Render loop
-function animate() {
-    requestAnimationFrame(animate);
-    renderer.render(scene, activeCamera);
-}
-animate();
-
-// Save scene as JSON
-saveButton.addEventListener('click', () => {
+document.getElementById('save-btn').addEventListener('click', () => {
     const name = titleTextbox.value.trim();
     if (!name) {
         alert('Please enter a title for the map.');
@@ -423,13 +406,9 @@ saveButton.addEventListener('click', () => {
         console.error('Error saving map:', error);
         alert('Failed to save map: ' + error.message);
     });
-
-    
-
 });
 
-// Move load button to center (above title)
-loadButton.addEventListener('click', () => {
+document.getElementById('load-btn').addEventListener('click', () => {
     const map_id = titleTextbox.value.trim();
     if (!map_id) {
         alert('Please enter a title for the map to load.');
@@ -506,13 +485,8 @@ loadButton.addEventListener('click', () => {
     });
 });
 
-function initialize() {
-    setupBaseplate();
-    setupViewButtons(buttonContainer, playerCameras);
-    // setupMainCamera();
-    // setupLighting();
-    // setupViewButtons();
-    // setupEventListeners();
-    // animate();
+function animate() {
+    requestAnimationFrame(animate);
+    renderer.render(scene, activeCamera);
 }
-initialize();
+animate();

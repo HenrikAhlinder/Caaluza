@@ -23,10 +23,10 @@ sizes = [
 ]
 views = [
     {"name": "Top", "position": {"x": 3, "y": 10, "z": 3}},
-    {"name": "0 deg", "position": {"x": -15, "y": 0.0, "z": 3.0}},
-    {"name": "90 deg", "position": {"x": 3, "y": 0.0, "z": 20}},
-    {"name": "180 deg", "position": {"x": 20, "y": 0.0, "z": 3}},
-    {"name": "270 deg", "position": {"x": 3, "y": 0.0, "z": -15}}
+    {"name": "t1", "position": {"x": -15, "y": 0.0, "z": 3.0}},
+    {"name": "t2", "position": {"x": 3, "y": 0.0, "z": 20}},
+    {"name": "t3", "position": {"x": 20, "y": 0.0, "z": 3}},
+    {"name": "t4", "position": {"x": 3, "y": 0.0, "z": -15}}
 ]
 
 @app.route('/')

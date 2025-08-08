@@ -28,7 +28,7 @@
     <!-- View Buttons -->
     <div class="button-container">
         {% for view in views %}
-        <button class="view-button" data-position="{{ view.position }}">{{ view.name }}</button>
+        <button class="view-button {{ view.name }}" data-position="{{ view.position }}">{{ view.name }}</button>
         {% endfor %}
     </div>
     
