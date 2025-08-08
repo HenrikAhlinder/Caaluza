@@ -12,10 +12,35 @@ const camera = new THREE.OrthographicCamera(
     0.1, 
     1000
 );
+const gridSize = 6;
+
 const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('three-canvas') });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 document.body.appendChild(renderer.domElement);
+
+function initialize() {
+    setupBaseplate();
+    // setupMainCamera();
+    // setupLighting();
+    // setupViewButtons();
+    // setupBrickSelector();
+    // setupEventListeners();
+    // animate();
+}
+initialize();
+
+function setupBaseplate() {
+    const baseplateHeight = 0.2;
+    const baseplate = new Brick(
+        new THREE.Vector3(gridSize, -baseplateHeight, gridSize),
+        0x808080,
+        { width: gridSize, height: baseplateHeight, depth: gridSize },
+        'Baseplate'
+    );
+    baseplate.addToScene(scene);
+}
+
 
 const gridCenter = new THREE.Vector3(3, 0, 3); // Center of the 5x5 grid
 
@@ -63,17 +88,6 @@ scene.add(light);
 // Ambient light for overall illumination
 const ambientLight = new THREE.AmbientLight(0x404040, 0.5); // Soft white light
 scene.add(ambientLight);
-
-// Create LEGO baseplate instead of grid helper
-const gridSize = 6;
-const baseplateHeight = 0.2;
-const baseplate = new Brick(
-    new THREE.Vector3(gridSize, -baseplateHeight, gridSize),
-    0x808080,
-    { width: gridSize, height: baseplateHeight, depth: gridSize },
-    'Baseplate'
-);
-baseplate.addToScene(scene)
 
 // Position the camera to face the grid top-down
 camera.lookAt(gridCenter);
