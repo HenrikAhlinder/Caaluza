@@ -21,12 +21,7 @@ const gridCenter = new THREE.Vector3(3, 0, 3); // Center of the 5x5 grid
 
 // Add shortcut buttons to show the grid from each side (top, left, right, front, back)
 const buttonContainer = document.createElement('div');
-buttonContainer.style.position = 'fixed';
-buttonContainer.style.top = '10px';
-buttonContainer.style.left = '10px';
-buttonContainer.style.display = 'flex';
-buttonContainer.style.flexDirection = 'column';
-buttonContainer.style.gap = '5px';
+buttonContainer.className = 'button-container';
 document.body.appendChild(buttonContainer);
 
 // Predefined views adjusted for Orthographic Camera
@@ -40,10 +35,7 @@ const views = [
 views.forEach(view => {
     const button = document.createElement('button');
     button.innerText = view.name;
-    button.style.padding = '5px';
-    button.style.border = '1px solid #ccc';
-    button.style.background = '#fff';
-    button.style.cursor = 'pointer';
+    button.className = 'view-button';
     button.addEventListener('click', () => {
         camera.position.set(view.position.x, view.position.y, view.position.z);
         camera.lookAt(gridCenter);
@@ -149,18 +141,7 @@ window.addEventListener('mousemove', (event) => {
 
 // Add a brick on click
 const brickSelector = document.createElement('div');
-brickSelector.style.position = 'absolute';
-brickSelector.style.top = '10px';
-brickSelector.style.right = '10px';
-brickSelector.style.background = 'white';
-brickSelector.style.border = '1px solid #ccc';
-brickSelector.style.padding = '10px';
-brickSelector.style.display = 'flex';
-brickSelector.style.flexDirection = 'column';
-brickSelector.style.gap = '5px';
-brickSelector.style.maxHeight = '400px';
-brickSelector.style.overflowY = 'auto';
-brickSelector.style.width = '120px';
+brickSelector.className = 'brick-selector';
 brickSelector.innerHTML = '<strong>Bricks:</strong>';
 document.body.appendChild(brickSelector);
 
@@ -185,18 +166,14 @@ const sizes = [
 colors.forEach(color => {
     // Create color group header
     const colorHeader = document.createElement('div');
-    colorHeader.style.fontWeight = 'bold';
-    colorHeader.style.fontSize = '12px';
-    colorHeader.style.color = `#${color.hex.toString(16).padStart(6, '0')}`;
-    colorHeader.style.marginTop = '5px';
+    colorHeader.className = 'color-header';
+    colorHeader.style.color = `#${color.hex.toString(16).padStart(6, '0')}`; // Keep dynamic color
     colorHeader.innerText = color.name;
     brickSelector.appendChild(colorHeader);
 
     // Create container for size buttons
     const sizeContainer = document.createElement('div');
-    sizeContainer.style.display = 'grid';
-    sizeContainer.style.gridTemplateColumns = '1fr 1fr';
-    sizeContainer.style.gap = '2px';
+    sizeContainer.className = 'size-container';
     brickSelector.appendChild(sizeContainer);
 
     sizes.forEach(size => {
@@ -204,12 +181,7 @@ colors.forEach(color => {
         const name = `${size.name} ${color.name}`;
         button.innerText = `${size.name}`;
         button.title = name; // Tooltip for full name
-        button.style.padding = '3px';
-        button.style.border = '1px solid #ccc';
-        button.style.background = '#fff';
-        button.style.cursor = 'pointer';
-        button.style.fontSize = '10px';
-        button.style.minHeight = '20px';
+        button.className = 'size-button';
 
         button.addEventListener('mousedown', (event) => {
             if (!currentlyDraggedBrick) {
@@ -424,31 +396,16 @@ function animate() {
 animate();
 
 const titleContainer = document.createElement('div');
-titleContainer.style.position = 'fixed';
-titleContainer.style.top = '10%';
-titleContainer.style.left = '50%';
-titleContainer.style.transform = 'translate(-50%, -50%)';
-titleContainer.style.display = 'flex';
-titleContainer.style.alignItems = 'center';
-titleContainer.style.gap = '5px';
-titleContainer.style.zIndex = '1000';
+titleContainer.className = 'title-container';
 document.body.appendChild(titleContainer);
 const titleLabel = document.createElement('label');
 titleLabel.innerText = 'Title:';
-titleLabel.style.color = 'white';
-titleLabel.style.fontSize = '14px';
-titleLabel.style.fontWeight = 'bold';
-titleLabel.style.textShadow = '1px 1px 2px rgba(0,0,0,0.8)';
+titleLabel.className = 'title-label';
 titleContainer.appendChild(titleLabel);
 
 const titleTextbox = document.createElement('input');
 titleTextbox.type = 'text';
-titleTextbox.value = '';
-titleTextbox.style.padding = '5px';
-titleTextbox.style.border = '1px solid #ccc';
-titleTextbox.style.borderRadius = '3px';
-titleTextbox.style.fontSize = '14px';
-titleTextbox.style.width = '150px';
+titleTextbox.className = 'title-textbox';
 titleContainer.appendChild(titleTextbox);
 
 // Save scene as JSON
@@ -518,29 +475,12 @@ saveButton.addEventListener('click', () => {
     
 
 });
+
 // Move load button to center (above title)
 const loadButton = document.createElement('button');
 loadButton.id = 'load-btn';
 loadButton.innerText = 'Load';
-loadButton.style.position = 'fixed';
-loadButton.style.top = '10%';
-loadButton.style.left = '70%';
-loadButton.style.transform = 'translate(-50%, -50%)';
-loadButton.style.padding = '10px 20px';
-loadButton.style.backgroundColor = '#2196F3';
-loadButton.style.color = 'white';
-loadButton.style.border = 'none';
-loadButton.style.borderRadius = '5px';
-loadButton.style.cursor = 'pointer';
-loadButton.style.zIndex = '1000';
-loadButton.style.fontSize = '14px';
-loadButton.style.fontWeight = 'bold';
-loadButton.addEventListener('mouseenter', () => {
-    loadButton.style.backgroundColor = '#1976D2';
-});
-loadButton.addEventListener('mouseleave', () => {
-    loadButton.style.backgroundColor = '#2196F3';
-});
+loadButton.className = 'load-button';
 document.body.appendChild(loadButton);
 
 // Load scene from JSON

@@ -5,33 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit LEGO Construction</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.min.js"></script>
-    <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-        }
-        #save-btn {
-            position: fixed;
-            top: 10px;
-            right: 150px;
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            z-index: 1000;
-            font-size: 14px;
-            font-weight: bold;
-        }
-        #save-btn:hover {
-            background-color: #45a049;
-        }
-        </style>
-    </head>
-    <body>
-        <canvas id="three-canvas"></canvas>
-        <button id="save-btn">Save</button>
-        <script type="module" src="static/js/edit.js"></script>
-    </body>
+    <link rel="stylesheet" href="static/css/edit.css">
+</head>
+<body>
+    <canvas id="three-canvas"></canvas>
+    <button id="save-btn">Save</button>
+    <script type="module" src="static/js/edit.js"></script>
+</body>
 </html>
