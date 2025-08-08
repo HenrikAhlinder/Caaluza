@@ -58,11 +58,17 @@ function createPlayerCameras(views) {
         playerCameras[view.name].position.set(view.position.x, view.position.y, view.position.z);
         playerCameras[view.name].lookAt(gridCenter);
 
-        const light = new THREE.DirectionalLight(0xffffff, 1.2);
-        light.position.set(view.position.x, view.position.y, view.position.z); // Adjust position above each view
-        light.lookAt(gridCenter);
-        light.castShadow = false;
-        scene.add(light);
+        function addLight(name, position) {
+            const light = new THREE.DirectionalLight(0xffffff, 0.5);
+            light.name = `${name}`;
+            light.position.set(position.x, position.y, position.z); // Adjust position above each view
+            light.lookAt(gridCenter);
+            light.castShadow = false;
+            scene.add(light);
+        }
+
+        addLight(`light-above-${view.name}`, new THREE.Vector3(view.position.x+10, view.position.y+10, view.position.z+10));
+        addLight(`light-below-${view.name}`, new THREE.Vector3(view.position.x-10, view.position.y-10, view.position.z-10));
 
         buttonContainer.querySelector(`.view-button.${view.name}`).addEventListener('click', () => {
             activeCamera = playerCameras[view.name];
@@ -289,7 +295,6 @@ window.addEventListener('keydown', (event) => {
         }
     }
 });
-
 
 window.addEventListener('mousedown', (event) => {
     if (event.button === 2) {
