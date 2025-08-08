@@ -104,7 +104,6 @@ function setupBaseplate() {
     baseplate.addToScene(scene);
 }
 
-// Setup event listeners for brick selector buttons
 brickSelector.querySelectorAll('.size-button').forEach(button => {
     button.addEventListener('mousedown', (event) => {
         const [sizeName, colorName] = button.title.split(' ');
@@ -112,19 +111,14 @@ brickSelector.querySelectorAll('.size-button').forEach(button => {
         const size = sizes.find(s => s.name === sizeName);
 
         if (!currentlyDraggedBrick && color && size) {
-            // Create a new brick and start dragging
             currentlyDraggedBrick = new Brick(new THREE.Vector3(1000, 0, 1000), color.hex, { width: size.width, height: 1, depth: size.depth }, button.title);
             bricks.push(currentlyDraggedBrick);
             currentlyDraggedBrick.addToScene(scene);
+            dragOffset.set(0, 0, 0); 
 
-            // Track the brick for dragging
-            dragOffset.set(0, 0, 0); // No offset for a newly created brick
-
-            // Create and add ghost brick
             ghostBrick = createGhostBrick(currentlyDraggedBrick);
             scene.add(ghostBrick);
 
-            // Disable button after selection
             button.disabled = true;
             button.style.cursor = 'not-allowed';
             button.style.opacity = '0.6';
@@ -163,26 +157,23 @@ window.addEventListener('mousemove', (event) => {
         const verticalAngle = deltaY * cameraRotationSpeed;
         activeCamera.position.applyAxisAngle(verticalAxis, verticalAngle);
 
-        // Ensure camera keeps looking at the grid center
         activeCamera.lookAt(gridCenter);
 
-        // Update mouse positions
         lastMouseX = event.clientX;
         lastMouseY = event.clientY;
     }
 });
 
 window.addEventListener('contextmenu', (event) => {
-    event.preventDefault(); // Disable context menu on right-click
+    event.preventDefault();
 });
 
-// Fetch mouse coordinates and update raycaster
 window.addEventListener('mousemove', (event) => {
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 });
 
-// Create ghost brick for floor preview
+// Create ghost brick a for preview of where the brick is relative to the ground
 function createGhostBrick(originalBrick) {
     const ghostGeometry = new THREE.BoxGeometry(
         originalBrick.size.width, 
@@ -200,7 +191,6 @@ function createGhostBrick(originalBrick) {
     
     const ghost = new THREE.Mesh(ghostGeometry, ghostMaterial);
     
-    // Add wireframe outline
     const edges = new THREE.EdgesGeometry(ghostGeometry);
     const outline = new THREE.LineSegments(
         edges,
@@ -221,41 +211,33 @@ window.addEventListener('mousedown', (event) => {
 
         const intersects = raycaster.intersectObjects(bricks.map(brick => brick.mesh));
         if (intersects.length > 0) {
-            // Start dragging the clicked brick
+            // Move selected brick
             const intersectedMesh = intersects[0].object;
             currentlyDraggedBrick = bricks.find(brick => brick.isthisBrick(intersectedMesh));
             const brickPosition = currentlyDraggedBrick.mesh.position;
             
-            // Calculate the offset between the click and the brick center
             dragOffset.copy(intersects[0].point).sub(brickPosition);
             
-            // Create and add ghost brick
             ghostBrick = createGhostBrick(currentlyDraggedBrick);
-            scene.add(ghostBrick);
-
-            // Position ghost brick immediately at floor level below the brick and copy rotation
             ghostBrick.position.set(brickPosition.x, -0.5, brickPosition.z);
             ghostBrick.rotation.copy(currentlyDraggedBrick.mesh.rotation);
+            scene.add(ghostBrick);
         }
     }
 });
 
 window.addEventListener('mousemove', (event) => {
     if (currentlyDraggedBrick) {
-        // Update position while dragging
         raycaster.setFromCamera(mouse, activeCamera);
-        raycaster.ray.intersectPlane(plane, planeIntersect); // Intersect with the ground plane
+        raycaster.ray.intersectPlane(plane, planeIntersect);
         if (planeIntersect) {
-            // Adjust position based on the offset
-            // TODO: Why needed for x and not z?
             const snappedX = Math.round((planeIntersect.x - dragOffset.x));
             const snappedZ = Math.round((planeIntersect.z - dragOffset.z));
 
             currentlyDraggedBrick.setPosition(snappedX, snappedZ);
             
-            // Update ghost brick position on floor and visibility
             if (ghostBrick) {
-                ghostBrick.position.set(snappedX, -0.5, snappedZ); // Place at floor level
+                ghostBrick.position.set(snappedX, -0.5, snappedZ);
                 ghostBrick.visible = currentlyDraggedBrick.mesh.position.y > -0.5;
             }
         }
@@ -265,10 +247,8 @@ window.addEventListener('mousemove', (event) => {
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 });
 
-// Mouse up: Place the brick in the scene
 window.addEventListener('mouseup', (event) => {
-    if (event.button === 0 && currentlyDraggedBrick) { // Left mouse button
-        // Remove ghost brick
+    if (event.button === 0 && currentlyDraggedBrick) {
         if (ghostBrick) {
             scene.remove(ghostBrick);
             ghostBrick.geometry.dispose();
@@ -276,34 +256,29 @@ window.addEventListener('mouseup', (event) => {
             ghostBrick = null;
         }
         
-        // Stop dragging
         currentlyDraggedBrick = null;
     }
 });
 
-// Handle Keyboard Input for Vertical Movement (W/S keys)
 window.addEventListener('keydown', (event) => {
     if (currentlyDraggedBrick) {
         switch (event.key) {
-            case 'w': // Move up
+            case 'w':
                 currentlyDraggedBrick.mesh.position.y += verticalStep;
-                // Update ghost brick visibility
                 if (ghostBrick) {
                     ghostBrick.visible = currentlyDraggedBrick.mesh.position.y > -0.5;
                 }
                 break;
 
-            case 's': // Move down
+            case 's':
                 currentlyDraggedBrick.mesh.position.y -= verticalStep;
-                // Update ghost brick visibility
                 if (ghostBrick) {
                     ghostBrick.visible = currentlyDraggedBrick.mesh.position.y > -0.5;
                 }
                 break;
 
-            case 'r': // rotate
-                currentlyDraggedBrick.mesh.rotation.y += Math.PI / 2; // Rotate 90 degrees
-                // Update ghost brick rotation if it exists
+            case 'r':
+                currentlyDraggedBrick.mesh.rotation.y += Math.PI / 2;
                 if (ghostBrick) {
                     ghostBrick.rotation.copy(currentlyDraggedBrick.mesh.rotation);
                 }
@@ -316,9 +291,8 @@ window.addEventListener('keydown', (event) => {
 });
 
 
-// Delete brick on right-click
 window.addEventListener('mousedown', (event) => {
-    if (event.button === 2) { // Right mouse button
+    if (event.button === 2) {
         raycaster.setFromCamera(mouse, activeCamera);
         const intersects = raycaster.intersectObjects(bricks.map(brick => brick.mesh));
 
@@ -326,7 +300,6 @@ window.addEventListener('mousedown', (event) => {
             const intersectedMesh = intersects[0].object;
             let brick = bricks.find(brick => brick.isthisBrick(intersectedMesh));
 
-            // enable the button for the deleted brick
             const buttons = brickSelector.querySelectorAll('button');
             const button = Array.from(buttons).find(btn => btn.title === brick.buttonName);
             if (button) {
