@@ -10,15 +10,20 @@ const colors = [
     { name: 'Blue', hex: 0x0000ff },
     { name: 'Green', hex: 0x00FF00 }
 ];
+const bricks = [];
+let shouldCameraMove = false;
+const cameraRotationSpeed = 0.005;
+let lastMouseX = 0;
+let lastMouseY = 0;
 
 // Basic scene setup
 const scene = new THREE.Scene();
 
 // Define cameras for each view
 const cameras = {};
+const aspectRatio = window.innerWidth / window.innerHeight;
+const orthoSize = 15; // Adjust this value for zoom level
 views.forEach(view => {
-    const aspectRatio = window.innerWidth / window.innerHeight;
-    const orthoSize = 15; // Adjust this value for zoom level
     cameras[view.name] = new THREE.OrthographicCamera(
         -orthoSize * aspectRatio,
         orthoSize * aspectRatio,
@@ -31,9 +36,30 @@ views.forEach(view => {
     cameras[view.name].lookAt(gridCenter);
 });
 
-// Set the default active camera
-let activeCamera = cameras['Top'];
+function setupViewButtons(buttonContainer, cameras) {
+    buttonContainer.querySelectorAll('.view-button').forEach(button => {
+        const viewName = button.textContent.trim();
+        button.addEventListener('click', () => {
+            if (cameras[viewName]) {
+                activeCamera = cameras[viewName];
+            }
+        });
+    });
+}
 
+const mainCamera = new THREE.OrthographicCamera(
+        -orthoSize * aspectRatio,
+        orthoSize * aspectRatio,
+        orthoSize,
+        -orthoSize,
+        0.1,
+        1000
+);
+mainCamera.position.set(gridCenter.x, 25, gridCenter.z);
+mainCamera.lookAt(gridCenter);
+
+cameras["Main"] = mainCamera;
+let activeCamera = mainCamera;
 
 const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('three-canvas') });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -84,23 +110,6 @@ brickSelector.querySelectorAll('.size-button').forEach(button => {
     });
 });
 
-// Refactor: Setup event listeners for view buttons
-function setupViewButtons(buttonContainer, cameras) {
-    buttonContainer.querySelectorAll('.view-button').forEach(button => {
-        const viewName = button.textContent.trim();
-        button.addEventListener('click', () => {
-            if (cameras[viewName]) {
-                activeCamera = cameras[viewName];
-            }
-        });
-    });
-}
-
-//TODO: Enable?
-// camera.position.set(gridCenter.x, 20, gridCenter.z); // Default camera position
-// Position the camera to face the grid top-down
-// camera.lookAt(gridCenter);
-
 // Lighting
 // Create one light for each view in the 'views' array
 views.forEach(view => {
@@ -121,15 +130,11 @@ scene.add(light);
 const ambientLight = new THREE.AmbientLight(0x404040, 0.5); // Soft white light
 scene.add(ambientLight);
 
-const bricks = [];
-// Rotate camera around the center of the grid with the center mouse button
-let shouldCameraMove = false;
-const cameraRotationSpeed = 0.005;
-let lastMouseX = 0;
-let lastMouseY = 0;
-
 window.addEventListener('mousedown', (event) => {
     if (event.button === 1) { // Middle mouse button
+        mainCamera.position.copy(activeCamera.position);
+        mainCamera.rotation.copy(activeCamera.rotation);
+        activeCamera = mainCamera;
         shouldCameraMove = true;
         lastMouseX = event.clientX;
         lastMouseY = event.clientY;
