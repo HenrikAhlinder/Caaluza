@@ -1,23 +1,9 @@
 import { Brick } from './brick.js'
 
-// Basic scene setup
-const scene = new THREE.Scene();
-const aspectRatio = window.innerWidth / window.innerHeight;
-const orthoSize = 15; // Adjust this value for zoom level
-const camera = new THREE.OrthographicCamera(
-    -orthoSize * aspectRatio, 
-    orthoSize * aspectRatio, 
-    orthoSize, 
-    -orthoSize, 
-    0.1, 
-    1000
-);
-
-
 // TODO: Garbage globals?
 const gridCenter = new THREE.Vector3(3, 0, 3);
 const gridSize = 6;
-const brickSelector = document.createElement('div');
+const brickSelector = document.querySelector('.brick-selector');
 const colors = [
     { name: 'Yellow', hex: 0xffff00 },
     { name: 'Red', hex: 0xff0000 },
@@ -25,22 +11,34 @@ const colors = [
     { name: 'Green', hex: 0x00FF00 }
 ];
 
+// Basic scene setup
+const scene = new THREE.Scene();
+
+// Define cameras for each view
+const cameras = {};
+views.forEach(view => {
+    const aspectRatio = window.innerWidth / window.innerHeight;
+    const orthoSize = 15; // Adjust this value for zoom level
+    cameras[view.name] = new THREE.OrthographicCamera(
+        -orthoSize * aspectRatio,
+        orthoSize * aspectRatio,
+        orthoSize,
+        -orthoSize,
+        0.1,
+        1000
+    );
+    cameras[view.name].position.set(view.position.x, view.position.y, view.position.z);
+    cameras[view.name].lookAt(gridCenter);
+});
+
+// Set the default active camera
+let activeCamera = cameras['Top'];
+
 
 const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('three-canvas') });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 document.body.appendChild(renderer.domElement);
-
-function initialize() {
-    setupBaseplate();
-    setupBrickSelector();
-    // setupMainCamera();
-    // setupLighting();
-    // setupViewButtons();
-    // setupEventListeners();
-    // animate();
-}
-initialize();
 
 function setupBaseplate() {
     const baseplateHeight = 0.2;
@@ -53,106 +51,55 @@ function setupBaseplate() {
     baseplate.addToScene(scene);
 }
 
-function setupBrickSelector() {
-    // Add a brick on click
-    brickSelector.className = 'brick-selector';
-    brickSelector.innerHTML = '<strong>Bricks:</strong>';
-    document.body.appendChild(brickSelector);
+const buttonContainer = document.querySelector('.button-container');
+const titleTextbox = document.getElementById('title-textbox');
+const saveButton = document.getElementById('save-btn');
+const loadButton = document.getElementById('load-btn');
 
-    // Generate brick options using loops
-    colors.forEach(color => {
-        // Create color group header
-        const colorHeader = document.createElement('div');
-        colorHeader.className = 'color-header';
-        colorHeader.style.color = `#${color.hex.toString(16).padStart(6, '0')}`; // Keep dynamic color
-        colorHeader.innerText = color.name;
-        brickSelector.appendChild(colorHeader);
+// Setup event listeners for brick selector buttons
+brickSelector.querySelectorAll('.size-button').forEach(button => {
+    button.addEventListener('mousedown', (event) => {
+        const [sizeName, colorName] = button.title.split(' ');
+        const color = colors.find(c => c.name === colorName);
+        const size = sizes.find(s => s.name === sizeName);
 
-        // Create container for size buttons
-        const sizeContainer = document.createElement('div');
-        sizeContainer.className = 'size-container';
-        brickSelector.appendChild(sizeContainer);
+        if (!currentlyDraggedBrick && color && size) {
+            // Create a new brick and start dragging
+            currentlyDraggedBrick = new Brick(new THREE.Vector3(1000, 0, 1000), color.hex, { width: size.width, height: 1, depth: size.depth }, button.title);
+            bricks.push(currentlyDraggedBrick);
+            currentlyDraggedBrick.addToScene(scene);
 
-        const sizes = [
-            { name: '1x1', width: 1, depth: 1 },
-            { name: '1x2', width: 1, depth: 2 },
-            { name: '1x3', width: 1, depth: 3 },
-            { name: '1x4', width: 1, depth: 4 },
-            { name: '2x2', width: 2, depth: 2 },
-            { name: '2x3', width: 2, depth: 3 },
-            { name: '2x4', width: 2, depth: 4 }
-        ];
+            // Track the brick for dragging
+            dragOffset.set(0, 0, 0); // No offset for a newly created brick
 
-        sizes.forEach(size => {
-            const button = document.createElement('button');
-            const name = `${size.name} ${color.name}`;
-            button.innerText = `${size.name}`;
-            button.title = name; // Tooltip for full name
-            button.className = 'size-button';
+            // Create and add ghost brick
+            ghostBrick = createGhostBrick(currentlyDraggedBrick);
+            scene.add(ghostBrick);
 
-            button.addEventListener('mousedown', (event) => {
-                if (!currentlyDraggedBrick) {
-                    // Create a new brick and start dragging
-                    const newBrick = new Brick(new THREE.Vector3(1000, 0, 1000), color.hex, { width: size.width, height: 1, depth: size.depth }, name);
-                    bricks.push(newBrick);
-                    newBrick.addToScene(scene);
+            // Disable button after selection
+            button.disabled = true;
+            button.style.cursor = 'not-allowed';
+            button.style.opacity = '0.6';
+        }
+    });
+});
 
-                    // Track the brick for dragging
-                    currentlyDraggedBrick = newBrick;
-                    dragOffset.set(0, 0, 0); // No offset for a newly created brick
-
-                    // Create and add ghost brick
-                    ghostBrick = createGhostBrick(currentlyDraggedBrick);
-                    scene.add(ghostBrick);
-
-                    // Position ghost brick immediately at cursor location
-                    raycaster.setFromCamera(mouse, camera);
-                    raycaster.ray.intersectPlane(plane, planeIntersect);
-                    if (planeIntersect) {
-                        const gridSize = 1;
-                        const snappedX = Math.round(planeIntersect.x / gridSize) * gridSize;
-                        const snappedZ = Math.round(planeIntersect.z / gridSize) * gridSize;
-                        
-                        currentlyDraggedBrick.mesh.position.set(snappedX, currentlyDraggedBrick.mesh.position.y, snappedZ);
-                        ghostBrick.position.set(snappedX, -0.5, snappedZ);
-                    }
-
-                    // Disable button after selection
-                    button.disabled = true;
-                    button.style.cursor = 'not-allowed';
-                    button.style.opacity = '0.6';
-                }
-            });
-
-            sizeContainer.appendChild(button);
+// Refactor: Setup event listeners for view buttons
+function setupViewButtons(buttonContainer, cameras) {
+    buttonContainer.querySelectorAll('.view-button').forEach(button => {
+        const viewName = button.textContent.trim();
+        button.addEventListener('click', () => {
+            if (cameras[viewName]) {
+                activeCamera = cameras[viewName];
+            }
         });
     });
 }
 
-// Add shortcut buttons to show the grid from each side (top, left, right, front, back)
-const buttonContainer = document.createElement('div');
-buttonContainer.className = 'button-container';
-document.body.appendChild(buttonContainer);
-
-// Predefined views adjusted for Orthographic Camera
-const views = [
-    { name: 'Top', position: { x: 3, y: 10, z: 3 } },
-    { name: '0 deg', position: { x: -15, y: 0.0, z: 3.0 } },
-    { name: '90 deg', position: { x: 3, y: 0.0, z: 20 } },
-    { name: '180 deg', position: { x: 20, y: 0.0, z: 3 } },
-    { name: '270 deg', position: { x: 3, y: 0.0, z: -15 } },
-];
-views.forEach(view => {
-    const button = document.createElement('button');
-    button.innerText = view.name;
-    button.className = 'view-button';
-    button.addEventListener('click', () => {
-        camera.position.set(view.position.x, view.position.y, view.position.z);
-        camera.lookAt(gridCenter);
-    });
-    buttonContainer.appendChild(button);
-});
-camera.position.set(gridCenter.x, 20, gridCenter.z); // Default camera position
+//TODO: Enable?
+// camera.position.set(gridCenter.x, 20, gridCenter.z); // Default camera position
+// Position the camera to face the grid top-down
+// camera.lookAt(gridCenter);
 
 // Lighting
 // Create one light for each view in the 'views' array
@@ -173,9 +120,6 @@ scene.add(light);
 // Ambient light for overall illumination
 const ambientLight = new THREE.AmbientLight(0x404040, 0.5); // Soft white light
 scene.add(ambientLight);
-
-// Position the camera to face the grid top-down
-camera.lookAt(gridCenter);
 
 const bricks = [];
 // Rotate camera around the center of the grid with the center mouse button
@@ -205,15 +149,15 @@ window.addEventListener('mousemove', (event) => {
 
         // Rotate around grid center horizontally
         const horizontalAngle = deltaX * cameraRotationSpeed;
-        camera.position.applyAxisAngle(new THREE.Vector3(0, 1, 0), -horizontalAngle);
+        activeCamera.position.applyAxisAngle(new THREE.Vector3(0, 1, 0), -horizontalAngle);
 
         // Rotate vertically (up and down) while keeping view clamped
-        const verticalAxis = new THREE.Vector3().subVectors(camera.position, gridCenter).normalize(); // Camera-to-center axis
+        const verticalAxis = new THREE.Vector3().subVectors(activeCamera.position, gridCenter).normalize(); // Camera-to-center axis
         const verticalAngle = deltaY * cameraRotationSpeed;
-        camera.position.applyAxisAngle(verticalAxis, verticalAngle);
+        activeCamera.position.applyAxisAngle(verticalAxis, verticalAngle);
 
         // Ensure camera keeps looking at the grid center
-        camera.lookAt(gridCenter);
+        activeCamera.lookAt(gridCenter);
 
         // Update mouse positions
         lastMouseX = event.clientX;
@@ -277,7 +221,7 @@ function createGhostBrick(originalBrick) {
 
 window.addEventListener('mousedown', (event) => {
     if (event.button === 0 && !currentlyDraggedBrick) {
-        raycaster.setFromCamera(mouse, camera);
+        raycaster.setFromCamera(mouse, activeCamera);
 
         const intersects = raycaster.intersectObjects(bricks.map(brick => brick.mesh));
         if (intersects.length > 0) {
@@ -303,7 +247,7 @@ window.addEventListener('mousedown', (event) => {
 window.addEventListener('mousemove', (event) => {
     if (currentlyDraggedBrick) {
         // Update position while dragging
-        raycaster.setFromCamera(mouse, camera);
+        raycaster.setFromCamera(mouse, activeCamera);
         raycaster.ray.intersectPlane(plane, planeIntersect); // Intersect with the ground plane
         if (planeIntersect) {
             // Adjust position based on the offset
@@ -379,7 +323,7 @@ window.addEventListener('keydown', (event) => {
 // Delete brick on right-click
 window.addEventListener('mousedown', (event) => {
     if (event.button === 2) { // Right mouse button
-        raycaster.setFromCamera(mouse, camera);
+        raycaster.setFromCamera(mouse, activeCamera);
         const intersects = raycaster.intersectObjects(bricks.map(brick => brick.mesh));
 
         if (intersects.length > 0) {
@@ -408,25 +352,11 @@ window.addEventListener('mousedown', (event) => {
 // Render loop
 function animate() {
     requestAnimationFrame(animate);
-    renderer.render(scene, camera);
+    renderer.render(scene, activeCamera);
 }
 animate();
 
-const titleContainer = document.createElement('div');
-titleContainer.className = 'title-container';
-document.body.appendChild(titleContainer);
-const titleLabel = document.createElement('label');
-titleLabel.innerText = 'Title:';
-titleLabel.className = 'title-label';
-titleContainer.appendChild(titleLabel);
-
-const titleTextbox = document.createElement('input');
-titleTextbox.type = 'text';
-titleTextbox.className = 'title-textbox';
-titleContainer.appendChild(titleTextbox);
-
 // Save scene as JSON
-const saveButton = document.getElementById('save-btn');
 saveButton.addEventListener('click', () => {
     const name = titleTextbox.value.trim();
     if (!name) {
@@ -494,13 +424,6 @@ saveButton.addEventListener('click', () => {
 });
 
 // Move load button to center (above title)
-const loadButton = document.createElement('button');
-loadButton.id = 'load-btn';
-loadButton.innerText = 'Load';
-loadButton.className = 'load-button';
-document.body.appendChild(loadButton);
-
-// Load scene from JSON
 loadButton.addEventListener('click', () => {
     const map_id = titleTextbox.value.trim();
     if (!map_id) {
@@ -577,3 +500,14 @@ loadButton.addEventListener('click', () => {
         alert('Failed to load map: ' + error.message);
     });
 });
+
+function initialize() {
+    setupBaseplate();
+    setupViewButtons(buttonContainer, cameras);
+    // setupMainCamera();
+    // setupLighting();
+    // setupViewButtons();
+    // setupEventListeners();
+    // animate();
+}
+initialize();

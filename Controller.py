@@ -1,11 +1,33 @@
 from flask import Flask, jsonify, request, render_template
 app = Flask(__name__)
 
-from Brick import Brick, BrickMap, Point
+from Brick import BrickMap
 from Storage import MapStorage
 
 storage = MapStorage()
 
+colors = [
+    {"name": "Yellow", "hex": 0xffff00},
+    {"name": "Red", "hex": 0xff0000},
+    {"name": "Blue", "hex": 0x0000ff},
+    {"name": "Green", "hex": 0x00FF00}
+]
+sizes = [
+    {"name": "1x1", "width": 1, "depth": 1},
+    {"name": "1x2", "width": 1, "depth": 2},
+    {"name": "1x3", "width": 1, "depth": 3},
+    {"name": "1x4", "width": 1, "depth": 4},
+    {"name": "2x2", "width": 2, "depth": 2},
+    {"name": "2x3", "width": 2, "depth": 3},
+    {"name": "2x4", "width": 2, "depth": 4}
+]
+views = [
+    {"name": "Top", "position": {"x": 3, "y": 10, "z": 3}},
+    {"name": "0 deg", "position": {"x": -15, "y": 0.0, "z": 3.0}},
+    {"name": "90 deg", "position": {"x": 3, "y": 0.0, "z": 20}},
+    {"name": "180 deg", "position": {"x": 20, "y": 0.0, "z": 3}},
+    {"name": "270 deg", "position": {"x": 3, "y": 0.0, "z": -15}}
+]
 
 @app.route('/')
 def main_menu():
@@ -15,7 +37,7 @@ def main_menu():
 @app.route('/edit')
 def edit():
     """Edit menu."""
-    return render_template('edit.html')
+    return render_template('edit.html', colors=colors, sizes=sizes, views=views)
 
 @app.route('/save/<string:map_id>', methods=['POST'])
 def save_map(map_id):

@@ -9,7 +9,42 @@
 </head>
 <body>
     <canvas id="three-canvas"></canvas>
+    
+    <!-- Brick Selector -->
+    <div class="brick-selector">
+        <strong>Bricks:</strong>
+        {% for color in colors %}
+        <div class="color-header">{{ color.name }}</div>
+        <div class="size-container">
+            {% for size in sizes %}
+            <button class="size-button" title="{{ size.name }} {{ color.name }}">
+                {{ size.name }}
+            </button>
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- View Buttons -->
+    <div class="button-container">
+        {% for view in views %}
+        <button class="view-button" data-position="{{ view.position }}">{{ view.name }}</button>
+        {% endfor %}
+    </div>
+    
+    <!-- Title Input -->
+    <div class="title-container">
+        <label class="title-label" for="title-textbox">Title:</label>
+        <input type="text" id="title-textbox" class="title-textbox">
+    </div>
+    
+    <!-- Save and Load Buttons -->
     <button id="save-btn">Save</button>
+    <button id="load-btn" class="load-button">Load</button>
+    
+    <script>
+        const views = {{ views | tojson }};
+    </script>
     <script type="module" src="static/js/edit.js"></script>
 </body>
 </html>
