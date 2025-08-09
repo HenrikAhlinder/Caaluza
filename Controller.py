@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request, render_template
 app = Flask(__name__)
 
-from Brick import BrickMap
+from Brick import BrickMap, Brick
 from Storage import MapStorage
 
 storage = MapStorage()
@@ -62,5 +62,32 @@ def load_map(map_id):
     return jsonify({'map_id': map_id, 'map': map_data.to_dict()}), 200
 
 
+@app.route('/generate', methods=['GET'])
+def generate_map():
+    from Mapgenerator.Mapgenerator import BrickDef, Point, generate_map2
+
+    map_data = generate_map2()
+
+    bricks: list[Brick] = []
+    for brickdef in map_data:
+        xs = [p.x for p in brickdef.points]
+        zs = [p.z for p in brickdef.points]
+        y = [p.y for p in brickdef.points][0]
+
+        width = abs(min(xs) - max(xs)) + 1
+        depth = abs(min(zs) - max(zs)) + 1
+        newbrick = Brick(brickdef.color, f"{width}x{depth} {brickdef.color}", xs, zs, y)
+
+        bricks.append(newbrick)
+
+
+    brickmap = BrickMap(name = "Generated map")
+    brickmap.bricks = bricks
+
+    if not map_data:
+        return jsonify({'error': 'Map not found'}), 404
+    return jsonify({'map_id': "generated_map", 'map': brickmap.to_dict()}), 200
+
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True, threaded=True)

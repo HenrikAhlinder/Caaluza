@@ -267,6 +267,12 @@ window.addEventListener('mouseup', (event) => {
 });
 
 window.addEventListener('keydown', (event) => {
+    switch (event.key) {
+
+            case 'q':
+                shouldCameraMove = !shouldCameraMove;
+                break;
+    }
     if (currentlyDraggedBrick) {
         switch (event.key) {
             case 'w':
@@ -386,13 +392,8 @@ document.getElementById('save-btn').addEventListener('click', () => {
     });
 });
 
-document.getElementById('load-btn').addEventListener('click', () => {
-    const map_id = titleTextbox.value.trim();
-    if (!map_id) {
-        alert('Please enter a title for the map to load.');
-        return;
-    }
-    fetch(`/load/${map_id}`, {
+document.getElementById('generate-btn').addEventListener('click', () => {
+    fetch(`/generate`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -400,7 +401,7 @@ document.getElementById('load-btn').addEventListener('click', () => {
     })
     .then(response => response.json())
     .then(data => {
-        console.log('Load response:', data);
+        console.log('Response:', data);
         if (data.error) {
             alert('Error loading map: ' + data.error);
             return;
@@ -411,7 +412,7 @@ document.getElementById('load-btn').addEventListener('click', () => {
             brick.removeFromScene(scene);
         });
         bricks.length = 0;
-        
+
         // Re-enable all brick selector buttons
         const buttons = brickSelector.querySelectorAll('button');
         buttons.forEach(button => {
@@ -425,7 +426,10 @@ document.getElementById('load-btn').addEventListener('click', () => {
         if (data.bricks && Array.isArray(data.bricks)) {
             data.bricks.forEach(brickData => {
                 // Find matching color and size for the brick
-                const colorMatch = colors.find(c => c.hex === brickData.color);
+                let colorMatch = colors.find(c => c.hex === brickData.color);
+                if (!colorMatch) {
+                    colorMatch = colors.find(c => c.name === brickData.color);
+                }
                 const brickColor = colorMatch ? colorMatch.hex : 0x808080; // Default to gray
                 
                 // Calculate brick dimensions from xs and zs arrays
