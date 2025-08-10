@@ -5,8 +5,8 @@ body {
 
 #save-btn {
     position: fixed;
-    top: 10px;
-    right: 150px;
+    top: 6%;
+    left: 70%;
     padding: 10px 20px;
     background-color: #4CAF50;
     color: white;
@@ -16,6 +16,8 @@ body {
     z-index: 1000;
     font-size: 14px;
     font-weight: bold;
+    transform: translate(-50%, -50%);
+    padding: 10px 20px;
 }
 
 #save-btn:hover {
@@ -117,5 +119,25 @@ body {
 }
 
 .load-button:hover {
+    background-color: #1976D2;
+}
+
+.gen-button {
+    position: fixed;
+    top: 15%;
+    left: 70%;
+    transform: translate(-50%, -50%);
+    padding: 10px 20px;
+    background-color: #2196F3;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    z-index: 1000;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.gen-button:hover {
     background-color: #1976D2;
 }

@@ -392,79 +392,93 @@ document.getElementById('save-btn').addEventListener('click', () => {
     });
 });
 
-document.getElementById('generate-btn').addEventListener('click', () => {
-    fetch(`/generate`, {
+function handleFetchResponse(data) {
+    console.log('Response:', data);
+    if (data.error) {
+        alert('Error loading map: ' + data.error);
+        return;
+    }
+
+    // Clear existing bricks
+    bricks.forEach(brick => {
+        brick.removeFromScene(scene);
+    });
+    bricks.length = 0;
+
+    // Re-enable all brick selector buttons
+    const buttons = brickSelector.querySelectorAll('button');
+    buttons.forEach(button => {
+        button.disabled = false;
+        button.style.cursor = 'pointer';
+        button.style.opacity = '1';
+    });
+
+    data = data.map;
+    // Load bricks from data
+    if (data.bricks && Array.isArray(data.bricks)) {
+        data.bricks.forEach(brickData => {
+            loadBrick(brickData, buttons);
+        });
+    }
+}
+
+function loadBrick(brickData, buttons) {
+    // Find matching color and size for the brick
+    let colorMatch = colors.find(c => c.hex === brickData.color);
+    if (!colorMatch) {
+        colorMatch = colors.find(c => c.name === brickData.color);
+    }
+    const brickColor = colorMatch ? colorMatch.hex : 0x808080; // Default to gray
+
+    // Calculate brick dimensions from xs and zs arrays
+    const minX = Math.min(...brickData.xs);
+    const maxX = Math.max(...brickData.xs);
+    const minZ = Math.min(...brickData.zs);
+    const maxZ = Math.max(...brickData.zs);
+    const width = maxX - minX + 1;
+    const depth = maxZ - minZ + 1;
+
+    // Create new brick
+    const newBrick = new Brick(
+        new THREE.Vector3(maxX + 1, brickData.y, maxZ + 1),
+        brickColor,
+        { width: width, height: 1, depth: depth },
+        brickData.name || `${width}x${depth} ${brickData.color}`
+    );
+
+    bricks.push(newBrick);
+    newBrick.addToScene(scene);
+
+    // Disable corresponding button
+    const button = Array.from(buttons).find(btn => btn.title === newBrick.buttonName);
+    if (button) {
+        button.disabled = true;
+        button.style.cursor = 'not-allowed';
+        button.style.opacity = '0.6';
+    }
+}
+
+function fetchAndHandle(url) {
+    fetch(url, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
         }
     })
     .then(response => response.json())
-    .then(data => {
-        console.log('Response:', data);
-        if (data.error) {
-            alert('Error loading map: ' + data.error);
-            return;
-        }
-        
-        // Clear existing bricks
-        bricks.forEach(brick => {
-            brick.removeFromScene(scene);
-        });
-        bricks.length = 0;
-
-        // Re-enable all brick selector buttons
-        const buttons = brickSelector.querySelectorAll('button');
-        buttons.forEach(button => {
-            button.disabled = false;
-            button.style.cursor = 'pointer';
-            button.style.opacity = '1';
-        });
-        
-        data = data.map;
-        // Load bricks from data
-        if (data.bricks && Array.isArray(data.bricks)) {
-            data.bricks.forEach(brickData => {
-                // Find matching color and size for the brick
-                let colorMatch = colors.find(c => c.hex === brickData.color);
-                if (!colorMatch) {
-                    colorMatch = colors.find(c => c.name === brickData.color);
-                }
-                const brickColor = colorMatch ? colorMatch.hex : 0x808080; // Default to gray
-                
-                // Calculate brick dimensions from xs and zs arrays
-                const minX = Math.min(...brickData.xs);
-                const maxX = Math.max(...brickData.xs);
-                const minZ = Math.min(...brickData.zs);
-                const maxZ = Math.max(...brickData.zs);
-                const width = maxX - minX + 1;
-                const depth = maxZ - minZ + 1;
-                
-                // Create new brick
-                const newBrick = new Brick(
-                    new THREE.Vector3(maxX+1, brickData.y, maxZ+1),
-                    brickColor,
-                    { width: width, height: 1, depth: depth },
-                    brickData.name || `${width}x${depth} ${brickData.color}`
-                );
-                
-                bricks.push(newBrick);
-                newBrick.addToScene(scene);
-                
-                // Disable corresponding button
-                const button = Array.from(buttons).find(btn => btn.title === newBrick.buttonName);
-                if (button) {
-                    button.disabled = true;
-                    button.style.cursor = 'not-allowed';
-                    button.style.opacity = '0.6';
-                }
-            });
-        }
-    })
+    .then(data => handleFetchResponse(data))
     .catch(error => {
         console.error('Error loading map:', error);
         alert('Failed to load map: ' + error.message);
     });
+}
+
+document.getElementById('load-btn').addEventListener('click', () => {
+    fetchAndHandle(`/load/${titleTextbox.value.trim()}`);
+});
+
+document.getElementById('generate-btn').addEventListener('click', () => {
+    fetchAndHandle(`/generate`);
 });
 
 function animate() {
