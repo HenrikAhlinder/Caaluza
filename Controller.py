@@ -64,7 +64,7 @@ def load_map(map_id):
 
 @app.route('/generate', methods=['GET'])
 def generate_map():
-    from Mapgenerator.Mapgenerator import BrickDef, Point, generate_map2
+    from Mapgenerator.Mapgenerator import generate_map2
 
     map_data = generate_map2()
 
@@ -76,16 +76,16 @@ def generate_map():
 
         width = abs(min(xs) - max(xs)) + 1
         depth = abs(min(zs) - max(zs)) + 1
+        width, depth = min(width, depth), max(width, depth)
         newbrick = Brick(brickdef.color, f"{width}x{depth} {brickdef.color}", xs, zs, y)
 
         bricks.append(newbrick)
 
-
     brickmap = BrickMap(name = "Generated map")
     brickmap.bricks = bricks
 
-    if not map_data:
-        return jsonify({'error': 'Map not found'}), 404
+    if not bricks:
+        return jsonify({'error': 'No bricks generated'}), 404
     return jsonify({'map_id': "generated_map", 'map': brickmap.to_dict()}), 200
 
 
