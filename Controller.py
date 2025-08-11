@@ -39,7 +39,7 @@ def edit():
     """Edit menu."""
     return render_template('edit.html', colors=colors, sizes=sizes, views=views)
 
-@app.route('/save/<string:map_id>', methods=['POST'])
+@app.route('/map/<string:map_id>', methods=['POST'])
 def save_map(map_id):
     """Save an existing map."""
     # Parse request JSON
@@ -52,7 +52,7 @@ def save_map(map_id):
     storage.save_map(map_id, new_map)  # Save the map in storage
     return jsonify({'message': 'Map created successfully', 'map_id': map_id}), 201
 
-@app.route('/load/<string:map_id>', methods=['GET'])
+@app.route('/map/<string:map_id>', methods=['GET'])
 def load_map(map_id):
     """Load an existing map."""
     map_data = storage.load_map(map_id)

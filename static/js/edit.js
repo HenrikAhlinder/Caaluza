@@ -369,8 +369,7 @@ document.getElementById('save-btn').addEventListener('click', () => {
     
     console.log('Saving scene data:', sceneData);
 
-    // POST to /save-map endpoint
-    fetch(`/save/${name}`, {
+    fetch(`/map/${name}`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -474,7 +473,7 @@ function fetchAndHandle(url) {
 }
 
 document.getElementById('load-btn').addEventListener('click', () => {
-    fetchAndHandle(`/load/${titleTextbox.value.trim()}`);
+    fetchAndHandle(`/map/${titleTextbox.value.trim()}`);
 });
 
 document.getElementById('generate-btn').addEventListener('click', () => {
