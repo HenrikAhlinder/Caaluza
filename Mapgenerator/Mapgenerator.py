@@ -17,6 +17,9 @@ class BrickDef:
     color: str
     points: frozenset[Point]
 
+    def shares_no_points(self, other: frozenset[Point]) -> bool:
+        return self.points.isdisjoint(other)
+
 
 def generate_map2() -> list[BrickDef]:
     baseplate = BrickDef(6, 6, "gray", frozenset(Point(x, -1, z) for x in range(6) for z in range(6)))
@@ -45,15 +48,12 @@ def generate_map2() -> list[BrickDef]:
                     lastz = avail_peg.z - zOffset + brick.depth
                     y = avail_peg.y + 1
 
-                    coordinates = {
+                    coordinates =frozenset(
                         Point(x, y, z) 
                         for x in range(startpointx, lastx) 
-                        for z in range(startpointz, lastz)}
+                        for z in range(startpointz, lastz))
 
-                    for placed_brick in placed_bricks:
-                        if not coordinates.isdisjoint(placed_brick.points):
-                            break
-                    else:
+                    if all(brick.shares_no_points(coordinates) for brick in placed_bricks):
                         possible_points.append(frozenset(coordinates))
             
 
