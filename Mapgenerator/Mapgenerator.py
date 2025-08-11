@@ -21,6 +21,24 @@ class BrickDef:
         return self.points.isdisjoint(other)
 
 
+def find_placeable_spots(brick: BrickDef, 
+                        placed_bricks: list[BrickDef], 
+                        available_pegs: set[Point]) -> None | list[frozenset[Point]]:
+    possible_points = []
+    for peg in available_pegs:
+        y = peg.y + 1
+        for xOffset in range(brick.width):
+            for zOffset in range(brick.depth):
+                coordinates = frozenset(
+                    Point(peg.x - xOffset + x, y, peg.z - zOffset + z)
+                    for x in range(brick.width)
+                    for z in range(brick.depth)
+                )
+                if all(brick.shares_no_points(coordinates) for brick in placed_bricks):
+                    possible_points.append(coordinates)
+    return possible_points
+
+
 def generate_map2() -> list[BrickDef]:
     baseplate = BrickDef(6, 6, "gray", frozenset(Point(x, -1, z) for x in range(6) for z in range(6)))
     nr_bricks = 12
@@ -31,34 +49,7 @@ def generate_map2() -> list[BrickDef]:
         for i in range(1, 3):
             for j in range(i, 5):
                 available_bricks.append(BrickDef(i, j, color, frozenset()))
-
     available_bricks = sample(available_bricks, nr_bricks)
-
-    def find_placeable_spots(brick: BrickDef, 
-                            placed_bricks: list[BrickDef], 
-                            available_pegs: set[Point]) -> None | list[frozenset[Point]]:
-        possible_points = []
-        for avail_peg in available_pegs:
-            # Normal rotation
-            for xOffset in range(brick.width):
-                for zOffset in range(brick.depth):
-                    startpointx = avail_peg.x - xOffset
-                    startpointz = avail_peg.z - zOffset
-                    lastx = avail_peg.x - xOffset + brick.width
-                    lastz = avail_peg.z - zOffset + brick.depth
-                    y = avail_peg.y + 1
-
-                    coordinates =frozenset(
-                        Point(x, y, z) 
-                        for x in range(startpointx, lastx) 
-                        for z in range(startpointz, lastz))
-
-                    if all(brick.shares_no_points(coordinates) for brick in placed_bricks):
-                        possible_points.append(frozenset(coordinates))
-            
-
-        return possible_points
-
 
     placed_bricks: list[BrickDef] = []
     for brick in available_bricks:
