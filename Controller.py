@@ -4,6 +4,8 @@ app = Flask(__name__)
 from Brick import BrickMap, Brick
 from Storage import MapStorage
 
+from datetime import datetime
+
 storage = MapStorage()
 
 colors = [
@@ -29,6 +31,9 @@ views = [
     {"name": "t4", "position": {"x": 3, "y": 0.0, "z": -20}}
 ]
 
+# TODO: Remove this and replace with sane overwrite solution
+last_failed_save_attempt: dict[str, datetime] = {}
+
 @app.route('/')
 def main_menu():
     """Main menu page with Play and Edit buttons."""
@@ -40,22 +45,31 @@ def edit():
     return render_template('edit.html', colors=colors, sizes=sizes, views=views)
 
 @app.route('/map/<string:map_id>', methods=['POST'])
-def save_map(map_id):
+def save_map(map_id: str):
     """Save an existing map."""
     # Parse request JSON
     data = request.get_json()
+    map_id = map_id.strip().lower()
+
+    if map_id in storage.list_maps():
+        current_time = datetime.now()
+        last_saved = last_failed_save_attempt.get(map_id, None)
+        if last_saved is None or (current_time - last_saved).total_seconds() > 30:
+            last_failed_save_attempt[map_id] = datetime.now()
+            return jsonify({'error': 'Map ID already exists. Save again if you want to overwrite'}), 400
 
     try:
-        new_map = BrickMap.from_dict(data)  # Validate the data structure
+        new_map = BrickMap.from_dict(data)
     except Exception as e:
         return jsonify({'error': f'Invalid map data: {str(e)}'}), 400
-    storage.save_map(map_id, new_map)  # Save the map in storage
+    storage.save_map(map_id, new_map)
     return jsonify({'message': 'Map created successfully', 'map_id': map_id}), 201
 
 @app.route('/map/<string:map_id>', methods=['GET'])
 def load_map(map_id):
     """Load an existing map."""
     map_data = storage.load_map(map_id)
+    map_id = map_id.strip().lower()
 
     if not map_data:
         return jsonify({'error': 'Map not found'}), 404
@@ -64,9 +78,9 @@ def load_map(map_id):
 
 @app.route('/generate', methods=['GET'])
 def generate_map():
-    from Mapgenerator.Mapgenerator import generate_map2
+    from Mapgenerator.Mapgenerator import generate_map as genmap
 
-    map_data = generate_map2()
+    map_data = genmap()
 
     bricks: list[Brick] = []
     for brickdef in map_data:
@@ -81,11 +95,11 @@ def generate_map():
 
         bricks.append(newbrick)
 
-    brickmap = BrickMap(name = "Generated map")
-    brickmap.bricks = bricks
-
     if not bricks:
         return jsonify({'error': 'No bricks generated'}), 404
+
+    brickmap = BrickMap(name = "Generated map")
+    brickmap.bricks = bricks
     return jsonify({'map_id': "generated_map", 'map': brickmap.to_dict()}), 200
 
 

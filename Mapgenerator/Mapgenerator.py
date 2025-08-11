@@ -43,7 +43,7 @@ def find_placeable_spots(brick: BrickDef,
     return possible_points
 
 
-def generate_map2() -> list[BrickDef]:
+def generate_map() -> list[BrickDef]:
     baseplate = BrickDef(6, 6, "gray", frozenset(Point(x, 0, z) for x in range(6) for z in range(6)))
     nr_bricks = 24
     available_pegs: set[Point] = set(baseplate.points)
