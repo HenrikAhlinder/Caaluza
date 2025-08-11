@@ -25,31 +25,29 @@ def find_placeable_spots(brick: BrickDef,
                         placed_bricks: list[BrickDef], 
                         available_pegs: set[Point]) -> None | list[frozenset[Point]]:
     possible_points = []
+
+    orientations = [(brick.width, brick.depth), (brick.depth, brick.width)]
+    
     for peg in available_pegs:
-        y = peg.y + 1
-        for xOffset in range(brick.width):
-            for zOffset in range(brick.depth):
-                coordinates = frozenset(
-                    Point(peg.x - xOffset + x, y, peg.z - zOffset + z)
-                    for x in range(brick.width)
-                    for z in range(brick.depth)
-                )
-                if all(brick.shares_no_points(coordinates) for brick in placed_bricks):
-                    possible_points.append(coordinates)
+        for width, depth in orientations:
+            for xOffset in range(width):
+                for zOffset in range(depth):
+                    coordinates = frozenset(
+                        Point(peg.x - xOffset + x, peg.y, peg.z - zOffset + z)
+                        for x in range(width)
+                        for z in range(depth)
+                    )
+                    if all(brick.shares_no_points(coordinates) for brick in placed_bricks):
+                        possible_points.append(coordinates)
+
     return possible_points
 
 
 def generate_map2() -> list[BrickDef]:
-    baseplate = BrickDef(6, 6, "gray", frozenset(Point(x, -1, z) for x in range(6) for z in range(6)))
-    nr_bricks = 12
+    baseplate = BrickDef(6, 6, "gray", frozenset(Point(x, 0, z) for x in range(6) for z in range(6)))
+    nr_bricks = 24
     available_pegs: set[Point] = set(baseplate.points)
-
-    available_bricks= []
-    for color in ["Yellow", "Red", "Green", "Blue"]:
-        for i in range(1, 3):
-            for j in range(i, 5):
-                available_bricks.append(BrickDef(i, j, color, frozenset()))
-    available_bricks = sample(available_bricks, nr_bricks)
+    available_bricks = get_available_bricks(nr_bricks)
 
     placed_bricks: list[BrickDef] = []
     for brick in available_bricks:
@@ -59,24 +57,33 @@ def generate_map2() -> list[BrickDef]:
 
         spot = sample(spots, 1)[0]
         placed_bricks.append(BrickDef(brick.width, brick.depth, brick.color, spot))
+        available_pegs.difference_update(spot)
+        add_new_available_pegs(available_pegs, placed_bricks, spots, spot)
 
-        # Remove occupied pegs
-        available_pegs.difference_update(spots)
+    Assert_no_overlapping_bricks(placed_bricks)
+    return placed_bricks
 
-        for p in spot:
-            abovepoint = Point(p.x, p.y + 1, p.z)
-            for brick in placed_bricks:
-                if abovepoint in brick.points:
-                    break
-            else:
-                available_pegs.add(p)
-
-            # TODO: Allow hanging bricks. Requires changes to find_placeable_spots
-
-
+def Assert_no_overlapping_bricks(placed_bricks):
     for i in range(len(placed_bricks)-1):
         for j in range(i+1, len(placed_bricks)):
             assert(placed_bricks[i].points.isdisjoint(placed_bricks[j].points))
 
+def add_new_available_pegs(available_pegs, placed_bricks, spots, spot):
+    for p in spot:
+        abovepoint = Point(p.x, p.y + 1, p.z)
+        if all(brick.shares_no_points(frozenset([abovepoint])) for brick in placed_bricks):
+            available_pegs.add(abovepoint)
 
-    return placed_bricks
+        if p.y <= 0:  # Only add hanging points above baseplate level
+            continue
+        hanging_point = Point(p.x, p.y - 1, p.z)
+        if all(brick.shares_no_points(frozenset([hanging_point])) for brick in placed_bricks):
+            available_pegs.add(hanging_point)
+
+def get_available_bricks(nr_bricks: int) -> list[BrickDef]:
+    available_bricks = []
+    for color in ["Yellow", "Red", "Green", "Blue"]:
+        for i in range(1, 3):
+            for j in range(i, 5):
+                available_bricks.append(BrickDef(i, j, color, frozenset()))
+    return sample(available_bricks, nr_bricks)
