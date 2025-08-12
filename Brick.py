@@ -15,22 +15,18 @@ class Point:
     y: int
     z: int
 
-    def to_json(self):
-        """Convert Point to a JSON-serializable dictionary."""
-        return json.dumps({
+    def to_dict(self):
+        return {
             'x': self.x,
             'y': self.y,
             'z': self.z
-        })
+        }
 
     @classmethod
     def from_dict(cls, data):
-        """Create a Point instance from a JSON dictionary."""
-        data = json.loads(data)
         return cls(x=data['x'], y=data['y'], z=data['z'])
 
     def __add__(self, other):
-        """Add two points and return a new Point object."""
         if isinstance(other, Point):
             return Point(self.x + other.x, self.y + other.y, self.z + other.z)
         if isinstance(other, tuple) and len(other) == 3:
@@ -51,28 +47,20 @@ class Brick:
     """
     color: str
     name: str
-    xs: list[int]
-    zs: list[int]
-    y: int
+    points: list[Point]
 
     def to_dict(self):
         """Convert Brick to a dictionary."""
         return {
             'color': self.color,
-            'xs': self.xs,
-            'zs': self.zs,
-            'y': self.y,
+            'points': [Point(x=p.x, y=p.y, z=p.z).to_dict() for p in self.points],
             'name': self.name,
         }
 
     @classmethod
-    def from_json(cls, data):
-        data = json.loads(data)
-        return cls(color=data['color'], xs=data['xs'], zs=data['zs'], y=data['y'], name=data['name'])
-
-    @classmethod
     def from_dict(cls, data):
-        return cls(color=data['color'], xs=data['xs'], zs=data['zs'], y=data['y'], name=data['name'])
+        points = [Point.from_dict(point) for point in data['points']]
+        return cls(color=data['color'], points=points, name=data['name'])
 
 class BrickMap:
     """
@@ -100,22 +88,6 @@ class BrickMap:
             'bricks': [brick.to_dict() for brick in self.bricks]
         }
 
-    @classmethod
-    def from_json(cls, data):
-        data = json.loads(data)
-
-        metadata = data.get('metadata', {})
-        if len(metadata) == 0:
-            raise ValueError("Metadata is required to create a BrickMap.")
-        brick_map = cls(metadata["width"], metadata["height"], metadata["depth"], name=metadata["name"], timestamp=metadata["timestamp"])
-
-        bricks = data.get('bricks', [])
-        if not isinstance(bricks, list) or len(bricks) == 0:
-            raise ValueError("Bricks data is required to create a BrickMap.")
-        brick_map.bricks = [Brick.from_json(brick) for brick in bricks]
-
-        return brick_map
-    
     @classmethod
     def from_dict(cls, data):
         metadata = data.get('metadata', {})

@@ -337,22 +337,11 @@ document.getElementById('save-btn').addEventListener('click', () => {
     }
 
     const serializedBricks = bricks.map(brick => {
-    const gridSquaresCovered = brick.getGridSquaresCovered();
-    let xs = [];
-    let zs = [];
-    let y = null;
-    gridSquaresCovered.forEach(square => {
-        xs.push(square.x);
-        zs.push(square.z);
-        y = square.y;
-    });
-    return {
-            color: brick.color,
-            name: brick.buttonName,
-            xs: xs,
-            zs: zs,
-            y: y
-        };
+        return {
+                color: brick.color,
+                name: brick.buttonName,
+                points: brick.getGridSquaresCovered()
+            };
     });
     
     const sceneData = {
@@ -429,11 +418,10 @@ function loadBrick(brickData, buttons) {
     }
     const brickColor = colorMatch ? colorMatch.hex : 0x808080; // Default to gray
 
-    // Calculate brick dimensions from xs and zs arrays
-    const minX = Math.min(...brickData.xs);
-    const maxX = Math.max(...brickData.xs);
-    const minZ = Math.min(...brickData.zs);
-    const maxZ = Math.max(...brickData.zs);
+    const minX = Math.min(...Array.from(brickData.points, p => p.x));
+    const maxX = Math.max(...Array.from(brickData.points, p => p.x));
+    const minZ = Math.min(...Array.from(brickData.points, p => p.z));
+    const maxZ = Math.max(...Array.from(brickData.points, p => p.z));
     const width = maxX - minX + 1;
     const depth = maxZ - minZ + 1;
 
