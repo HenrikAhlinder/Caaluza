@@ -166,6 +166,43 @@ body {
     background-color: #1976D2;
 }
 
+.zoom-controls {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 1000;
+}
+
+.zoom-button {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: none;
+    background-color: #4CAF50;
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s ease;
+}
+
+.zoom-button:hover {
+    background-color: #45a049;
+    transform: scale(1.05);
+}
+
+.zoom-button:active {
+    transform: scale(0.95);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
 /* Mobile responsiveness - hide brick selector in dropdown for small screens */
 @media screen and (max-width: 768px) {
     .brick-selector-toggle {
@@ -219,5 +256,17 @@ body {
     #save-btn, .load-button, .gen-button {
         padding: 8px 16px;
         font-size: 12px;
+    }
+    
+    .zoom-controls {
+        bottom: 15px;
+        right: 15px;
+        gap: 8px;
+    }
+    
+    .zoom-button {
+        width: 45px;
+        height: 45px;
+        font-size: 20px;
     }
 }

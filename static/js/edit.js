@@ -127,6 +127,52 @@ class CameraSystem {
         this.lastMouseX = mouseX;
         this.lastMouseY = mouseY;
     }
+
+    zoomIn() {
+        const zoomFactor = 0.9;
+        this.updateCameraZoom(zoomFactor);
+    }
+
+    zoomOut() {
+        const zoomFactor = 1.1;
+        this.updateCameraZoom(zoomFactor);
+    }
+
+    updateCameraZoom(zoomFactor) {
+        const camera = this.activeCamera;
+        if (camera instanceof THREE.OrthographicCamera) {
+            const newSize = EditorConfig.ORTHO_SIZE * zoomFactor;
+            
+            // Limit zoom range
+            const minZoom = 5;
+            const maxZoom = 50;
+            if (newSize < minZoom || newSize > maxZoom) return;
+            
+            EditorConfig.ORTHO_SIZE = newSize;
+            
+            // Update the active camera
+            camera.left = -newSize * EditorConfig.ASPECT_RATIO;
+            camera.right = newSize * EditorConfig.ASPECT_RATIO;
+            camera.top = newSize;
+            camera.bottom = -newSize;
+            camera.updateProjectionMatrix();
+            
+            // Update all other cameras to maintain consistency
+            Object.values(this.playerCameras).forEach(cam => {
+                cam.left = -newSize * EditorConfig.ASPECT_RATIO;
+                cam.right = newSize * EditorConfig.ASPECT_RATIO;
+                cam.top = newSize;
+                cam.bottom = -newSize;
+                cam.updateProjectionMatrix();
+            });
+            
+            this.mainCamera.left = -newSize * EditorConfig.ASPECT_RATIO;
+            this.mainCamera.right = newSize * EditorConfig.ASPECT_RATIO;
+            this.mainCamera.top = newSize;
+            this.mainCamera.bottom = -newSize;
+            this.mainCamera.updateProjectionMatrix();
+        }
+    }
 }
 
 /**
@@ -556,6 +602,7 @@ class BrickEditor {
         this.uiController = new UIController(this.brickManager, document.querySelector('.brick-selector'));
         
         this.setupEventListeners();
+        this.setupZoomControls();
         this.startRenderLoop();
     }
 
@@ -608,6 +655,33 @@ class BrickEditor {
         window.addEventListener('contextmenu', (event) => {
             event.preventDefault();
         });
+    }
+
+    setupZoomControls() {
+        const zoomInBtn = document.getElementById('zoom-in-btn');
+        const zoomOutBtn = document.getElementById('zoom-out-btn');
+        
+        if (zoomInBtn) {
+            zoomInBtn.addEventListener('click', () => {
+                this.cameraSystem.zoomIn();
+            });
+        }
+        
+        if (zoomOutBtn) {
+            zoomOutBtn.addEventListener('click', () => {
+                this.cameraSystem.zoomOut();
+            });
+        }
+        
+        // Add mouse wheel zoom support
+        window.addEventListener('wheel', (event) => {
+            event.preventDefault();
+            if (event.deltaY < 0) {
+                this.cameraSystem.zoomIn();
+            } else {
+                this.cameraSystem.zoomOut();
+            }
+        }, { passive: false });
     }
 
     handleLeftClick() {
