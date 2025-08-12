@@ -40,10 +40,34 @@ body {
     cursor: pointer;
 }
 
-.brick-selector {
+.brick-selector-container {
     position: absolute;
     top: 10px;
     right: 10px;
+    width: 120px;
+    z-index: 1001;
+}
+
+.brick-selector-toggle {
+    display: none;
+    width: 100%;
+    padding: 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.brick-selector-toggle:hover {
+    background-color: #45a049;
+}
+
+.brick-selector {
+    position: relative;
     background: white;
     border: 1px solid #ccc;
     padding: 10px;
@@ -140,4 +164,60 @@ body {
 
 .gen-button:hover {
     background-color: #1976D2;
+}
+
+/* Mobile responsiveness - hide brick selector in dropdown for small screens */
+@media screen and (max-width: 768px) {
+    .brick-selector-toggle {
+        display: block;
+    }
+    
+    .brick-selector {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        width: auto;
+        max-width: 300px;
+        max-height: 60vh;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        z-index: 1002;
+    }
+    
+    .brick-selector.show {
+        display: flex;
+    }
+    
+    .brick-selector-container {
+        width: auto;
+        min-width: 120px;
+    }
+    
+    /* Adjust other elements for mobile */
+    .button-container {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 3px;
+    }
+    
+    .view-button {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+    
+    .title-container {
+        top: 15%;
+        left: 50%;
+    }
+    
+    .title-textbox {
+        width: 120px;
+        font-size: 12px;
+    }
+    
+    #save-btn, .load-button, .gen-button {
+        padding: 8px 16px;
+        font-size: 12px;
+    }
 }

@@ -11,18 +11,21 @@
     <canvas id="three-canvas"></canvas>
     
     <!-- Brick Selector -->
-    <div class="brick-selector">
-        <strong>Bricks:</strong>
-        {% for color in colors %}
-        <div class="color-header">{{ color.name }}</div>
-        <div class="size-container">
-            {% for size in sizes %}
-            <button class="size-button" title="{{ size.name }} {{ color.name }}">
-                {{ size.name }}
-            </button>
+    <div class="brick-selector-container">
+        <button class="brick-selector-toggle" id="brick-selector-toggle">Bricks ▼</button>
+        <div class="brick-selector" id="brick-selector">
+            <strong>Bricks:</strong>
+            {% for color in colors %}
+            <div class="color-header">{{ color.name }}</div>
+            <div class="size-container">
+                {% for size in sizes %}
+                <button class="size-button" title="{{ size.name }} {{ color.name }}">
+                    {{ size.name }}
+                </button>
+                {% endfor %}
+            </div>
             {% endfor %}
         </div>
-        {% endfor %}
     </div>
     
     <!-- View Buttons -->
@@ -47,6 +50,19 @@
         const views = {{ views | tojson }};
         const sizes = {{ sizes | tojson }};
         const colors = {{ colors | tojson }};
+        
+        // Initialize brick selector dropdown functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggle = document.getElementById('brick-selector-toggle');
+            const selector = document.getElementById('brick-selector');
+            
+            if (toggle && selector) {
+                toggle.addEventListener('click', function() {
+                    selector.classList.toggle('show');
+                    toggle.textContent = selector.classList.contains('show') ? 'Bricks ▲' : 'Bricks ▼';
+                });
+            }
+        });
     </script>
     <script type="module" src="static/js/edit.js"></script>
 </body>
