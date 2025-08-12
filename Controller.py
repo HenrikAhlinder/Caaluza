@@ -65,6 +65,7 @@ def save_map(map_id: str):
     storage.save_map(map_id, new_map)
     return jsonify({'message': 'Map created successfully', 'map_id': map_id}), 201
 
+
 @app.route('/map/<string:map_id>', methods=['GET'])
 def load_map(map_id):
     """Load an existing map."""
@@ -91,7 +92,7 @@ def generate_map():
         width = abs(min(xs) - max(xs)) + 1
         depth = abs(min(zs) - max(zs)) + 1
         width, depth = min(width, depth), max(width, depth)
-        newbrick = Brick(brickdef.color, f"{width}x{depth} {brickdef.color}", xs, zs, y)
+        newbrick = Brick(brickdef.color, f"{width}x{depth} {brickdef.color}", list(brickdef.points))
 
         bricks.append(newbrick)
 
