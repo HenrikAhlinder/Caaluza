@@ -1,475 +1,684 @@
-import { Brick } from './brick.js'
+import { Brick } from './Brick.js';
 
-// TODO: Garbage globals?
-const gridCenter = new THREE.Vector3(3, 0, 3);
-const gridSize = 6;
-const brickSelector = document.querySelector('.brick-selector');
-const bricks = [];
-const aspectRatio = window.innerWidth / window.innerHeight;
-const orthoSize = 15;
+/**
+ * Configuration class to centralize all configuration constants
+ */
+class EditorConfig {
+    static GRID_CENTER = new THREE.Vector3(3, 0, 3);
+    static GRID_SIZE = 6;
+    static ASPECT_RATIO = window.innerWidth / window.innerHeight;
+    static ORTHO_SIZE = 15;
+    static CAMERA_ROTATION_SPEED = 0.005;
+    static VERTICAL_STEP = 1;
+    static BASEPLATE_HEIGHT = 0.2;
+}
 
-let currentlyDraggedBrick = null;
-let dragOffset = new THREE.Vector3();
-let ghostBrick = null; // Ghost brick to show outline on floor
-const titleTextbox = document.getElementById('title-textbox');
+/**
+ * Camera system management class
+ */
+class CameraSystem {
+    constructor(gridCenter, views) {
+        this.gridCenter = gridCenter;
+        this.views = views;
+        this.playerCameras = {};
+        this.mainCamera = null;
+        this.activeCamera = null;
+        this.shouldMove = false;
+        this.lastMouseX = 0;
+        this.lastMouseY = 0;
+        
+        this.init();
+    }
 
-let shouldCameraMove = false;
-const cameraRotationSpeed = 0.005;
-let lastMouseX = 0;
-let lastMouseY = 0;
+    init() {
+        this.createMainCamera();
+        this.createPlayerCameras();
+        this.activeCamera = this.mainCamera;
+    }
 
-// Predefined tools for raycasting and mouse tracking
-const mouse = new THREE.Vector2();
-const raycaster = new THREE.Raycaster();
-const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0); // Ground plane
-const planeIntersect = new THREE.Vector3();
-const verticalStep = 1;
-
-// Basic scene setup
-const scene = new THREE.Scene();
-const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('three-canvas') });
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(window.devicePixelRatio);
-document.body.appendChild(renderer.domElement);
-
-createPlayerCameras(views);
-const mainCamera = createMainCamera();
-let activeCamera = mainCamera;
-
-setupBaseplate();
-
-// Define cameras for each view
-// TODO: Can I just drop playerCameras here without it being deallocated?
-function createPlayerCameras(views) {
-    const playerCameras = {};
-    const orthoSize = 15;
-    const aspectRatio = window.innerWidth / window.innerHeight;
-    const buttonContainer = document.querySelector('.button-container');
-
-    views.forEach(view => {
-        playerCameras[view.name] = new THREE.OrthographicCamera(
-            -orthoSize * aspectRatio,
-            orthoSize * aspectRatio,
-            orthoSize,
-            -orthoSize,
+    createMainCamera() {
+        this.mainCamera = new THREE.OrthographicCamera(
+            -EditorConfig.ORTHO_SIZE * EditorConfig.ASPECT_RATIO,
+            EditorConfig.ORTHO_SIZE * EditorConfig.ASPECT_RATIO,
+            EditorConfig.ORTHO_SIZE,
+            -EditorConfig.ORTHO_SIZE,
             0.1,
             1000
         );
-        playerCameras[view.name].position.set(view.position.x, view.position.y, view.position.z);
-        playerCameras[view.name].lookAt(gridCenter);
+        this.mainCamera.position.set(this.gridCenter.x, 25, this.gridCenter.z);
+        this.mainCamera.lookAt(this.gridCenter);
+    }
 
-        function addLight(name, position) {
-            const light = new THREE.DirectionalLight(0xffffff, 0.5);
-            light.name = `${name}`;
-            light.position.set(position.x, position.y, position.z); // Adjust position above each view
-            light.lookAt(gridCenter);
-            light.castShadow = false;
-            scene.add(light);
-        }
+    createPlayerCameras() {
+        const buttonContainer = document.querySelector('.button-container');
 
-        addLight(`light-above-${view.name}`, new THREE.Vector3(view.position.x+10, view.position.y+10, view.position.z+10));
-        addLight(`light-below-${view.name}`, new THREE.Vector3(view.position.x-10, view.position.y-10, view.position.z-10));
+        this.views.forEach(view => {
+            const camera = new THREE.OrthographicCamera(
+                -EditorConfig.ORTHO_SIZE * EditorConfig.ASPECT_RATIO,
+                EditorConfig.ORTHO_SIZE * EditorConfig.ASPECT_RATIO,
+                EditorConfig.ORTHO_SIZE,
+                -EditorConfig.ORTHO_SIZE,
+                0.1,
+                1000
+            );
+            camera.position.set(view.position.x, view.position.y, view.position.z);
+            camera.lookAt(this.gridCenter);
 
-        buttonContainer.querySelector(`.view-button.${view.name}`).addEventListener('click', () => {
-            activeCamera = playerCameras[view.name];
-        });
-    });
+            this.playerCameras[view.name] = camera;
 
-    buttonContainer.querySelectorAll('.view-button').forEach(button => {
-        const viewName = button.textContent.trim();
-        button.addEventListener('click', () => {
-            if (playerCameras[viewName]) {
-                activeCamera = playerCameras[viewName];
+            // Set up view button event listener
+            const viewButton = buttonContainer.querySelector(`.view-button.${view.name}`);
+            if (viewButton) {
+                viewButton.addEventListener('click', () => {
+                    this.setActiveCamera(camera);
+                });
             }
         });
-    });
-}
 
-function createMainCamera() {
-    const mainCamera = new THREE.OrthographicCamera(
-            -orthoSize * aspectRatio,
-            orthoSize * aspectRatio,
-            orthoSize,
-            -orthoSize,
-            0.1,
-            1000
-    );
-    mainCamera.position.set(gridCenter.x, 25, gridCenter.z);
-    mainCamera.lookAt(gridCenter);
-    return mainCamera;
-}
-
-function setupBaseplate() {
-    const baseplateHeight = 0.2;
-    const baseplate = new Brick(
-        new THREE.Vector3(gridSize, -baseplateHeight, gridSize),
-        0x808080,
-        { width: gridSize, height: baseplateHeight, depth: gridSize },
-        'Baseplate'
-    );
-    baseplate.addToScene(scene);
-}
-
-brickSelector.querySelectorAll('.size-button').forEach(button => {
-    button.addEventListener('mousedown', (event) => {
-        const [sizeName, colorName] = button.title.split(' ');
-        const color = colors.find(c => c.name === colorName);
-        const size = sizes.find(s => s.name === sizeName);
-
-        if (!currentlyDraggedBrick && color && size) {
-            currentlyDraggedBrick = new Brick(new THREE.Vector3(1000, 0, 1000), color.hex, { width: size.width, height: 1, depth: size.depth }, button.title);
-            bricks.push(currentlyDraggedBrick);
-            currentlyDraggedBrick.addToScene(scene);
-            dragOffset.set(0, 0, 0); 
-
-            ghostBrick = createGhostBrick(currentlyDraggedBrick);
-            scene.add(ghostBrick);
-
-            button.disabled = true;
-            button.style.cursor = 'not-allowed';
-            button.style.opacity = '0.6';
-        }
-    });
-});
-
-window.addEventListener('mousedown', (event) => {
-    if (event.button === 1) { // Middle mouse button
-        mainCamera.position.copy(activeCamera.position);
-        mainCamera.rotation.copy(activeCamera.rotation);
-        activeCamera = mainCamera;
-        shouldCameraMove = true;
-        lastMouseX = event.clientX;
-        lastMouseY = event.clientY;
+        // Handle generic view buttons
+        buttonContainer.querySelectorAll('.view-button').forEach(button => {
+            const viewName = button.textContent.trim();
+            button.addEventListener('click', () => {
+                if (this.playerCameras[viewName]) {
+                    this.setActiveCamera(this.playerCameras[viewName]);
+                }
+            });
+        });
     }
-});
 
-window.addEventListener('mouseup', (event) => {
-    if (event.button === 1) { // Middle mouse button
-        shouldCameraMove = false;
+    setActiveCamera(camera) {
+        this.activeCamera = camera;
     }
-});
 
-window.addEventListener('mousemove', (event) => {
-    if (shouldCameraMove) {
-        const deltaX = event.clientX - lastMouseX;
-        const deltaY = event.clientY - lastMouseY;
+    getActiveCamera() {
+        return this.activeCamera;
+    }
+
+    startCameraMovement(mouseX, mouseY) {
+        this.shouldMove = true;
+        this.lastMouseX = mouseX;
+        this.lastMouseY = mouseY;
+        this.mainCamera.position.copy(this.activeCamera.position);
+        this.mainCamera.rotation.copy(this.activeCamera.rotation);
+        this.activeCamera = this.mainCamera;
+    }
+
+    stopCameraMovement() {
+        this.shouldMove = false;
+    }
+
+    updateCameraMovement(mouseX, mouseY) {
+        if (!this.shouldMove) return;
+
+        const deltaX = mouseX - this.lastMouseX;
+        const deltaY = mouseY - this.lastMouseY;
 
         // Rotate around grid center horizontally
-        const horizontalAngle = deltaX * cameraRotationSpeed;
-        activeCamera.position.applyAxisAngle(new THREE.Vector3(0, 1, 0), -horizontalAngle);
+        const horizontalAngle = deltaX * EditorConfig.CAMERA_ROTATION_SPEED;
+        this.activeCamera.position.applyAxisAngle(new THREE.Vector3(0, 1, 0), -horizontalAngle);
 
-        // Rotate vertically (up and down) while keeping view clamped
-        const verticalAxis = new THREE.Vector3().subVectors(activeCamera.position, gridCenter).normalize(); // Camera-to-center axis
-        const verticalAngle = deltaY * cameraRotationSpeed;
-        activeCamera.position.applyAxisAngle(verticalAxis, verticalAngle);
+        // Rotate vertically
+        const verticalAxis = new THREE.Vector3().subVectors(this.activeCamera.position, this.gridCenter).normalize();
+        const verticalAngle = deltaY * EditorConfig.CAMERA_ROTATION_SPEED;
+        this.activeCamera.position.applyAxisAngle(verticalAxis, verticalAngle);
 
-        activeCamera.lookAt(gridCenter);
+        this.activeCamera.lookAt(this.gridCenter);
 
-        lastMouseX = event.clientX;
-        lastMouseY = event.clientY;
+        this.lastMouseX = mouseX;
+        this.lastMouseY = mouseY;
     }
-});
-
-window.addEventListener('contextmenu', (event) => {
-    event.preventDefault();
-});
-
-window.addEventListener('mousemove', (event) => {
-    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-});
-
-// Create ghost brick a for preview of where the brick is relative to the ground
-function createGhostBrick(originalBrick) {
-    const ghostGeometry = new THREE.BoxGeometry(
-        originalBrick.size.width, 
-        originalBrick.size.height, 
-        originalBrick.size.depth
-    );
-    ghostGeometry.translate(-originalBrick.size.width / 2, originalBrick.size.height, -originalBrick.size.depth / 2);
-    
-    const ghostMaterial = new THREE.MeshLambertMaterial({ 
-        color: "white",
-        transparent: true,
-        opacity: 0.3,
-        wireframe: true
-    });
-    
-    const ghost = new THREE.Mesh(ghostGeometry, ghostMaterial);
-    
-    const edges = new THREE.EdgesGeometry(ghostGeometry);
-    const outline = new THREE.LineSegments(
-        edges,
-        new THREE.LineBasicMaterial({ 
-            color: "white",
-            transparent: true,
-            opacity: 0.6
-        })
-    );
-    ghost.add(outline);
-    
-    return ghost;
 }
 
-window.addEventListener('mousedown', (event) => {
-    if (event.button === 0 && !currentlyDraggedBrick) {
-        raycaster.setFromCamera(mouse, activeCamera);
-
-        const intersects = raycaster.intersectObjects(bricks.map(brick => brick.mesh));
-        if (intersects.length > 0) {
-            // Move selected brick
-            const intersectedMesh = intersects[0].object;
-            currentlyDraggedBrick = bricks.find(brick => brick.isthisBrick(intersectedMesh));
-            const brickPosition = currentlyDraggedBrick.mesh.position;
-            
-            dragOffset.copy(intersects[0].point).sub(brickPosition);
-            
-            ghostBrick = createGhostBrick(currentlyDraggedBrick);
-            ghostBrick.position.set(brickPosition.x, -0.5, brickPosition.z);
-            ghostBrick.rotation.copy(currentlyDraggedBrick.mesh.rotation);
-            scene.add(ghostBrick);
-        }
-    }
-});
-
-window.addEventListener('mousemove', (event) => {
-    if (currentlyDraggedBrick) {
-        raycaster.setFromCamera(mouse, activeCamera);
-        raycaster.ray.intersectPlane(plane, planeIntersect);
-        if (planeIntersect) {
-            const snappedX = Math.round((planeIntersect.x - dragOffset.x));
-            const snappedZ = Math.round((planeIntersect.z - dragOffset.z));
-
-            currentlyDraggedBrick.setPosition(snappedX, snappedZ);
-            
-            if (ghostBrick) {
-                ghostBrick.position.set(snappedX, -0.5, snappedZ);
-                ghostBrick.visible = currentlyDraggedBrick.mesh.position.y > -0.5;
-            }
-        }
+/**
+ * Lighting system management class
+ */
+class LightingSystem {
+    constructor(scene, gridCenter, views) {
+        this.scene = scene;
+        this.gridCenter = gridCenter;
+        this.views = views;
+        this.init();
     }
 
-    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-});
-
-window.addEventListener('mouseup', (event) => {
-    if (event.button === 0 && currentlyDraggedBrick) {
-        if (ghostBrick) {
-            scene.remove(ghostBrick);
-            ghostBrick.geometry.dispose();
-            ghostBrick.material.dispose();
-            ghostBrick = null;
-        }
-        
-        currentlyDraggedBrick = null;
-    }
-});
-
-window.addEventListener('keydown', (event) => {
-    switch (event.key) {
-
-            case 'q':
-                shouldCameraMove = !shouldCameraMove;
-                break;
-    }
-    if (currentlyDraggedBrick) {
-        switch (event.key) {
-            case 'w':
-                currentlyDraggedBrick.mesh.position.y += verticalStep;
-                if (ghostBrick) {
-                    ghostBrick.visible = currentlyDraggedBrick.mesh.position.y > -0.5;
-                }
-                break;
-
-            case 's':
-                currentlyDraggedBrick.mesh.position.y -= verticalStep;
-                if (ghostBrick) {
-                    ghostBrick.visible = currentlyDraggedBrick.mesh.position.y > -0.5;
-                }
-                break;
-
-            case 'r':
-                currentlyDraggedBrick.mesh.rotation.y += Math.PI / 2;
-                if (ghostBrick) {
-                    ghostBrick.rotation.copy(currentlyDraggedBrick.mesh.rotation);
-                }
-                break;
-
-            default:
-                break;
-        }
-    }
-});
-
-window.addEventListener('mousedown', (event) => {
-    if (event.button === 2) {
-        raycaster.setFromCamera(mouse, activeCamera);
-        const intersects = raycaster.intersectObjects(bricks.map(brick => brick.mesh));
-
-        if (intersects.length > 0) {
-            const intersectedMesh = intersects[0].object;
-            let brick = bricks.find(brick => brick.isthisBrick(intersectedMesh));
-
-            const buttons = brickSelector.querySelectorAll('button');
-            const button = Array.from(buttons).find(btn => btn.title === brick.buttonName);
-            if (button) {
-                button.disabled = false;
-                button.style.cursor = 'pointer';
-                button.style.opacity = '1';
-            }
-
-            const index = bricks.indexOf(brick);
-            if (index > -1) {
-                bricks.splice(index, 1);
-            }
-            brick.removeFromScene(scene);
-        }
-        event.preventDefault(); // Prevent browser context menu
-    }
-});
-
-document.getElementById('save-btn').addEventListener('click', () => {
-    const name = titleTextbox.value.trim();
-    if (!name) {
-        alert('Please enter a title for the map.');
-        return;
-    }
-
-    const serializedBricks = bricks.map(brick => {
-        return {
-                color: brick.color,
-                name: brick.buttonName,
-                points: brick.getGridSquaresCovered()
-            };
-    });
-    
-    const sceneData = {
-        bricks: serializedBricks,
-        metadata: {
-            name: name,
-            width: gridSize,
-            height: 1,
-            depth: gridSize,
-            timestamp: new Date().toISOString(),
-            version: "1.0"
-        }
-    };
-    
-    console.log('Saving scene data:', sceneData);
-
-    fetch(`/map/${name}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(sceneData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.error) {
-            alert('Error saving map: ' + data.error);
-        } else {
-            alert('Map saved successfully! ID: ' + data.map_id);
-        }
-        console.log('Save response:', data);
-    })
-    .catch(error => {
-        console.error('Error saving map:', error);
-        alert('Failed to save map: ' + error.message);
-    });
-});
-
-function handleFetchResponse(data) {
-    console.log('Response:', data);
-    if (data.error) {
-        alert('Error loading map: ' + data.error);
-        return;
-    }
-
-    // Clear existing bricks
-    bricks.forEach(brick => {
-        brick.removeFromScene(scene);
-    });
-    bricks.length = 0;
-
-    // Re-enable all brick selector buttons
-    const buttons = brickSelector.querySelectorAll('button');
-    buttons.forEach(button => {
-        button.disabled = false;
-        button.style.cursor = 'pointer';
-        button.style.opacity = '1';
-    });
-
-    data = data.map;
-    // Load bricks from data
-    if (data.bricks && Array.isArray(data.bricks)) {
-        data.bricks.forEach(brickData => {
-            loadBrick(brickData, buttons);
+    init() {
+        this.views.forEach(view => {
+            this.addLight(`light-above-${view.name}`, 
+                new THREE.Vector3(view.position.x + 10, view.position.y + 10, view.position.z + 10));
+            this.addLight(`light-below-${view.name}`, 
+                new THREE.Vector3(view.position.x - 10, view.position.y - 10, view.position.z - 10));
         });
     }
+
+    addLight(name, position) {
+        const light = new THREE.DirectionalLight(0xffffff, 0.5);
+        light.name = name;
+        light.position.set(position.x, position.y, position.z);
+        light.lookAt(this.gridCenter);
+        light.castShadow = false;
+        this.scene.add(light);
+    }
 }
 
-function loadBrick(brickData, buttons) {
-    // Find matching color and size for the brick
-    let colorMatch = colors.find(c => c.hex === brickData.color);
-    if (!colorMatch) {
-        colorMatch = colors.find(c => c.name === brickData.color);
+/**
+ * Raycasting and mouse interaction system
+ */
+class InteractionSystem {
+    constructor() {
+        this.mouse = new THREE.Vector2();
+        this.raycaster = new THREE.Raycaster();
+        this.plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+        this.planeIntersect = new THREE.Vector3();
     }
-    const brickColor = colorMatch ? colorMatch.hex : 0x808080; // Default to gray
 
-    const minX = Math.min(...Array.from(brickData.points, p => p.x));
-    const maxX = Math.max(...Array.from(brickData.points, p => p.x));
-    const minZ = Math.min(...Array.from(brickData.points, p => p.z));
-    const maxZ = Math.max(...Array.from(brickData.points, p => p.z));
-    const width = maxX - minX + 1;
-    const depth = maxZ - minZ + 1;
+    updateMouse(clientX, clientY) {
+        this.mouse.x = (clientX / window.innerWidth) * 2 - 1;
+        this.mouse.y = -(clientY / window.innerHeight) * 2 + 1;
+    }
 
-    // Create new brick
-    const newBrick = new Brick(
-        new THREE.Vector3(maxX + 1, brickData.y, maxZ + 1),
-        brickColor,
-        { width: width, height: 1, depth: depth },
-        brickData.name || `${width}x${depth} ${brickData.color}`
-    );
+    raycastFromCamera(camera) {
+        this.raycaster.setFromCamera(this.mouse, camera);
+        return this.raycaster;
+    }
 
-    bricks.push(newBrick);
-    newBrick.addToScene(scene);
+    getPlaneIntersection(camera) {
+        this.raycaster.setFromCamera(this.mouse, camera);
+        this.raycaster.ray.intersectPlane(this.plane, this.planeIntersect);
+        return this.planeIntersect;
+    }
 
-    // Disable corresponding button
-    const button = Array.from(buttons).find(btn => btn.title === newBrick.buttonName);
-    if (button) {
+    intersectObjects(objects) {
+        return this.raycaster.intersectObjects(objects);
+    }
+}
+
+/**
+ * Brick management system
+ */
+class BrickManager {
+    constructor(scene) {
+        this.scene = scene;
+        this.bricks = [];
+        this.currentlyDraggedBrick = null;
+        this.dragOffset = new THREE.Vector3();
+        this.ghostBrick = null;
+        
+        this.setupBaseplate();
+    }
+
+    setupBaseplate() {
+        const baseplate = new Brick(
+            new THREE.Vector3(EditorConfig.GRID_SIZE, -EditorConfig.BASEPLATE_HEIGHT, EditorConfig.GRID_SIZE),
+            0x808080,
+            { width: EditorConfig.GRID_SIZE, height: EditorConfig.BASEPLATE_HEIGHT, depth: EditorConfig.GRID_SIZE },
+            'Baseplate'
+        );
+        baseplate.addToScene(this.scene);
+    }
+
+    addBrick(brick) {
+        this.bricks.push(brick);
+        brick.addToScene(this.scene);
+    }
+
+    removeBrick(brick) {
+        const index = this.bricks.indexOf(brick);
+        if (index > -1) {
+            this.bricks.splice(index, 1);
+            brick.removeFromScene(this.scene);
+        }
+    }
+
+    findBrickByMesh(mesh) {
+        return this.bricks.find(brick => brick.isthisBrick(mesh));
+    }
+
+    startDrag(brick, offset = new THREE.Vector3()) {
+        this.currentlyDraggedBrick = brick;
+        this.dragOffset.copy(offset);
+        this.createGhostBrick();
+    }
+
+    stopDrag() {
+        this.removeGhostBrick();
+        this.currentlyDraggedBrick = null;
+        this.dragOffset.set(0, 0, 0);
+    }
+
+    updateDragPosition(x, z) {
+        if (!this.currentlyDraggedBrick) return;
+        
+        const snappedX = Math.round(x - this.dragOffset.x);
+        const snappedZ = Math.round(z - this.dragOffset.z);
+        
+        this.currentlyDraggedBrick.setPosition(snappedX, snappedZ);
+        
+        if (this.ghostBrick) {
+            this.ghostBrick.position.set(snappedX, -0.5, snappedZ);
+            this.ghostBrick.visible = this.currentlyDraggedBrick.mesh.position.y > -0.5;
+        }
+    }
+
+    moveDraggedBrickVertical(direction) {
+        if (!this.currentlyDraggedBrick) return;
+        
+        this.currentlyDraggedBrick.mesh.position.y += direction * EditorConfig.VERTICAL_STEP;
+        
+        if (this.ghostBrick) {
+            this.ghostBrick.visible = this.currentlyDraggedBrick.mesh.position.y > -0.5;
+        }
+    }
+
+    rotateDraggedBrick() {
+        if (!this.currentlyDraggedBrick) return;
+        
+        this.currentlyDraggedBrick.mesh.rotation.y += Math.PI / 2;
+        
+        if (this.ghostBrick) {
+            this.ghostBrick.rotation.copy(this.currentlyDraggedBrick.mesh.rotation);
+        }
+    }
+
+    createGhostBrick() {
+        if (!this.currentlyDraggedBrick) return;
+        
+        const originalBrick = this.currentlyDraggedBrick;
+        const ghostGeometry = new THREE.BoxGeometry(
+            originalBrick.size.width,
+            originalBrick.size.height,
+            originalBrick.size.depth
+        );
+        ghostGeometry.translate(-originalBrick.size.width / 2, originalBrick.size.height, -originalBrick.size.depth / 2);
+
+        const ghostMaterial = new THREE.MeshLambertMaterial({
+            color: "white",
+            transparent: true,
+            opacity: 0.3,
+            wireframe: true
+        });
+
+        this.ghostBrick = new THREE.Mesh(ghostGeometry, ghostMaterial);
+
+        const edges = new THREE.EdgesGeometry(ghostGeometry);
+        const outline = new THREE.LineSegments(
+            edges,
+            new THREE.LineBasicMaterial({
+                color: "white",
+                transparent: true,
+                opacity: 0.6
+            })
+        );
+        this.ghostBrick.add(outline);
+
+        this.scene.add(this.ghostBrick);
+    }
+
+    removeGhostBrick() {
+        if (this.ghostBrick) {
+            this.scene.remove(this.ghostBrick);
+            this.ghostBrick.geometry.dispose();
+            this.ghostBrick.material.dispose();
+            this.ghostBrick = null;
+        }
+    }
+
+    clearAll() {
+        this.bricks.forEach(brick => {
+            brick.removeFromScene(this.scene);
+        });
+        this.bricks.length = 0;
+    }
+
+    getBricks() {
+        return this.bricks;
+    }
+
+    isDragging() {
+        return this.currentlyDraggedBrick !== null;
+    }
+}
+
+/**
+ * UI interaction handler
+ */
+class UIController {
+    constructor(brickManager, brickSelector) {
+        this.brickManager = brickManager;
+        this.brickSelector = brickSelector;
+        this.titleTextbox = document.getElementById('title-textbox');
+        
+        this.setupBrickSelector();
+        this.setupSaveLoad();
+    }
+
+    setupBrickSelector() {
+        this.brickSelector.querySelectorAll('.size-button').forEach(button => {
+            button.addEventListener('mousedown', (event) => {
+                const [sizeName, colorName] = button.title.split(' ');
+                const color = colors.find(c => c.name === colorName);
+                const size = sizes.find(s => s.name === sizeName);
+
+                if (!this.brickManager.isDragging() && color && size) {
+                    const newBrick = new Brick(
+                        new THREE.Vector3(1000, 0, 1000),
+                        color.hex,
+                        { width: size.width, height: 1, depth: size.depth },
+                        button.title
+                    );
+                    
+                    this.brickManager.addBrick(newBrick);
+                    this.brickManager.startDrag(newBrick);
+
+                    this.disableButton(button);
+                }
+            });
+        });
+    }
+
+    setupSaveLoad() {
+        document.getElementById('save-btn').addEventListener('click', () => {
+            this.saveMap();
+        });
+
+        document.getElementById('load-btn').addEventListener('click', () => {
+            this.loadMap();
+        });
+
+        document.getElementById('generate-btn').addEventListener('click', () => {
+            this.generateMap();
+        });
+    }
+
+    saveMap() {
+        const name = this.titleTextbox.value.trim();
+        if (!name) {
+            alert('Please enter a title for the map.');
+            return;
+        }
+
+        const serializedBricks = this.brickManager.getBricks().map(brick => ({
+            color: brick.color,
+            name: brick.buttonName,
+            points: brick.getGridSquaresCovered()
+        }));
+
+        const sceneData = {
+            bricks: serializedBricks,
+            metadata: {
+                name: name,
+                width: EditorConfig.GRID_SIZE,
+                height: 1,
+                depth: EditorConfig.GRID_SIZE,
+                timestamp: new Date().toISOString(),
+                version: "1.0"
+            }
+        };
+
+        this.sendRequest(`/map/${name}`, 'POST', sceneData)
+            .then(data => {
+                if (data.error) {
+                    alert('Error saving map: ' + data.error);
+                } else {
+                    alert('Map saved successfully! ID: ' + data.map_id);
+                }
+            })
+            .catch(error => {
+                alert('Failed to save map: ' + error.message);
+            });
+    }
+
+    loadMap() {
+        const name = this.titleTextbox.value.trim();
+        this.fetchAndHandle(`/map/${name}`);
+    }
+
+    generateMap() {
+        this.fetchAndHandle('/generate');
+    }
+
+    async sendRequest(url, method, data = null) {
+        const options = {
+            method: method,
+            headers: { 'Content-Type': 'application/json' }
+        };
+        
+        if (data) {
+            options.body = JSON.stringify(data);
+        }
+
+        const response = await fetch(url, options);
+        return await response.json();
+    }
+
+    async fetchAndHandle(url) {
+        try {
+            const data = await this.sendRequest(url, 'GET');
+            this.handleFetchResponse(data);
+        } catch (error) {
+            console.error('Error loading map:', error);
+            alert('Failed to load map: ' + error.message);
+        }
+    }
+
+    handleFetchResponse(data) {
+        if (data.error) {
+            alert('Error loading map: ' + data.error);
+            return;
+        }
+
+        // Clear existing bricks and re-enable all buttons
+        this.brickManager.clearAll();
+        this.enableAllButtons();
+
+        const mapData = data.map;
+        console.log('Loaded map:', mapData);
+        if (mapData.bricks && Array.isArray(mapData.bricks)) {
+            mapData.bricks.forEach(brickData => {
+                this.loadBrick(brickData);
+            });
+        }
+    }
+
+    loadBrick(brickData) {
+        const buttons = this.brickSelector.querySelectorAll('button');
+        
+        // Find matching color
+        let colorMatch = colors.find(c => c.hex === brickData.color);
+        if (!colorMatch) {
+            colorMatch = colors.find(c => c.name === brickData.color);
+        }
+        const brickColor = colorMatch ? colorMatch.hex : 0x808080;
+
+        // Calculate brick dimensions from points
+        const minX = Math.min(...brickData.points.map(p => p.x));
+        const maxX = Math.max(...brickData.points.map(p => p.x));
+        const minZ = Math.min(...brickData.points.map(p => p.z));
+        const maxZ = Math.max(...brickData.points.map(p => p.z));
+        const y = brickData.points[0].y;
+        const width = maxX - minX + 1;
+        const depth = maxZ - minZ + 1;
+
+        const newBrick = new Brick(
+            new THREE.Vector3(maxX + 1, y, maxZ + 1),
+            brickColor,
+            { width: width, height: 1, depth: depth },
+            brickData.name || `${width}x${depth} ${brickData.color}`
+        );
+
+        this.brickManager.addBrick(newBrick);
+
+        // Disable corresponding button
+        const button = Array.from(buttons).find(btn => btn.title === newBrick.buttonName);
+        if (button) {
+            this.disableButton(button);
+        }
+    }
+
+    disableButton(button) {
         button.disabled = true;
         button.style.cursor = 'not-allowed';
         button.style.opacity = '0.6';
     }
-}
 
-function fetchAndHandle(url) {
-    fetch(url, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
+    enableButton(button) {
+        button.disabled = false;
+        button.style.cursor = 'pointer';
+        button.style.opacity = '1';
+    }
+
+    enableAllButtons() {
+        this.brickSelector.querySelectorAll('button').forEach(button => {
+            this.enableButton(button);
+        });
+    }
+
+    enableButtonByTitle(title) {
+        const button = Array.from(this.brickSelector.querySelectorAll('button'))
+            .find(btn => btn.title === title);
+        if (button) {
+            this.enableButton(button);
         }
-    })
-    .then(response => response.json())
-    .then(data => handleFetchResponse(data))
-    .catch(error => {
-        console.error('Error loading map:', error);
-        alert('Failed to load map: ' + error.message);
+    }
+}
+
+/**
+ * Main editor application class
+ */
+class BrickEditor {
+    constructor() {
+        this.scene = new THREE.Scene();
+        this.renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('three-canvas') });
+        this.setupRenderer();
+        
+        this.cameraSystem = new CameraSystem(EditorConfig.GRID_CENTER, views);
+        this.lightingSystem = new LightingSystem(this.scene, EditorConfig.GRID_CENTER, views);
+        this.interactionSystem = new InteractionSystem();
+        this.brickManager = new BrickManager(this.scene);
+        this.uiController = new UIController(this.brickManager, document.querySelector('.brick-selector'));
+        
+        this.setupEventListeners();
+        this.startRenderLoop();
+    }
+
+    setupRenderer() {
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        this.renderer.setPixelRatio(window.devicePixelRatio);
+        document.body.appendChild(this.renderer.domElement);
+    }
+
+    setupEventListeners() {
+        // Mouse movement for camera and brick dragging
+        window.addEventListener('mousemove', (event) => {
+            this.interactionSystem.updateMouse(event.clientX, event.clientY);
+            this.cameraSystem.updateCameraMovement(event.clientX, event.clientY);
+            
+            if (this.brickManager.isDragging()) {
+                const intersection = this.interactionSystem.getPlaneIntersection(this.cameraSystem.getActiveCamera());
+                if (intersection) {
+                    this.brickManager.updateDragPosition(intersection.x, intersection.z);
+                }
+            }
+        });
+
+        // Mouse button events
+        window.addEventListener('mousedown', (event) => {
+            if (event.button === 1) { // Middle mouse button
+                this.cameraSystem.startCameraMovement(event.clientX, event.clientY);
+            } else if (event.button === 0 && !this.brickManager.isDragging()) { // Left click
+                this.handleLeftClick();
+            } else if (event.button === 2) { // Right click
+                this.handleRightClick();
+                event.preventDefault();
+            }
+        });
+
+        window.addEventListener('mouseup', (event) => {
+            if (event.button === 1) { // Middle mouse button
+                this.cameraSystem.stopCameraMovement();
+            } else if (event.button === 0 && this.brickManager.isDragging()) { // Left click release
+                this.brickManager.stopDrag();
+            }
+        });
+
+        // Keyboard events
+        window.addEventListener('keydown', (event) => {
+            this.handleKeyDown(event);
+        });
+
+        // Prevent context menu
+        window.addEventListener('contextmenu', (event) => {
+            event.preventDefault();
+        });
+    }
+
+    handleLeftClick() {
+        const raycaster = this.interactionSystem.raycastFromCamera(this.cameraSystem.getActiveCamera());
+        const intersects = this.interactionSystem.intersectObjects(
+            this.brickManager.getBricks().map(brick => brick.mesh)
+        );
+        
+        if (intersects.length > 0) {
+            const intersectedMesh = intersects[0].object;
+            const brick = this.brickManager.findBrickByMesh(intersectedMesh);
+            
+            if (brick) {
+                const brickPosition = brick.mesh.position;
+                const offset = new THREE.Vector3().copy(intersects[0].point).sub(brickPosition);
+                this.brickManager.startDrag(brick, offset);
+            }
+        }
+    }
+
+    handleRightClick() {
+        const raycaster = this.interactionSystem.raycastFromCamera(this.cameraSystem.getActiveCamera());
+        const intersects = this.interactionSystem.intersectObjects(
+            this.brickManager.getBricks().map(brick => brick.mesh)
+        );
+
+        if (intersects.length > 0) {
+            const intersectedMesh = intersects[0].object;
+            const brick = this.brickManager.findBrickByMesh(intersectedMesh);
+            
+            if (brick) {
+                this.uiController.enableButtonByTitle(brick.buttonName);
+                this.brickManager.removeBrick(brick);
+            }
+        }
+    }
+
+    handleKeyDown(event) {
+        switch (event.key) {
+            case 'q':
+                // Toggle camera movement (legacy support)
+                break;
+            case 'w':
+                this.brickManager.moveDraggedBrickVertical(1);
+                break;
+            case 's':
+                this.brickManager.moveDraggedBrickVertical(-1);
+                break;
+            case 'r':
+                this.brickManager.rotateDraggedBrick();
+                break;
+        }
+    }
+
+    startRenderLoop() {
+        const animate = () => {
+            requestAnimationFrame(animate);
+            this.renderer.render(this.scene, this.cameraSystem.getActiveCamera());
+        };
+        animate();
+    }
+}
+
+// Initialize the editor when the DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        window.brickEditor = new BrickEditor();
     });
+} else {
+    window.brickEditor = new BrickEditor();
 }
 
-document.getElementById('load-btn').addEventListener('click', () => {
-    fetchAndHandle(`/map/${titleTextbox.value.trim()}`);
-});
-
-document.getElementById('generate-btn').addEventListener('click', () => {
-    fetchAndHandle(`/generate`);
-});
-
-function animate() {
-    requestAnimationFrame(animate);
-    renderer.render(scene, activeCamera);
-}
-animate();
+// Export classes for testing
+export { BrickEditor, EditorConfig, CameraSystem, LightingSystem, InteractionSystem, BrickManager, UIController };
