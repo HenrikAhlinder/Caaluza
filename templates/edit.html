@@ -41,10 +41,28 @@
         <button id="zoom-out-btn" class="zoom-button" title="Zoom Out">−</button>
     </div>
     
-    <!-- Title Input -->
-    <div class="title-container">
-        <label class="title-label" for="title-textbox">Title:</label>
-        <input type="text" id="title-textbox" class="title-textbox">
+    <!-- Title Display -->
+    <div class="title-display-container">
+        <div class="title-display-box">
+            <span class="title-display-text" id="title-display">Untitled Map</span>
+        </div>
+    </div>
+    
+    <!-- Modal for Save/Load Prompts -->
+    <div id="prompt-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Enter Title</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="modal-input" placeholder="Enter map title..." maxlength="50">
+            </div>
+            <div class="modal-footer">
+                <button id="modal-cancel" class="modal-button cancel-button">Cancel</button>
+                <button id="modal-confirm" class="modal-button confirm-button">OK</button>
+            </div>
+        </div>
     </div>
     
     <!-- Save and Load Buttons -->

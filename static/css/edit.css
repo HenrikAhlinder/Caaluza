@@ -100,30 +100,146 @@ body {
     min-height: 20px;
 }
 
-.title-container {
+.title-display-container {
     position: fixed;
     top: 10%;
     left: 50%;
     transform: translate(-50%, -50%);
-    display: flex;
-    align-items: center;
-    gap: 5px;
     z-index: 1000;
 }
 
-.title-label {
-    color: white;
-    font-size: 14px;
-    font-weight: bold;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+.title-display-box {
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid #4CAF50;
+    border-radius: 8px;
+    padding: 8px 16px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(5px);
 }
 
-.title-textbox {
-    padding: 5px;
-    border: 1px solid #ccc;
-    border-radius: 3px;
+.title-display-text {
+    color: #4CAF50;
+    font-size: 16px;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    letter-spacing: 0.5px;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(3px);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 15% auto;
+    padding: 0;
+    border: none;
+    border-radius: 10px;
+    width: 400px;
+    max-width: 90%;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    animation: modalFadeIn 0.3s ease-out;
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; transform: translateY(-50px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    padding: 16px 20px;
+    border-radius: 10px 10px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.close {
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0 4px;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.close:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.modal-body {
+    padding: 24px 20px;
+}
+
+.modal-body input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 16px;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+
+.modal-body input:focus {
+    outline: none;
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+.modal-footer {
+    padding: 16px 20px;
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    border-top: 1px solid #e0e0e0;
+    border-radius: 0 0 10px 10px;
+}
+
+.modal-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
     font-size: 14px;
-    width: 150px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.cancel-button {
+    background-color: #f5f5f5;
+    color: #666;
+}
+
+.cancel-button:hover {
+    background-color: #e0e0e0;
+}
+
+.confirm-button {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.confirm-button:hover {
+    background-color: #45a049;
+    transform: translateY(-1px);
 }
 
 .load-button {
@@ -243,14 +359,18 @@ body {
         font-size: 12px;
     }
     
-    .title-container {
+    .title-display-container {
         top: 15%;
         left: 50%;
     }
     
-    .title-textbox {
-        width: 120px;
-        font-size: 12px;
+    .title-display-text {
+        font-size: 14px;
+    }
+    
+    .modal-content {
+        width: 350px;
+        margin: 20% auto;
     }
     
     #save-btn, .load-button, .gen-button {

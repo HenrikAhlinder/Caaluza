@@ -390,10 +390,12 @@ class UIController {
     constructor(brickManager, brickSelector) {
         this.brickManager = brickManager;
         this.brickSelector = brickSelector;
-        this.titleTextbox = document.getElementById('title-textbox');
+        this.titleDisplay = document.getElementById('title-display');
+        this.currentMapName = '';
         
         this.setupBrickSelector();
         this.setupSaveLoad();
+        this.setupModal();
     }
 
     setupBrickSelector() {
@@ -422,11 +424,11 @@ class UIController {
 
     setupSaveLoad() {
         document.getElementById('save-btn').addEventListener('click', () => {
-            this.saveMap();
+            this.promptForSave();
         });
 
         document.getElementById('load-btn').addEventListener('click', () => {
-            this.loadMap();
+            this.promptForLoad();
         });
 
         document.getElementById('generate-btn').addEventListener('click', () => {
@@ -434,13 +436,99 @@ class UIController {
         });
     }
 
-    saveMap() {
-        const name = this.titleTextbox.value.trim();
-        if (!name) {
-            alert('Please enter a title for the map.');
-            return;
-        }
+    setupModal() {
+        this.modal = document.getElementById('prompt-modal');
+        this.modalTitle = document.getElementById('modal-title');
+        this.modalInput = document.getElementById('modal-input');
+        this.modalConfirm = document.getElementById('modal-confirm');
+        this.modalCancel = document.getElementById('modal-cancel');
+        this.closeBtn = this.modal.querySelector('.close');
 
+        // Close modal events
+        this.closeBtn.addEventListener('click', () => this.closeModal());
+        this.modalCancel.addEventListener('click', () => this.closeModal());
+        
+        // Close modal when clicking outside
+        this.modal.addEventListener('click', (event) => {
+            if (event.target === this.modal) {
+                this.closeModal();
+            }
+        });
+
+        // Handle Enter key in modal input
+        this.modalInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                this.modalConfirm.click();
+            }
+        });
+    }
+
+    showModal(title, placeholder = '', defaultValue = '') {
+        return new Promise((resolve, reject) => {
+            this.modalTitle.textContent = title;
+            this.modalInput.placeholder = placeholder;
+            this.modalInput.value = defaultValue;
+            this.modal.style.display = 'block';
+            this.modalInput.focus();
+            this.modalInput.select();
+
+            // Remove existing listeners
+            const newConfirmBtn = this.modalConfirm.cloneNode(true);
+            this.modalConfirm.parentNode.replaceChild(newConfirmBtn, this.modalConfirm);
+            this.modalConfirm = newConfirmBtn;
+
+            // Add new listener
+            this.modalConfirm.addEventListener('click', () => {
+                const value = this.modalInput.value.trim();
+                this.closeModal();
+                resolve(value);
+            });
+        });
+    }
+
+    closeModal() {
+        this.modal.style.display = 'none';
+        this.modalInput.value = '';
+    }
+
+    updateTitleDisplay(name) {
+        this.currentMapName = name;
+        this.titleDisplay.textContent = name || 'Untitled Map';
+    }
+
+    async promptForSave() {
+        try {
+            const name = await this.showModal(
+                'Save Map',
+                'Enter map name...',
+                this.currentMapName
+            );
+            
+            if (name) {
+                this.saveMap(name);
+            }
+        } catch (error) {
+            // User cancelled
+        }
+    }
+
+    async promptForLoad() {
+        try {
+            const name = await this.showModal(
+                'Load Map',
+                'Enter map name to load...',
+                this.currentMapName
+            );
+            
+            if (name) {
+                this.loadMap(name);
+            }
+        } catch (error) {
+            // User cancelled
+        }
+    }
+
+    saveMap(name) {
         const serializedBricks = this.brickManager.getBricks().map(brick => ({
             color: brick.color,
             name: brick.buttonName,
@@ -462,19 +550,19 @@ class UIController {
         this.sendRequest(`/map/${name}`, 'POST', sceneData)
             .then(data => {
                 if (data.error) {
-                    alert('Error saving map: ' + data.error);
+                    this.showNotification('Error saving map: ' + data.error, 'error');
                 } else {
-                    alert('Map saved successfully! ID: ' + data.map_id);
+                    this.updateTitleDisplay(name);
+                    this.showNotification('Map saved successfully! ID: ' + data.map_id, 'success');
                 }
             })
             .catch(error => {
-                alert('Failed to save map: ' + error.message);
+                this.showNotification('Failed to save map: ' + error.message, 'error');
             });
     }
 
-    loadMap() {
-        const name = this.titleTextbox.value.trim();
-        this.fetchAndHandle(`/map/${name}`);
+    loadMap(name) {
+        this.fetchAndHandle(`/map/${name}`, name);
     }
 
     generateMap() {
@@ -495,19 +583,19 @@ class UIController {
         return await response.json();
     }
 
-    async fetchAndHandle(url) {
+    async fetchAndHandle(url, mapName = '') {
         try {
             const data = await this.sendRequest(url, 'GET');
-            this.handleFetchResponse(data);
+            this.handleFetchResponse(data, mapName);
         } catch (error) {
             console.error('Error loading map:', error);
-            alert('Failed to load map: ' + error.message);
+            this.showNotification('Failed to load map: ' + error.message, 'error');
         }
     }
 
-    handleFetchResponse(data) {
+    handleFetchResponse(data, mapName = '') {
         if (data.error) {
-            alert('Error loading map: ' + data.error);
+            this.showNotification('Error loading map: ' + data.error, 'error');
             return;
         }
 
@@ -517,11 +605,81 @@ class UIController {
 
         const mapData = data.map;
         console.log('Loaded map:', mapData);
+        
+        // Update title display with loaded map name
+        if (mapName) {
+            this.updateTitleDisplay(mapName);
+        } else if (mapData.metadata && mapData.metadata.name) {
+            this.updateTitleDisplay(mapData.metadata.name);
+        } else {
+            this.updateTitleDisplay('Generated Map');
+        }
+
         if (mapData.bricks && Array.isArray(mapData.bricks)) {
             mapData.bricks.forEach(brickData => {
                 this.loadBrick(brickData);
             });
+            this.showNotification('Map loaded successfully!', 'success');
         }
+    }
+
+    showNotification(message, type = 'info') {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
+        
+        // Style the notification
+        Object.assign(notification.style, {
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+            padding: '12px 20px',
+            borderRadius: '6px',
+            color: 'white',
+            fontSize: '14px',
+            fontWeight: '500',
+            zIndex: '3000',
+            opacity: '0',
+            transform: 'translateY(-20px)',
+            transition: 'all 0.3s ease',
+            maxWidth: '300px',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)'
+        });
+
+        // Set background color based on type
+        switch (type) {
+            case 'success':
+                notification.style.backgroundColor = '#4CAF50';
+                break;
+            case 'error':
+                notification.style.backgroundColor = '#f44336';
+                break;
+            case 'warning':
+                notification.style.backgroundColor = '#ff9800';
+                break;
+            default:
+                notification.style.backgroundColor = '#2196F3';
+        }
+
+        document.body.appendChild(notification);
+
+        // Animate in
+        setTimeout(() => {
+            notification.style.opacity = '1';
+            notification.style.transform = 'translateY(0)';
+        }, 100);
+
+        // Auto-remove after 3 seconds
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transform = 'translateY(-20px)';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, 3000);
     }
 
     loadBrick(brickData) {
