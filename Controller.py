@@ -39,10 +39,29 @@ def main_menu():
     """Main menu page with Play and Edit buttons."""
     return render_template('main.html')
 
+@app.route('/select')
+def select_map():
+    """Map selection page."""
+    map_ids = [map for map in storage.list_maps()]
+    maps = []
+    for map_id in map_ids:
+        maps.append({
+            'id': map_id
+        })
+    return render_template('map_select.html', maps=maps)
+
 @app.route('/edit')
 def edit():
-    """Edit menu."""
+    """Edit menu - create new map."""
     return render_template('edit.html', colors=colors, sizes=sizes, views=views)
+
+@app.route('/map/<string:map_id>/edit')
+def edit_existing_map(map_id):
+    """Edit an existing map."""
+    map_data = storage.load_map(map_id)
+    if not map_data:
+        return jsonify({'error': 'Map not found'}), 404
+    return render_template('edit.html', colors=colors, sizes=sizes, views=views, existing_map={'map_id': map_id, 'map': map_data.to_dict()})
 
 @app.route('/map/<string:map_id>', methods=['POST'])
 def save_map(map_id: str):

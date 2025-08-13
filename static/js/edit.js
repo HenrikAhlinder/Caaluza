@@ -761,7 +761,35 @@ class BrickEditor {
         
         this.setupEventListeners();
         this.setupZoomControls();
+        
+        // Load existing map if available
+        if (typeof existingMap !== 'undefined' && existingMap) {
+            this.loadExistingMap(existingMap);
+        }
+        
         this.startRenderLoop();
+    }
+
+    loadExistingMap(mapData) {
+        try {
+            // Update title display
+            const titleDisplay = document.getElementById('title-display');
+            if (titleDisplay) {
+                titleDisplay.textContent = mapData.map.name || 'Untitled Map';
+            }
+            
+            // Load bricks from the map data
+            if (mapData.map && mapData.map.bricks) {
+                mapData.map.bricks.forEach(brickData => {
+                    this.uiController.loadBrick(brickData);
+                });
+            }
+            
+            // Store the current map ID for saving
+            this.currentMapId = mapData.map_id;
+        } catch (error) {
+            console.error('Error loading existing map:', error);
+        }
     }
 
     setupRenderer() {

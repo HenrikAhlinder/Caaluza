@@ -50,4 +50,4 @@ class MapStorage:
         """List all map IDs in the database."""
         conn = sqlite3.connect(DB_FILE)
         cursor = conn.execute("SELECT id FROM maps")
-        return [row[0] for row in cursor.fetchall()]
+        return [row[0] for row in cursor]

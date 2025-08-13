@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit LEGO Construction</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.min.js"></script>
-    <link rel="stylesheet" href="static/css/edit.css">
+    <link rel="stylesheet" href="/static/css/edit.css">
 </head>
 <body>
     <canvas id="three-canvas"></canvas>
@@ -74,6 +74,7 @@
         const views = {{ views | tojson }};
         const sizes = {{ sizes | tojson }};
         const colors = {{ colors | tojson }};
+        const existingMap = {{ existing_map | tojson if existing_map else 'null' }};
         
         // Initialize brick selector dropdown functionality
         document.addEventListener('DOMContentLoaded', function() {
@@ -88,6 +89,6 @@
             }
         });
     </script>
-    <script type="module" src="static/js/edit.js"></script>
+    <script type="module" src="/static/js/edit.js"></script>
 </body>
 </html>
