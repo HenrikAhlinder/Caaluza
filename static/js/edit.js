@@ -1,4 +1,13 @@
 import { Brick } from './Brick.js';
+
+// Updates the compass overlay rotation based on camera angle
+function updateCompassRotation(angle) {
+    const compass = document.querySelector('.compass-overlay');
+    if (compass) {
+        compass.style.transform = `rotate(${angle}rad)`;
+    }
+}
+
 // Adds a compass overlay to indicate North, East, South, West
 function addCompassOverlay() {
     const compass = document.createElement('div');
@@ -26,7 +35,8 @@ function addCompassOverlay() {
         justifyContent: 'center',
         background: 'rgba(0,0,0,0.08)',
         borderRadius: '50%',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.12)'
+         boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+         transition: 'transform 0.1s ease-out'
     });
     compass.querySelector('.compass-n').style.cssText = 'position:absolute;top:8px;left:50%;transform:translateX(-50%);';
     compass.querySelector('.compass-e').style.cssText = 'position:absolute;top:50%;right:8px;transform:translateY(-50%);';
@@ -123,6 +133,9 @@ class CameraSystem {
 
     setActiveCamera(camera) {
         this.activeCamera = camera;
+        // Update compass rotation when switching cameras
+        console.log(camera.rotation.y)
+        updateCompassRotation(camera.rotation.y);
     }
 
     getActiveCamera() {
@@ -151,6 +164,9 @@ class CameraSystem {
         // Rotate around grid center horizontally
         const horizontalAngle = deltaX * EditorConfig.CAMERA_ROTATION_SPEED;
         this.activeCamera.position.applyAxisAngle(new THREE.Vector3(0, 1, 0), -horizontalAngle);
+        
+        // Update compass rotation
+        updateCompassRotation(this.activeCamera.rotation.y);
 
         // Rotate vertically
         const verticalAxis = new THREE.Vector3().subVectors(this.activeCamera.position, this.gridCenter).normalize();
