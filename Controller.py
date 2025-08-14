@@ -39,6 +39,17 @@ def main_menu():
     """Main menu page with Play and Edit buttons."""
     return render_template('main.html')
 
+@app.route('/play')
+def play():
+    """Play mode - select map and camera view."""
+    map_ids = [map for map in storage.list_maps()]
+    maps = []
+    for map_id in map_ids:
+        maps.append({
+            'id': map_id
+        })
+    return render_template('play.html', maps=maps, views=views)
+
 @app.route('/select')
 def select_map():
     """Map selection page."""
