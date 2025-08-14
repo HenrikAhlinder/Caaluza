@@ -62,17 +62,21 @@ def select_map():
     return render_template('map_select.html', maps=maps)
 
 @app.route('/edit')
-def edit():
-    """Edit menu - create new map."""
+def create_new_map():
     return render_template('edit.html', colors=colors, sizes=sizes, views=views, mode="edit")
 
-@app.route('/map/<string:map_id>/edit/<string:mode>')
-def edit_existing_map(map_id, mode):
-    """Edit an existing map."""
+@app.route('/show/<string:map_id>')
+def show_map(map_id):
     map_data = storage.load_map(map_id)
+
+    view = request.args.get('view')
+    mode = request.args.get('mode', 'edit')
+
     if not map_data:
         return jsonify({'error': 'Map not found'}), 404
-    return render_template('edit.html', colors=colors, sizes=sizes, views=views, mode=mode, existing_map={'map_id': map_id, 'map': map_data.to_dict()})
+    return render_template('edit.html', colors=colors, sizes=sizes, views=views, 
+                           existing_map={'map_id': map_id, 'map': map_data.to_dict()},
+                           view=view, mode=mode)
 
 @app.route('/map/<string:map_id>', methods=['POST'])
 def save_map(map_id: str):

@@ -108,8 +108,8 @@
         {% if maps %}
             <div class="maps-grid">
                 {% for map_item in maps %}
-                    <a href="/map/{{ map_item.id }}/edit/edit" class="map-item">
-                        <div class="map-id">ID: {{ map_item.id }}</div>
+                    <a href="/show/{{ map_item.id }}?mode=edit" class="map-item">
+                        <div class="map-id">ID: {{ map_item.id }}</div>/edit
                     </a>
                 {% endfor %}
             </div>
