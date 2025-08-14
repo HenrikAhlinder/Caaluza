@@ -25,10 +25,10 @@ sizes = [
 ]
 views = [
     {"name": "Top", "position": {"x": 3, "y": 10, "z": 3}},
-    {"name": "North", "position": {"x": -20, "y": 0.0, "z": 3.0}},
-    {"name": "East", "position": {"x": 3, "y": 0.0, "z": 20}},
-    {"name": "South", "position": {"x": 20, "y": 0.0, "z": 3}},
-    {"name": "West", "position": {"x": 3, "y": 0.0, "z": -20}}
+    {"name": "North", "position": {"x": 3, "y": 0.0, "z": -20}},
+    {"name": "South", "position": {"x": 3, "y": 0.0, "z": 20}},
+    {"name": "West", "position": {"x": -20, "y": 0.0, "z": 3.0}},
+    {"name": "East", "position": {"x": 20, "y": 0.0, "z": 3}},
 ]
 
 # TODO: Remove this and replace with sane overwrite solution
