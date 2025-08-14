@@ -2,7 +2,7 @@ import { Brick } from './Brick.js';
 
 /**
  * Configuration class to centralize all configuration constants
- */
+*/
 class EditorConfig {
     static GRID_CENTER = new THREE.Vector3(3, 0, 3);
     static GRID_SIZE = 6;
@@ -748,7 +748,8 @@ class UIController {
  * Main editor application class
  */
 class BrickEditor {
-    constructor() {
+    constructor(mode = 'edit') {
+        this.mode = mode; // 'edit' or 'play'
         this.scene = new THREE.Scene();
         this.renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('three-canvas') });
         this.setupRenderer();
@@ -761,6 +762,7 @@ class BrickEditor {
         
         this.setupEventListeners();
         this.setupZoomControls();
+        this.setupModeControls();
         
         // Load existing map if available
         if (typeof existingMap !== 'undefined' && existingMap) {
@@ -802,9 +804,14 @@ class BrickEditor {
         // Mouse movement for camera and brick dragging
         window.addEventListener('mousemove', (event) => {
             this.interactionSystem.updateMouse(event.clientX, event.clientY);
-            this.cameraSystem.updateCameraMovement(event.clientX, event.clientY);
             
-            if (this.brickManager.isDragging()) {
+            // Only allow camera movement in edit mode
+            if (this.mode === 'edit') {
+                this.cameraSystem.updateCameraMovement(event.clientX, event.clientY);
+            }
+            
+            // Only allow brick dragging in edit mode
+            if (this.mode === 'edit' && this.brickManager.isDragging()) {
                 const intersection = this.interactionSystem.getPlaneIntersection(this.cameraSystem.getActiveCamera());
                 if (intersection) {
                     this.brickManager.updateDragPosition(intersection.x, intersection.z);
@@ -814,7 +821,7 @@ class BrickEditor {
 
         // Mouse button events
         window.addEventListener('mousedown', (event) => {
-            if (event.button === 1) { // Middle mouse button
+            if (event.button === 1 && this.mode === 'edit') { // Middle mouse button - only in edit mode
                 this.cameraSystem.startCameraMovement(event.clientX, event.clientY);
             } else if (event.button === 0 && !this.brickManager.isDragging()) { // Left click
                 this.handleLeftClick();
@@ -825,9 +832,9 @@ class BrickEditor {
         });
 
         window.addEventListener('mouseup', (event) => {
-            if (event.button === 1) { // Middle mouse button
+            if (event.button === 1 && this.mode === 'edit') { // Middle mouse button - only in edit mode
                 this.cameraSystem.stopCameraMovement();
-            } else if (event.button === 0 && this.brickManager.isDragging()) { // Left click release
+            } else if (event.button === 0 && this.mode === 'edit' && this.brickManager.isDragging()) { // Left click release
                 this.brickManager.stopDrag();
             }
         });
@@ -871,6 +878,9 @@ class BrickEditor {
     }
 
     handleLeftClick() {
+        // Disable editing interactions in play mode
+        if (this.mode === 'play') return;
+        
         const raycaster = this.interactionSystem.raycastFromCamera(this.cameraSystem.getActiveCamera());
         const intersects = this.interactionSystem.intersectObjects(
             this.brickManager.getBricks().map(brick => brick.mesh)
@@ -889,6 +899,9 @@ class BrickEditor {
     }
 
     handleRightClick() {
+        // Disable editing interactions in play mode
+        if (this.mode === 'play') return;
+        
         const raycaster = this.interactionSystem.raycastFromCamera(this.cameraSystem.getActiveCamera());
         const intersects = this.interactionSystem.intersectObjects(
             this.brickManager.getBricks().map(brick => brick.mesh)
@@ -906,6 +919,9 @@ class BrickEditor {
     }
 
     handleKeyDown(event) {
+        // Disable editing keyboard controls in play mode
+        if (this.mode === 'play') return;
+        
         switch (event.key) {
             case 'q':
                 // Toggle camera movement (legacy support)
@@ -922,6 +938,48 @@ class BrickEditor {
         }
     }
 
+    setupModeControls() {
+        this.updateUIBasedOnMode();
+    }
+
+    setMode(mode) {
+        if (mode === 'edit' || mode === 'play') {
+            this.mode = mode;
+            this.updateUIBasedOnMode();
+        }
+    }
+
+    getMode() {
+        return this.mode;
+    }
+
+    updateUIBasedOnMode() {
+        const brickSelectorContainer = document.querySelector('.brick-selector-container');
+        const buttonContainer = document.querySelector('.button-container');
+        const zoomControls = document.querySelector('.zoom-controls');
+        const saveBtn = document.getElementById('save-btn');
+        const loadBtn = document.getElementById('load-btn');
+        const generateBtn = document.getElementById('generate-btn');
+
+        if (this.mode === 'play') {
+            // Hide all buttons in play mode
+            if (brickSelectorContainer) brickSelectorContainer.style.display = 'none';
+            if (buttonContainer) buttonContainer.style.display = 'none';
+            if (zoomControls) zoomControls.style.display = 'none';
+            if (saveBtn) saveBtn.style.display = 'none';
+            if (loadBtn) loadBtn.style.display = 'none';
+            if (generateBtn) generateBtn.style.display = 'none';
+        } else {
+            // Show all buttons in edit mode
+            if (brickSelectorContainer) brickSelectorContainer.style.display = '';
+            if (buttonContainer) buttonContainer.style.display = '';
+            if (zoomControls) zoomControls.style.display = '';
+            if (saveBtn) saveBtn.style.display = '';
+            if (loadBtn) loadBtn.style.display = '';
+            if (generateBtn) generateBtn.style.display = '';
+        }
+    }
+
     startRenderLoop() {
         const animate = () => {
             requestAnimationFrame(animate);
@@ -934,10 +992,10 @@ class BrickEditor {
 // Initialize the editor when the DOM is ready
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-        window.brickEditor = new BrickEditor();
+        window.brickEditor = new BrickEditor(mode);
     });
 } else {
-    window.brickEditor = new BrickEditor();
+    window.brickEditor = new BrickEditor(mode);
 }
 
 // Export classes for testing

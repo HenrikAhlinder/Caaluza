@@ -9,7 +9,7 @@
 </head>
 <body>
     <canvas id="three-canvas"></canvas>
-    
+
     <!-- Brick Selector -->
     <div class="brick-selector-container">
         <button class="brick-selector-toggle" id="brick-selector-toggle">Bricks ▼</button>
@@ -27,27 +27,27 @@
             {% endfor %}
         </div>
     </div>
-    
+
     <!-- View Buttons -->
     <div class="button-container">
         {% for view in views %}
         <button class="view-button {{ view.name }}" data-position="{{ view.position }}">{{ view.name }}</button>
         {% endfor %}
     </div>
-    
+
     <!-- Zoom Controls -->
     <div class="zoom-controls">
         <button id="zoom-in-btn" class="zoom-button" title="Zoom In">+</button>
         <button id="zoom-out-btn" class="zoom-button" title="Zoom Out">−</button>
     </div>
-    
+
     <!-- Title Display -->
     <div class="title-display-container">
         <div class="title-display-box">
             <span class="title-display-text" id="title-display">Untitled Map</span>
         </div>
     </div>
-    
+
     <!-- Modal for Save/Load Prompts -->
     <div id="prompt-modal" class="modal">
         <div class="modal-content">
@@ -64,23 +64,24 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Save and Load Buttons -->
     <button id="save-btn">Save</button>
     <button id="load-btn" class="load-button">Load</button>
     <button id="generate-btn" class="gen-button">Generate</button>
-    
+
     <script>
         const views = {{ views | tojson }};
         const sizes = {{ sizes | tojson }};
         const colors = {{ colors | tojson }};
         const existingMap = {{ existing_map | tojson if existing_map else 'null' }};
-        
+        const mode = {{ mode | tojson if mode else "edit" }}
+
         // Initialize brick selector dropdown functionality
         document.addEventListener('DOMContentLoaded', function() {
             const toggle = document.getElementById('brick-selector-toggle');
             const selector = document.getElementById('brick-selector');
-            
+
             if (toggle && selector) {
                 toggle.addEventListener('click', function() {
                     selector.classList.toggle('show');
