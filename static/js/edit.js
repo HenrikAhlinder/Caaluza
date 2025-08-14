@@ -1,4 +1,39 @@
 import { Brick } from './Brick.js';
+// Adds a compass overlay to indicate North, East, South, West
+function addCompassOverlay() {
+    const compass = document.createElement('div');
+    compass.className = 'compass-overlay';
+    compass.innerHTML = `
+        <span class="compass-n">N</span>
+        <span class="compass-e">E</span>
+        <span class="compass-s">S</span>
+        <span class="compass-w">W</span>
+    `;
+    Object.assign(compass.style, {
+        position: 'fixed',
+        left: '24px',
+        bottom: '24px',
+        width: '90px',
+        height: '90px',
+        pointerEvents: 'none',
+        zIndex: 2000,
+        fontSize: '18px',
+        fontWeight: 'bold',
+        color: '#fff',
+        textShadow: '0 0 6px #000',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'rgba(0,0,0,0.08)',
+        borderRadius: '50%',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.12)'
+    });
+    compass.querySelector('.compass-n').style.cssText = 'position:absolute;top:8px;left:50%;transform:translateX(-50%);';
+    compass.querySelector('.compass-e').style.cssText = 'position:absolute;top:50%;right:8px;transform:translateY(-50%);';
+    compass.querySelector('.compass-s').style.cssText = 'position:absolute;bottom:8px;left:50%;transform:translateX(-50%);';
+    compass.querySelector('.compass-w').style.cssText = 'position:absolute;top:50%;left:8px;transform:translateY(-50%);';
+    document.body.appendChild(compass);
+}
 
 /**
  * Configuration class to centralize all configuration constants
@@ -753,6 +788,7 @@ class BrickEditor {
         this.scene = new THREE.Scene();
         this.renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('three-canvas') });
         this.setupRenderer();
+        addCompassOverlay();
         
         this.cameraSystem = new CameraSystem(EditorConfig.GRID_CENTER, views);
         this.lightingSystem = new LightingSystem(this.scene, EditorConfig.GRID_CENTER, views);
