@@ -71,6 +71,7 @@ class CameraSystem {
         this.shouldMove = false;
         this.lastMouseX = 0;
         this.lastMouseY = 0;
+        this.totalRotationY = -Math.PI/2;  // Initial offset to align with camera
         
         this.init();
     }
@@ -133,9 +134,10 @@ class CameraSystem {
 
     setActiveCamera(camera) {
         this.activeCamera = camera;
+        // Reset total rotation when switching cameras
+        this.totalRotationY = 0;  // Reset to initial offset
         // Update compass rotation when switching cameras
-        console.log(camera.rotation.y)
-        updateCompassRotation(camera.rotation.y);
+        updateCompassRotation(this.totalRotationY);
     }
 
     getActiveCamera() {
@@ -165,8 +167,11 @@ class CameraSystem {
         const horizontalAngle = deltaX * EditorConfig.CAMERA_ROTATION_SPEED;
         this.activeCamera.position.applyAxisAngle(new THREE.Vector3(0, 1, 0), -horizontalAngle);
         
+        // Accumulate total rotation
+        this.totalRotationY -= horizontalAngle;
+        
         // Update compass rotation
-        updateCompassRotation(this.activeCamera.rotation.y);
+        updateCompassRotation(this.totalRotationY);
 
         // Rotate vertically
         const verticalAxis = new THREE.Vector3().subVectors(this.activeCamera.position, this.gridCenter).normalize();
