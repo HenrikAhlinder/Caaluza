@@ -73,7 +73,7 @@ class CameraSystem {
         this.lastMouseY = 0;
         this.totalRotationY = -Math.PI/2;  // Initial offset to align with camera
         this.selectedView = selectedView
-        
+
         this.init();
     }
 
@@ -171,10 +171,10 @@ class CameraSystem {
         // Rotate around grid center horizontally
         const horizontalAngle = deltaX * EditorConfig.CAMERA_ROTATION_SPEED;
         this.activeCamera.position.applyAxisAngle(new THREE.Vector3(0, 1, 0), -horizontalAngle);
-        
+
         // Accumulate total rotation
         this.totalRotationY -= horizontalAngle;
-        
+
         // Update compass rotation
         updateCompassRotation(this.totalRotationY);
 
@@ -203,21 +203,21 @@ class CameraSystem {
         const camera = this.activeCamera;
         if (camera instanceof THREE.OrthographicCamera) {
             const newSize = EditorConfig.ORTHO_SIZE * zoomFactor;
-            
+
             // Limit zoom range
             const minZoom = 5;
             const maxZoom = 50;
             if (newSize < minZoom || newSize > maxZoom) return;
-            
+
             EditorConfig.ORTHO_SIZE = newSize;
-            
+
             // Update the active camera
             camera.left = -newSize * EditorConfig.ASPECT_RATIO;
             camera.right = newSize * EditorConfig.ASPECT_RATIO;
             camera.top = newSize;
             camera.bottom = -newSize;
             camera.updateProjectionMatrix();
-            
+
             // Update all other cameras to maintain consistency
             Object.values(this.playerCameras).forEach(cam => {
                 cam.left = -newSize * EditorConfig.ASPECT_RATIO;
@@ -226,7 +226,7 @@ class CameraSystem {
                 cam.bottom = -newSize;
                 cam.updateProjectionMatrix();
             });
-            
+
             this.mainCamera.left = -newSize * EditorConfig.ASPECT_RATIO;
             this.mainCamera.right = newSize * EditorConfig.ASPECT_RATIO;
             this.mainCamera.top = newSize;
@@ -249,9 +249,9 @@ class LightingSystem {
 
     init() {
         this.views.forEach(view => {
-            this.addLight(`light-above-${view.name}`, 
+            this.addLight(`light-above-${view.name}`,
                 new THREE.Vector3(view.position.x + 10, view.position.y + 10, view.position.z + 10));
-            this.addLight(`light-below-${view.name}`, 
+            this.addLight(`light-below-${view.name}`,
                 new THREE.Vector3(view.position.x - 10, view.position.y - 10, view.position.z - 10));
         });
     }
@@ -308,7 +308,7 @@ class BrickManager {
         this.currentlyDraggedBrick = null;
         this.dragOffset = new THREE.Vector3();
         this.ghostBrick = null;
-        
+
         this.setupBaseplate();
     }
 
@@ -353,12 +353,12 @@ class BrickManager {
 
     updateDragPosition(x, z) {
         if (!this.currentlyDraggedBrick) return;
-        
+
         const snappedX = Math.round(x - this.dragOffset.x);
         const snappedZ = Math.round(z - this.dragOffset.z);
-        
+
         this.currentlyDraggedBrick.setPosition(snappedX, snappedZ);
-        
+
         if (this.ghostBrick) {
             this.ghostBrick.position.set(snappedX, -0.5, snappedZ);
             this.ghostBrick.visible = this.currentlyDraggedBrick.mesh.position.y > -0.5;
@@ -367,9 +367,9 @@ class BrickManager {
 
     moveDraggedBrickVertical(direction) {
         if (!this.currentlyDraggedBrick) return;
-        
+
         this.currentlyDraggedBrick.mesh.position.y += direction * EditorConfig.VERTICAL_STEP;
-        
+
         if (this.ghostBrick) {
             this.ghostBrick.visible = this.currentlyDraggedBrick.mesh.position.y > -0.5;
         }
@@ -377,9 +377,9 @@ class BrickManager {
 
     rotateDraggedBrick() {
         if (!this.currentlyDraggedBrick) return;
-        
+
         this.currentlyDraggedBrick.mesh.rotation.y += Math.PI / 2;
-        
+
         if (this.ghostBrick) {
             this.ghostBrick.rotation.copy(this.currentlyDraggedBrick.mesh.rotation);
         }
@@ -387,7 +387,7 @@ class BrickManager {
 
     createGhostBrick() {
         if (!this.currentlyDraggedBrick) return;
-        
+
         const originalBrick = this.currentlyDraggedBrick;
         const ghostGeometry = new THREE.BoxGeometry(
             originalBrick.size.width,
@@ -453,7 +453,7 @@ class UIController {
         this.brickSelector = brickSelector;
         this.titleDisplay = document.getElementById('title-display');
         this.currentMapName = '';
-        
+
         this.setupBrickSelector();
         this.setupSaveLoad();
         this.setupModal();
@@ -473,7 +473,7 @@ class UIController {
                         { width: size.width, height: 1, depth: size.depth },
                         button.title
                     );
-                    
+
                     this.brickManager.addBrick(newBrick);
                     this.brickManager.startDrag(newBrick);
 
@@ -508,7 +508,7 @@ class UIController {
         // Close modal events
         this.closeBtn.addEventListener('click', () => this.closeModal());
         this.modalCancel.addEventListener('click', () => this.closeModal());
-        
+
         // Close modal when clicking outside
         this.modal.addEventListener('click', (event) => {
             if (event.target === this.modal) {
@@ -564,7 +564,7 @@ class UIController {
                 'Enter map name...',
                 this.currentMapName
             );
-            
+
             if (name) {
                 this.saveMap(name);
             }
@@ -580,7 +580,7 @@ class UIController {
                 'Enter map name to load...',
                 this.currentMapName
             );
-            
+
             if (name) {
                 this.loadMap(name);
             }
@@ -635,7 +635,7 @@ class UIController {
             method: method,
             headers: { 'Content-Type': 'application/json' }
         };
-        
+
         if (data) {
             options.body = JSON.stringify(data);
         }
@@ -666,7 +666,7 @@ class UIController {
 
         const mapData = data.map;
         console.log('Loaded map:', mapData);
-        
+
         // Update title display with loaded map name
         if (mapName) {
             this.updateTitleDisplay(mapName);
@@ -689,7 +689,7 @@ class UIController {
         const notification = document.createElement('div');
         notification.className = `notification ${type}`;
         notification.textContent = message;
-        
+
         // Style the notification
         Object.assign(notification.style, {
             position: 'fixed',
@@ -745,7 +745,7 @@ class UIController {
 
     loadBrick(brickData) {
         const buttons = this.brickSelector.querySelectorAll('button');
-        
+
         // Find matching color
         let colorMatch = colors.find(c => c.hex === brickData.color);
         if (!colorMatch) {
@@ -815,22 +815,22 @@ class BrickEditor {
         this.renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('three-canvas') });
         this.setupRenderer();
         addCompassOverlay();
-        
+
         this.cameraSystem = new CameraSystem(EditorConfig.GRID_CENTER, views, selectedView);
         this.lightingSystem = new LightingSystem(this.scene, EditorConfig.GRID_CENTER, views);
         this.interactionSystem = new InteractionSystem();
         this.brickManager = new BrickManager(this.scene);
         this.uiController = new UIController(this.brickManager, document.querySelector('.brick-selector'));
-        
+
         this.setupEventListeners();
         this.setupZoomControls();
         this.setupModeControls();
-        
+
         // Load existing map if available
         if (typeof existingMap !== 'undefined' && existingMap) {
             this.loadExistingMap(existingMap);
         }
-        
+
         this.startRenderLoop();
     }
 
@@ -841,14 +841,14 @@ class BrickEditor {
             if (titleDisplay) {
                 titleDisplay.textContent = mapData.map.name || 'Untitled Map';
             }
-            
+
             // Load bricks from the map data
             if (mapData.map && mapData.map.bricks) {
                 mapData.map.bricks.forEach(brickData => {
                     this.uiController.loadBrick(brickData);
                 });
             }
-            
+
             // Store the current map ID for saving
             this.currentMapId = mapData.map_id;
         } catch (error) {
@@ -866,12 +866,12 @@ class BrickEditor {
         // Mouse movement for camera and brick dragging
         window.addEventListener('mousemove', (event) => {
             this.interactionSystem.updateMouse(event.clientX, event.clientY);
-            
+
             // Only allow camera movement in edit mode
             if (this.mode === 'edit') {
                 this.cameraSystem.updateCameraMovement(event.clientX, event.clientY);
             }
-            
+
             // Only allow brick dragging in edit mode
             if (this.mode === 'edit' && this.brickManager.isDragging()) {
                 const intersection = this.interactionSystem.getPlaneIntersection(this.cameraSystem.getActiveCamera());
@@ -915,19 +915,19 @@ class BrickEditor {
     setupZoomControls() {
         const zoomInBtn = document.getElementById('zoom-in-btn');
         const zoomOutBtn = document.getElementById('zoom-out-btn');
-        
+
         if (zoomInBtn) {
             zoomInBtn.addEventListener('click', () => {
                 this.cameraSystem.zoomIn();
             });
         }
-        
+
         if (zoomOutBtn) {
             zoomOutBtn.addEventListener('click', () => {
                 this.cameraSystem.zoomOut();
             });
         }
-        
+
         // Add mouse wheel zoom support
         window.addEventListener('wheel', (event) => {
             event.preventDefault();
@@ -942,16 +942,16 @@ class BrickEditor {
     handleLeftClick() {
         // Disable editing interactions in play mode
         if (this.mode === 'play') return;
-        
+
         const raycaster = this.interactionSystem.raycastFromCamera(this.cameraSystem.getActiveCamera());
         const intersects = this.interactionSystem.intersectObjects(
             this.brickManager.getBricks().map(brick => brick.mesh)
         );
-        
+
         if (intersects.length > 0) {
             const intersectedMesh = intersects[0].object;
             const brick = this.brickManager.findBrickByMesh(intersectedMesh);
-            
+
             if (brick) {
                 const brickPosition = brick.mesh.position;
                 const offset = new THREE.Vector3().copy(intersects[0].point).sub(brickPosition);
@@ -963,7 +963,7 @@ class BrickEditor {
     handleRightClick() {
         // Disable editing interactions in play mode
         if (this.mode === 'play') return;
-        
+
         const raycaster = this.interactionSystem.raycastFromCamera(this.cameraSystem.getActiveCamera());
         const intersects = this.interactionSystem.intersectObjects(
             this.brickManager.getBricks().map(brick => brick.mesh)
@@ -972,7 +972,7 @@ class BrickEditor {
         if (intersects.length > 0) {
             const intersectedMesh = intersects[0].object;
             const brick = this.brickManager.findBrickByMesh(intersectedMesh);
-            
+
             if (brick) {
                 this.uiController.enableButtonByTitle(brick.buttonName);
                 this.brickManager.removeBrick(brick);
@@ -983,7 +983,7 @@ class BrickEditor {
     handleKeyDown(event) {
         // Disable editing keyboard controls in play mode
         if (this.mode === 'play') return;
-        
+
         switch (event.key) {
             case 'q':
                 // Toggle camera movement (legacy support)
