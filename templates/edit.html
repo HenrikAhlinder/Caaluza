@@ -76,6 +76,7 @@
         const colors = {{ colors | tojson }};
         const existingMap = {{ existing_map | tojson if existing_map else 'null' }};
         const mode = {{ mode | tojson if mode else "edit" }}
+        const selectedView = {{ selected_view | tojson if selected_view else 'null' }}
 
         // Initialize brick selector dropdown functionality
         document.addEventListener('DOMContentLoaded', function() {

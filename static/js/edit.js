@@ -62,7 +62,7 @@ class EditorConfig {
  * Camera system management class
  */
 class CameraSystem {
-    constructor(gridCenter, views) {
+    constructor(gridCenter, views, selectedView) {
         this.gridCenter = gridCenter;
         this.views = views;
         this.playerCameras = {};
@@ -72,6 +72,7 @@ class CameraSystem {
         this.lastMouseX = 0;
         this.lastMouseY = 0;
         this.totalRotationY = -Math.PI/2;  // Initial offset to align with camera
+        this.selectedView = selectedView
         
         this.init();
     }
@@ -79,7 +80,11 @@ class CameraSystem {
     init() {
         this.createMainCamera();
         this.createPlayerCameras();
+
         this.activeCamera = this.mainCamera;
+        if (this.selectedView !== null) {
+            this.setActiveCamera(this.playerCameras[selectedView]);
+        }
     }
 
     createMainCamera() {
@@ -811,7 +816,7 @@ class BrickEditor {
         this.setupRenderer();
         addCompassOverlay();
         
-        this.cameraSystem = new CameraSystem(EditorConfig.GRID_CENTER, views);
+        this.cameraSystem = new CameraSystem(EditorConfig.GRID_CENTER, views, selectedView);
         this.lightingSystem = new LightingSystem(this.scene, EditorConfig.GRID_CENTER, views);
         this.interactionSystem = new InteractionSystem();
         this.brickManager = new BrickManager(this.scene);

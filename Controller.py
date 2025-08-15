@@ -76,7 +76,7 @@ def show_map(map_id):
         return jsonify({'error': 'Map not found'}), 404
     return render_template('edit.html', colors=colors, sizes=sizes, views=views, 
                            existing_map={'map_id': map_id, 'map': map_data.to_dict()},
-                           view=view, mode=mode)
+                           selected_view=view, mode=mode)
 
 @app.route('/map/<string:map_id>', methods=['POST'])
 def save_map(map_id: str):
