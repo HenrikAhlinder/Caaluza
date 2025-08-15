@@ -1,5 +1,18 @@
 from flask import Flask, jsonify, request, render_template
+import logging
+import os
+
 app = Flask(__name__)
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-here')
+
+logging.basicConfig(level=logging.INFO)
+
+@app.after_request
+def after_request(response):
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    return response
 
 from Brick import BrickMap, Brick
 from Storage import MapStorage
@@ -96,7 +109,11 @@ def save_map(map_id: str):
         new_map = BrickMap.from_dict(data)
     except Exception as e:
         return jsonify({'error': f'Invalid map data: {str(e)}'}), 400
-    storage.save_map(map_id, new_map)
+
+    author = data.get('metadata').get('author', 'mystery man')
+    if author is None or len(author) == 0:
+        raise Exception("Invalid author")
+    storage.save_map(map_id, author, new_map)
     return jsonify({'message': 'Map created successfully', 'map_id': map_id}), 201
 
 
@@ -137,6 +154,7 @@ def generate_map():
     brickmap.bricks = bricks
     return jsonify({'map_id': "generated_map", 'map': brickmap.to_dict()}), 200
 
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True, threaded=True)
+# if __name__ == '__main__':
+#     port = int(os.environ.get('PORT', 5000))
+#     debug = os.environ.get('DEBUG', 'False').lower() == 'true'
+#     app.run(host='0.0.0.0', port=port, debug=debug, threaded=True)

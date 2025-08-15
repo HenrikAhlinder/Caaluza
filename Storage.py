@@ -18,18 +18,20 @@ class MapStorage:
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS maps (
                     id TEXT PRIMARY KEY,
-                    data TEXT NOT NULL
+                    data TEXT NOT NULL,
+                    author TEXT
                 )
             """)
 
-    def save_map(self, map_id, brick_map):
+    def save_map(self, map_id, author, brick_map):
         """Save or update a map in the database."""
         conn = sqlite3.connect(DB_FILE)
+        print(author)
         with conn:
             conn.execute("""
-                INSERT INTO maps (id, data) VALUES (?, ?)
-                ON CONFLICT(id) DO UPDATE SET data=excluded.data
-            """, (map_id, json.dumps(brick_map.to_dict())))
+                INSERT INTO maps (id, data, author) VALUES (?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET data=excluded.data, author=excluded.author""", 
+                 (map_id, json.dumps(brick_map.to_dict()), author))
 
     def load_map(self, map_id):
         """Load a map from the database by its ID."""

@@ -524,7 +524,7 @@ class UIController {
         });
     }
 
-    showModal(title, placeholder = '', defaultValue = '') {
+    showModal(title, placeholder = '', defaultValue = '', authorDefault = '') {
         return new Promise((resolve, reject) => {
             this.modalTitle.textContent = title;
             this.modalInput.placeholder = placeholder;
@@ -532,6 +532,18 @@ class UIController {
             this.modal.style.display = 'block';
             this.modalInput.focus();
             this.modalInput.select();
+
+            // Add author input field if not present
+            let authorInput = this.modal.querySelector('#modal-author-input');
+            if (!authorInput) {
+                authorInput = document.createElement('input');
+                authorInput.type = 'text';
+                authorInput.id = 'modal-author-input';
+                authorInput.placeholder = 'Author name...';
+                authorInput.style.marginTop = '10px';
+                this.modalInput.insertAdjacentElement('afterend', authorInput);
+            }
+            authorInput.value = authorDefault;
 
             // Remove existing listeners
             const newConfirmBtn = this.modalConfirm.cloneNode(true);
@@ -541,8 +553,10 @@ class UIController {
             // Add new listener
             this.modalConfirm.addEventListener('click', () => {
                 const value = this.modalInput.value.trim();
+                const author = authorInput.value.trim();
                 this.closeModal();
-                resolve(value);
+                authorInput.remove();
+                resolve({ value, author });
             });
         });
     }
@@ -559,15 +573,18 @@ class UIController {
 
     async promptForSave() {
         try {
-            const name = await this.showModal(
+            const { value: name, author } = await this.showModal(
                 'Save Map',
                 'Enter map name...',
-                this.currentMapName
+                this.currentMapName,
+                ''
             );
 
-            if (name) {
-                this.saveMap(name);
-            }
+            if (
+                typeof name === 'string' && name.trim() !== '' &&
+                typeof author === 'string' && author.trim() !== '') {
+                this.saveMap(name, author);
+            } 
         } catch (error) {
             // User cancelled
         }
@@ -589,7 +606,7 @@ class UIController {
         }
     }
 
-    saveMap(name) {
+    saveMap(name, author) {
         const serializedBricks = this.brickManager.getBricks().map(brick => ({
             color: brick.color,
             name: brick.buttonName,
@@ -604,8 +621,9 @@ class UIController {
                 height: 1,
                 depth: EditorConfig.GRID_SIZE,
                 timestamp: new Date().toISOString(),
-                version: "1.0"
-            }
+                version: "1.0",
+                author: author
+            },
         };
 
         this.sendRequest(`/map/${name}`, 'POST', sceneData)
