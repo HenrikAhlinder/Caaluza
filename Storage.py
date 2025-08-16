@@ -2,7 +2,10 @@ import sqlite3
 from Brick import BrickMap, Point, Brick
 import json
 
-DB_FILE = "maps_store.sqlite"
+DB_FILE = os.environ.get(
+    "MAPS_DB_PATH",
+    os.path.join(os.path.dirname(__file__), "maps_store.sqlite")
+)
 
 class MapStorage:
     """Class to manage the storage of maps using SQLite."""
@@ -26,7 +29,6 @@ class MapStorage:
     def save_map(self, map_id, author, brick_map):
         """Save or update a map in the database."""
         conn = sqlite3.connect(DB_FILE)
-        print(author)
         with conn:
             conn.execute("""
                 INSERT INTO maps (id, data, author) VALUES (?, ?, ?)
