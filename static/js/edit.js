@@ -626,7 +626,7 @@ class UIController {
             },
         };
 
-        this.sendRequest(`/map/${name}`, 'POST', sceneData)
+        this.sendRequest(`/caaluza/map/${name}`, 'POST', sceneData)
             .then(data => {
                 if (data.error) {
                     this.showNotification('Error saving map: ' + data.error, 'error');
@@ -641,11 +641,11 @@ class UIController {
     }
 
     loadMap(name) {
-        this.fetchAndHandle(`/map/${name}`, name);
+        this.fetchAndHandle(`/caaluza/map/${name}`, name);
     }
 
     generateMap() {
-        this.fetchAndHandle('/generate');
+        this.fetchAndHandle('/caaluza/generate');
     }
 
     async sendRequest(url, method, data = null) {

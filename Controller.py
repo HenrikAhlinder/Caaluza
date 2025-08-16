@@ -47,12 +47,12 @@ views = [
 # TODO: Remove this and replace with sane overwrite solution
 last_failed_save_attempt: dict[str, datetime] = {}
 
-@app.route('/')
+@app.route('/caaluza')
 def main_menu():
     """Main menu page with Play and Edit buttons."""
     return render_template('main.html')
 
-@app.route('/play')
+@app.route('/caaluza/play')
 def play():
     """Play mode - select map and camera view."""
     map_ids = [map for map in storage.list_maps()]
@@ -63,7 +63,7 @@ def play():
         })
     return render_template('play.html', maps=maps, views=views)
 
-@app.route('/select')
+@app.route('/caaluza/select')
 def select_map():
     """Map selection page."""
     map_ids = [map for map in storage.list_maps()]
@@ -74,11 +74,11 @@ def select_map():
         })
     return render_template('map_select.html', maps=maps)
 
-@app.route('/edit')
+@app.route('/caaluza/edit')
 def create_new_map():
     return render_template('edit.html', colors=colors, sizes=sizes, views=views, mode="edit")
 
-@app.route('/show/<string:map_id>')
+@app.route('/caaluza/show/<string:map_id>')
 def show_map(map_id):
     map_data = storage.load_map(map_id)
 
@@ -91,7 +91,7 @@ def show_map(map_id):
                            existing_map={'map_id': map_id, 'map': map_data.to_dict()},
                            selected_view=view, mode=mode)
 
-@app.route('/map/<string:map_id>', methods=['POST'])
+@app.route('/caaluza/map/<string:map_id>', methods=['POST'])
 def save_map(map_id: str):
     """Save an existing map."""
     # Parse request JSON
@@ -117,7 +117,7 @@ def save_map(map_id: str):
     return jsonify({'message': 'Map created successfully', 'map_id': map_id}), 201
 
 
-@app.route('/map/<string:map_id>', methods=['GET'])
+@app.route('/caaluza/map/<string:map_id>', methods=['GET'])
 def load_map(map_id):
     """Load an existing map."""
     map_data = storage.load_map(map_id)
@@ -128,7 +128,7 @@ def load_map(map_id):
     return jsonify({'map_id': map_id, 'map': map_data.to_dict()}), 200
 
 
-@app.route('/generate', methods=['GET'])
+@app.route('/caaluza/generate', methods=['GET'])
 def generate_map():
     from Mapgenerator.Mapgenerator import generate_map as genmap
 
@@ -154,7 +154,7 @@ def generate_map():
     brickmap.bricks = bricks
     return jsonify({'map_id': "generated_map", 'map': brickmap.to_dict()}), 200
 
-# if __name__ == '__main__':
-#     port = int(os.environ.get('PORT', 5000))
-#     debug = os.environ.get('DEBUG', 'False').lower() == 'true'
-#     app.run(host='0.0.0.0', port=port, debug=debug, threaded=True)
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    debug = os.environ.get('DEBUG', 'False').lower() == 'true'
+    app.run(host='0.0.0.0', port=port, debug=debug, threaded=True)
