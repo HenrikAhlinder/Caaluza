@@ -856,8 +856,10 @@ class BrickEditor {
         try {
             // Update title display
             const titleDisplay = document.getElementById('title-display');
+            console.log(mapData);
             if (titleDisplay) {
-                titleDisplay.textContent = mapData.map.name || 'Untitled Map';
+                console.log(mapData.map);
+                titleDisplay.textContent = mapData.map_id || 'Untitled Map';
             }
 
             // Load bricks from the map data
