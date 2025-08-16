@@ -1,6 +1,7 @@
 import sqlite3
 from Brick import BrickMap, Point, Brick
 import json
+import os
 
 DB_FILE = os.environ.get(
     "MAPS_DB_PATH",
