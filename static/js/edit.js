@@ -930,6 +930,22 @@ class BrickEditor {
         window.addEventListener('contextmenu', (event) => {
             event.preventDefault();
         });
+
+        window.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1 && this.mode === 'edit') {
+                this.cameraSystem.startCameraMovement(e.touches[0].clientX, e.touches[0].clientY);
+            }
+        });
+
+        window.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 1) {
+                this.cameraSystem.updateCameraMovement(e.touches[0].clientX, e.touches[0].clientY);
+            }
+        });
+
+        window.addEventListener('touchend', () => {
+            this.cameraSystem.stopCameraMovement();
+        });
     }
 
     setupZoomControls() {
