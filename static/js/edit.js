@@ -1,11 +1,30 @@
 import { Brick } from './Brick.js';
 
-// Updates the compass overlay rotation based on camera angle
-function updateCompassRotation(angle) {
+function updateCompassRotation(direction) {
     const compass = document.querySelector('.compass-overlay');
     if (compass) {
-        compass.style.transform = `rotate(${angle}rad)`;
+        // Calculate the angle between the direction vector and "up" (screen +Y, which is { x: 0, z: -1 })
+        const angle = Math.atan2(direction.x, -direction.z); // atan2(z, x) because north is (1, 0)
+
+        // Rotate the compass in the opposite direction to simulate fixed-world north
+        compass.style.transform = `rotate(${-angle}rad)`;
     }
+}
+
+function getCompassDirectionVector(cameraPos, targetPos) {
+    const dx = targetPos.x - cameraPos.x;
+    const dz = targetPos.z - cameraPos.z;
+
+    const length = Math.sqrt(dx*dx + dz*dz);
+
+    if (length === 0) {
+        return { x: 0, z: 0 };
+    }
+
+    return {
+        x: dx / length,
+        z: dz / length
+    };
 }
 
 // Adds a compass overlay to indicate North, East, South, West
@@ -71,7 +90,7 @@ class CameraSystem {
         this.shouldMove = false;
         this.lastMouseX = 0;
         this.lastMouseY = 0;
-        this.totalRotationY = -Math.PI/2;  // Initial offset to align with camera
+        this.totalRotationY = 0;
         this.selectedView = selectedView
 
         this.init();
@@ -96,8 +115,9 @@ class CameraSystem {
             0.1,
             1000
         );
-        this.mainCamera.position.set(this.gridCenter.x, 25, this.gridCenter.z);
+        this.mainCamera.position.set(this.gridCenter.x+25, 25, this.gridCenter.z+25);
         this.mainCamera.lookAt(this.gridCenter);
+        updateCompassRotation(getCompassDirectionVector(this.mainCamera.position, this.gridCenter));
     }
 
     createPlayerCameras() {
@@ -140,9 +160,8 @@ class CameraSystem {
     setActiveCamera(camera) {
         this.activeCamera = camera;
         // Reset total rotation when switching cameras
-        this.totalRotationY = 0;  // Reset to initial offset
         // Update compass rotation when switching cameras
-        updateCompassRotation(this.totalRotationY);
+        updateCompassRotation(getCompassDirectionVector(camera.position, this.gridCenter));
     }
 
     getActiveCamera() {
@@ -172,11 +191,8 @@ class CameraSystem {
         const horizontalAngle = deltaX * EditorConfig.CAMERA_ROTATION_SPEED;
         this.activeCamera.position.applyAxisAngle(new THREE.Vector3(0, 1, 0), -horizontalAngle);
 
-        // Accumulate total rotation
-        this.totalRotationY -= horizontalAngle;
-
         // Update compass rotation
-        updateCompassRotation(this.totalRotationY);
+        updateCompassRotation(getCompassDirectionVector(this.activeCamera.position, this.gridCenter));
 
         // Rotate vertically
         const verticalAxis = new THREE.Vector3().subVectors(this.activeCamera.position, this.gridCenter).normalize();
@@ -856,9 +872,7 @@ class BrickEditor {
         try {
             // Update title display
             const titleDisplay = document.getElementById('title-display');
-            console.log(mapData);
             if (titleDisplay) {
-                console.log(mapData.map);
                 titleDisplay.textContent = mapData.map_id || 'Untitled Map';
             }
 
