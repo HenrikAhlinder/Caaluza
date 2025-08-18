@@ -90,6 +90,15 @@ class CameraSystem {
         this.shouldMove = false;
         this.lastMouseX = 0;
         this.lastMouseY = 0;
+        // Spherical coordinates
+        this.phi = Math.PI / 4;    // vertical angle (0 = top, PI = bottom)
+        this.theta = Math.PI / 4;  // horizontal angle
+
+        this.radius = 35;          // distance from grid center
+
+        // Clamp Phi to avoid rotation over top of the world
+        this.minPhi = 0.1;         // minimum vertical angle (near top)
+        this.maxPhi = Math.PI - 0.1; // maximum vertical angle (horizon)
         this.totalRotationY = 0;
         this.selectedView = selectedView
 
@@ -115,7 +124,15 @@ class CameraSystem {
             0.1,
             1000
         );
-        this.mainCamera.position.set(this.gridCenter.x+25, 25, this.gridCenter.z+25);
+         // Set initial camera position using spherical coordinates
+         const x = this.radius * Math.sin(this.phi) * Math.cos(this.theta);
+         const y = this.radius * Math.cos(this.phi);
+         const z = this.radius * Math.sin(this.phi) * Math.sin(this.theta);
+         this.mainCamera.position.set(
+             this.gridCenter.x + x,
+             this.gridCenter.y + y,
+             this.gridCenter.z + z
+         );
         this.mainCamera.lookAt(this.gridCenter);
         updateCompassRotation(getCompassDirectionVector(this.mainCamera.position, this.gridCenter));
     }
@@ -172,8 +189,27 @@ class CameraSystem {
         this.shouldMove = true;
         this.lastMouseX = mouseX;
         this.lastMouseY = mouseY;
+
+        if (this.activeCamera === this.mainCamera) {
+            return;
+        }
+
         this.mainCamera.position.copy(this.activeCamera.position);
         this.mainCamera.rotation.copy(this.activeCamera.rotation);
+
+        // Calculate spherical coordinates from current camera position
+        const relativePos = this.mainCamera.position.clone().sub(this.gridCenter);
+
+        this.radius = relativePos.length();
+        this.phi = Math.acos(relativePos.y / this.radius);
+        this.theta = Math.atan2(relativePos.z, relativePos.x);
+
+        // The top view is a singularity, avoid it.
+        this.phi = Math.max(Math.acos(relativePos.y / this.radius), 0.01); // Avoid phi=0
+        if (Math.abs(this.phi) < 0.02) {
+            this.theta = Math.PI / 2; // Default theta for top view
+        }
+
         this.activeCamera = this.mainCamera;
     }
 
@@ -187,18 +223,27 @@ class CameraSystem {
         const deltaX = mouseX - this.lastMouseX;
         const deltaY = mouseY - this.lastMouseY;
 
-        // Rotate around grid center horizontally
-        const horizontalAngle = deltaX * EditorConfig.CAMERA_ROTATION_SPEED;
-        this.activeCamera.position.applyAxisAngle(new THREE.Vector3(0, 1, 0), -horizontalAngle);
+         // Update spherical coordinates
+         this.theta -= deltaX * EditorConfig.CAMERA_ROTATION_SPEED;
+         this.phi = Math.min(Math.max(
+             this.phi + deltaY * EditorConfig.CAMERA_ROTATION_SPEED,
+             this.minPhi
+         ), this.maxPhi);
+
+         // Convert spherical to Cartesian coordinates
+         const x = this.radius * Math.sin(this.phi) * Math.cos(this.theta);
+         const y = this.radius * Math.cos(this.phi);
+         const z = this.radius * Math.sin(this.phi) * Math.sin(this.theta);
+
+         // Update camera position
+         this.activeCamera.position.set(
+             this.gridCenter.x + x,
+             this.gridCenter.y + y,
+             this.gridCenter.z + z
+         );
 
         // Update compass rotation
         updateCompassRotation(getCompassDirectionVector(this.activeCamera.position, this.gridCenter));
-
-        // Rotate vertically
-        const verticalAxis = new THREE.Vector3().subVectors(this.activeCamera.position, this.gridCenter).normalize();
-        const verticalAngle = deltaY * EditorConfig.CAMERA_ROTATION_SPEED;
-        this.activeCamera.position.applyAxisAngle(verticalAxis, verticalAngle);
-
         this.activeCamera.lookAt(this.gridCenter);
 
         this.lastMouseX = mouseX;
