@@ -19,3 +19,11 @@ Companion app for Caluuza
 - [ ] Editor
 - [ ] Browse maps?
 - [ ] Account view?
+
+
+# Setup
+1. Install requirements in `requirements.txt`
+2. (Suggestion, run with uv).
+3. Run Controller.py
+4. Browse to http://127.0.0.1:5000/caaluza
+
