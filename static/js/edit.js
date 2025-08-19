@@ -705,8 +705,76 @@ class UIController {
         this.fetchAndHandle(`/caaluza/map/${name}`, name);
     }
 
-    generateMap() {
-        this.fetchAndHandle('/caaluza/generate');
+    async generateMap() {
+         try {
+            const { pieces, height } = await this.promptForGenerate();
+            if (Number.isInteger(pieces) && Number.isInteger(height)) {
+                this.fetchAndHandle(`/caaluza/generate?nrpieces=${pieces}&maxheight=${height}`);
+            }
+        } catch (error) {
+            // User cancelled
+        }
+    }
+
+    async promptForGenerate() {
+        return new Promise((resolve, reject) => {
+            const modal = document.createElement('div');
+            modal.style.position = 'fixed';
+            modal.style.top = '50%';
+            modal.style.left = '50%';
+            modal.style.transform = 'translate(-50%, -50%)';
+            modal.style.padding = '20px';
+            modal.style.backgroundColor = 'white';
+            modal.style.border = '1px solid #ccc';
+            modal.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+            modal.style.zIndex = 1000;
+
+            modal.innerHTML = `
+                <h3>Generate Map</h3>
+                <label>
+                    Number of pieces:
+                    Number of pieces: <span id="piecesLabel">8</span>
+                    <input type="range" id="piecesInput" min="1" max = "28" defaultValue=8 required />
+                </label>
+                <br><br>
+                <label>
+                    Height: <span id="heightLabel">8</span>
+                    <input type="range" id="heightSlider" min="1" max="10" value="8" />
+                </label>
+                <br><br>
+                <button id="submitBtn">Generate</button>
+                <button id="cancelBtn">Cancel</button>
+            `;
+
+            document.body.appendChild(modal);
+
+            const piecesInput = modal.querySelector('#piecesInput');
+            const piecesLabel = modal.querySelector('#piecesLabel');
+            const heightSlider = modal.querySelector('#heightSlider');
+            const heightLabel = modal.querySelector('#heightLabel');
+            const submitBtn = modal.querySelector('#submitBtn');
+            const cancelBtn = modal.querySelector('#cancelBtn');
+
+            heightSlider.addEventListener('input', () => {
+                heightLabel.textContent = heightSlider.value;
+            });
+
+            piecesInput.addEventListener('input', () => {
+                piecesLabel.textContent = piecesInput.value;
+            });
+
+            submitBtn.onclick = () => {
+                const pieces = parseInt(piecesInput.value, 10);
+                const height = parseInt(heightSlider.value, 10);
+                document.body.removeChild(modal);
+                resolve({ pieces, height });
+            };
+
+            cancelBtn.onclick = () => {
+                document.body.removeChild(modal);
+                reject(new Error('Cancelled'));
+            };
+        });
     }
 
     async sendRequest(url, method, data = null) {

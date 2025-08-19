@@ -131,8 +131,14 @@ def load_map(map_id):
 @app.route('/caaluza/generate', methods=['GET'])
 def generate_map():
     from Mapgenerator.Mapgenerator import generate_map as genmap
+    from Mapgenerator.Mapgenerator import Config
 
-    map_data = genmap()
+    nr_pieces = int(request.args.get('nrpieces', None))
+    max_height = request.args.get('maxheight ', None)
+    if max_height is not None:
+        max_height = int(max_height)
+
+    map_data = genmap(Config(nr_pieces, max_height))
 
     bricks: list[Brick] = []
     for brickdef in map_data:

@@ -20,6 +20,11 @@ class BrickDef:
     def shares_no_points(self, other: frozenset[Point]) -> bool:
         return self.points.isdisjoint(other)
 
+@dataclass
+class Config:
+    nr_bricks: int
+    max_height: int = None
+
 
 def find_placeable_spots(brick: BrickDef, 
                         placed_bricks: list[BrickDef], 
@@ -43,11 +48,11 @@ def find_placeable_spots(brick: BrickDef,
     return possible_points
 
 
-def generate_map() -> list[BrickDef]:
+def generate_map(definition: Config) -> list[BrickDef]:
     baseplate = BrickDef(6, 6, "gray", frozenset(Point(x, 0, z) for x in range(6) for z in range(6)))
-    nr_bricks = 24
+
     available_pegs: set[Point] = set(baseplate.points)
-    available_bricks = get_available_bricks(nr_bricks)
+    available_bricks = get_available_bricks(definition.nr_bricks)
 
     placed_bricks: list[BrickDef] = []
     for brick in available_bricks:
