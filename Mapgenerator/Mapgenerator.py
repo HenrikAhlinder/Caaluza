@@ -63,7 +63,7 @@ def generate_map(definition: Config) -> list[BrickDef]:
         spot = sample(spots, 1)[0]
         placed_bricks.append(BrickDef(brick.width, brick.depth, brick.color, spot))
         available_pegs.difference_update(spot)
-        add_new_available_pegs(available_pegs, placed_bricks, spots, spot)
+        add_new_available_pegs(available_pegs, definition, placed_bricks, spots, spot)
 
     Assert_no_overlapping_bricks(placed_bricks)
     return placed_bricks
@@ -73,8 +73,11 @@ def Assert_no_overlapping_bricks(placed_bricks):
         for j in range(i+1, len(placed_bricks)):
             assert(placed_bricks[i].points.isdisjoint(placed_bricks[j].points))
 
-def add_new_available_pegs(available_pegs, placed_bricks, spots, spot):
+def add_new_available_pegs(available_pegs, definition: Config, placed_bricks, spots, spot):
     for p in spot:
+        if p.y+1 >= definition.max_height:
+            # Not allowed, too high.
+            continue
         abovepoint = Point(p.x, p.y + 1, p.z)
         if all(brick.shares_no_points(frozenset([abovepoint])) for brick in placed_bricks):
             available_pegs.add(abovepoint)

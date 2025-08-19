@@ -134,9 +134,7 @@ def generate_map():
     from Mapgenerator.Mapgenerator import Config
 
     nr_pieces = int(request.args.get('nrpieces', None))
-    max_height = request.args.get('maxheight ', None)
-    if max_height is not None:
-        max_height = int(max_height)
+    max_height = int(request.args.get('maxheight', None))
 
     map_data = genmap(Config(nr_pieces, max_height))
 
