@@ -17,7 +17,9 @@ body {
     font-size: 14px;
     font-weight: bold;
     transform: translate(-50%, -50%);
-    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
 #save-btn:hover {
@@ -38,6 +40,10 @@ body {
     border: 1px solid #ccc;
     background: #fff;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
 }
 
 .brick-selector-container {
@@ -59,7 +65,9 @@ body {
     cursor: pointer;
     font-size: 14px;
     font-weight: bold;
-    text-align: center;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
 }
 
 .brick-selector-toggle:hover {
@@ -260,6 +268,9 @@ body {
     z-index: 1000;
     font-size: 14px;
     font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .load-button:hover {
@@ -280,6 +291,9 @@ body {
     z-index: 1000;
     font-size: 14px;
     font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .gen-button:hover {
@@ -326,7 +340,7 @@ body {
 /* Mobile responsiveness - hide brick selector in dropdown for small screens */
 @media screen and (max-width: 768px) {
     .brick-selector-toggle {
-        display: block;
+        display: flex;
     }
     
     .brick-selector {
@@ -361,6 +375,7 @@ body {
     .view-button {
         padding: 8px 12px;
         font-size: 12px;
+        gap: 3px;
     }
     
     .title-display-container {
@@ -380,6 +395,7 @@ body {
     #save-btn, .load-button, .gen-button {
         padding: 8px 16px;
         font-size: 12px;
+        gap: 4px;
     }
     
     .zoom-controls {
