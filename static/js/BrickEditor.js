@@ -14,30 +14,8 @@ function addCompassOverlay() {
         <span class="compass-s">S</span>
         <span class="compass-w">W</span>
     `;
-    Object.assign(compass.style, {
-        position: 'fixed',
-        left: '24px',
-        bottom: '24px',
-        width: '90px',
-        height: '90px',
-        pointerEvents: 'none',
-        zIndex: 2000,
-        fontSize: '18px',
-        fontWeight: 'bold',
-        color: '#fff',
-        textShadow: '0 0 6px #000',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'rgba(0,0,0,0.08)',
-        borderRadius: '50%',
-         boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-         transition: 'transform 0.1s ease-out'
-    });
-    compass.querySelector('.compass-n').style.cssText = 'position:absolute;top:8px;left:50%;transform:translateX(-50%);';
-    compass.querySelector('.compass-e').style.cssText = 'position:absolute;top:50%;right:8px;transform:translateY(-50%);';
-    compass.querySelector('.compass-s').style.cssText = 'position:absolute;bottom:8px;left:50%;transform:translateX(-50%);';
-    compass.querySelector('.compass-w').style.cssText = 'position:absolute;top:50%;left:8px;transform:translateY(-50%);';
+    // Compass styling handled by CSS
+    // Compass direction styling handled by CSS
     document.body.appendChild(compass);
 }
 
@@ -48,54 +26,26 @@ export class BrickEditor {
     setupModeDisplay() {
         // Create the placed bricks display overlay
         this.bricksDisplay = document.createElement('div');
-        this.bricksDisplay.className = 'placed-bricks-display';
-        Object.assign(this.bricksDisplay.style, {
-            position: 'fixed',
-            top: '60px',
-            right: '40px',
-            width: '340px',
-            maxHeight: '60vh',
-            overflowY: 'auto',
-            background: 'rgba(30,30,30,0.98)',
-            color: '#fff',
-            borderRadius: '10px',
-            boxShadow: '0 2px 16px rgba(0,0,0,0.18)',
-            zIndex: 4000,
-            padding: '18px 18px 12px 18px',
-            fontSize: '15px',
-            display: 'none',
-        });
-        this.bricksDisplay.innerHTML = '<div style="font-weight:bold;font-size:17px;margin-bottom:10px;">Placed Bricks <button id="close-bricks-display" style="float:right;background:#444;color:#fff;border:none;border-radius:5px;padding:2px 10px;cursor:pointer;font-size:14px;">×</button></div><div id="bricks-list"></div>';
+        this.bricksDisplay.className = 'bricks-display ui-hidden';
+        this.bricksDisplay.innerHTML = '<div class="bricks-display-header">Placed Bricks <button id="close-bricks-display" class="bricks-display-close">×</button></div><div id="bricks-list"></div>';
         document.body.appendChild(this.bricksDisplay);
 
         // Button to show placed bricks
         this.showBricksBtn = document.createElement('button');
         this.showBricksBtn.id = 'show-bricks-btn';
         this.showBricksBtn.textContent = 'Show Placed Bricks';
-        Object.assign(this.showBricksBtn.style, {
-            position: 'fixed',
-            top: '20px',
-            right: '40px',
-            zIndex: 4001,
-            background: '#2196F3',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '7px',
-            padding: '8px 18px',
-            fontSize: '15px',
-            cursor: 'pointer',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-            display: 'none',
-        });
+        this.showBricksBtn.className = 'show-bricks-button ui-hidden';
         document.body.appendChild(this.showBricksBtn);
 
         // Show/hide logic
         this.showBricksBtn.addEventListener('click', () => {
             this.updateBricksDisplay();
-            this.bricksDisplay.style.display = 'block';
+            this.bricksDisplay.classList.remove('ui-hidden');
+            this.bricksDisplay.classList.add('ui-visible');
         });
         this.bricksDisplay.querySelector('#close-bricks-display').addEventListener('click', () => {
-            this.bricksDisplay.style.display = 'none';
+            this.bricksDisplay.classList.remove('ui-visible');
+            this.bricksDisplay.classList.add('ui-hidden');
         });
     }
 
@@ -117,11 +67,11 @@ export class BrickEditor {
         // Render all bricks, grouped by color, with a separator between groups
         list.innerHTML = Object.keys(groups).map(hex => {
             const bricksHtml = groups[hex].map(brick => {
-                return `<div style="margin-bottom:7px;padding-bottom:7px;border-bottom:1px solid #333;">
-                            <span style="font-weight:bold;">${brick.buttonName}</span>
+                return `<div class="brick-item">
+                            <span class="brick-item-name">${brick.buttonName}</span>
                         </div>`;
             }).join('');
-            return `<div>${bricksHtml}</div><hr style="border:1px solid #ccc;margin:15px 0;">`;
+            return `<div>${bricksHtml}</div><hr class="bricks-separator">`;
         }).join('');
     }
 
@@ -357,25 +307,25 @@ export class BrickEditor {
         const generateBtn = document.getElementById('generate-btn');
 
         if (this.mode === 'play') {
-            if (this.showBricksBtn) this.showBricksBtn.style.display = '';
-            if (this.bricksDisplay) this.bricksDisplay.style.display = 'none';
+            if (this.showBricksBtn) this.showBricksBtn.classList.remove('ui-hidden');
+            if (this.bricksDisplay) this.bricksDisplay.classList.add('ui-hidden');
             // Hide all buttons in play mode
-            if (brickSelectorContainer) brickSelectorContainer.style.display = 'none';
-            if (buttonContainer) buttonContainer.style.display = 'none';
-            if (zoomControls) zoomControls.style.display = 'none';
-            if (saveBtn) saveBtn.style.display = 'none';
-            if (loadBtn) loadBtn.style.display = 'none';
-            if (generateBtn) generateBtn.style.display = 'none';
+            if (brickSelectorContainer) brickSelectorContainer.classList.add('ui-hidden');
+            if (buttonContainer) buttonContainer.classList.add('ui-hidden');
+            if (zoomControls) zoomControls.classList.add('ui-hidden');
+            if (saveBtn) saveBtn.classList.add('ui-hidden');
+            if (loadBtn) loadBtn.classList.add('ui-hidden');
+            if (generateBtn) generateBtn.classList.add('ui-hidden');
         } else {
-            if (this.showBricksBtn) this.showBricksBtn.style.display = 'none';
-            if (this.bricksDisplay) this.bricksDisplay.style.display = 'none';
+            if (this.showBricksBtn) this.showBricksBtn.classList.add('ui-hidden');
+            if (this.bricksDisplay) this.bricksDisplay.classList.add('ui-hidden');
             // Show all buttons in edit mode
-            if (brickSelectorContainer) brickSelectorContainer.style.display = '';
-            if (buttonContainer) buttonContainer.style.display = '';
-            if (zoomControls) zoomControls.style.display = '';
-            if (saveBtn) saveBtn.style.display = '';
-            if (loadBtn) loadBtn.style.display = '';
-            if (generateBtn) generateBtn.style.display = '';
+            if (brickSelectorContainer) brickSelectorContainer.classList.remove('ui-hidden');
+            if (buttonContainer) buttonContainer.classList.remove('ui-hidden');
+            if (zoomControls) zoomControls.classList.remove('ui-hidden');
+            if (saveBtn) saveBtn.classList.remove('ui-hidden');
+            if (loadBtn) loadBtn.classList.remove('ui-hidden');
+            if (generateBtn) generateBtn.classList.remove('ui-hidden');
         }
     }
 

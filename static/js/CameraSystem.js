@@ -7,7 +7,7 @@ function updateCompassRotation(direction) {
         const angle = Math.atan2(direction.x, -direction.z); // atan2(z, x) because north is (1, 0)
 
         // Rotate the compass in the opposite direction to simulate fixed-world north
-        compass.style.transform = `rotate(${-angle}rad)`;
+        compass.style.setProperty('transform', `rotate(${-angle}rad)`);
     }
 }
 

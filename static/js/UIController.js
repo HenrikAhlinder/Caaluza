@@ -86,7 +86,7 @@ export class UIController {
             this.modalTitle.textContent = title;
             this.modalInput.placeholder = placeholder;
             this.modalInput.value = defaultValue;
-            this.modal.style.display = 'block';
+            this.modal.classList.add('show');
             this.modalInput.focus();
             this.modalInput.select();
 
@@ -97,7 +97,7 @@ export class UIController {
                 authorInput.type = 'text';
                 authorInput.id = 'modal-author-input';
                 authorInput.placeholder = 'Author name...';
-                authorInput.style.marginTop = '10px';
+                authorInput.classList.add('author-input-spaced');
                 this.modalInput.insertAdjacentElement('afterend', authorInput);
             }
             authorInput.value = authorDefault;
@@ -119,7 +119,7 @@ export class UIController {
     }
 
     closeModal() {
-        this.modal.style.display = 'none';
+        this.modal.classList.remove('show');
         this.modalInput.value = '';
     }
 
@@ -215,15 +215,7 @@ export class UIController {
     async promptForGenerate() {
         return new Promise((resolve, reject) => {
             const modal = document.createElement('div');
-            modal.style.position = 'fixed';
-            modal.style.top = '50%';
-            modal.style.left = '50%';
-            modal.style.transform = 'translate(-50%, -50%)';
-            modal.style.padding = '20px';
-            modal.style.backgroundColor = 'white';
-            modal.style.border = '1px solid #ccc';
-            modal.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
-            modal.style.zIndex = 1000;
+            modal.className = 'modal-dialog';
 
             modal.innerHTML = `
                 <h3>Generate Map</h3>
@@ -333,51 +325,17 @@ export class UIController {
         notification.className = `notification ${type}`;
         notification.textContent = message;
 
-        // Style the notification
-        Object.assign(notification.style, {
-            position: 'fixed',
-            top: '20px',
-            right: '20px',
-            padding: '12px 20px',
-            borderRadius: '6px',
-            color: 'white',
-            fontSize: '14px',
-            fontWeight: '500',
-            zIndex: '3000',
-            opacity: '0',
-            transform: 'translateY(-20px)',
-            transition: 'all 0.3s ease',
-            maxWidth: '300px',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)'
-        });
-
-        // Set background color based on type
-        switch (type) {
-            case 'success':
-                notification.style.backgroundColor = '#4CAF50';
-                break;
-            case 'error':
-                notification.style.backgroundColor = '#f44336';
-                break;
-            case 'warning':
-                notification.style.backgroundColor = '#ff9800';
-                break;
-            default:
-                notification.style.backgroundColor = '#2196F3';
-        }
-
         document.body.appendChild(notification);
 
         // Animate in
         setTimeout(() => {
-            notification.style.opacity = '1';
-            notification.style.transform = 'translateY(0)';
+            notification.classList.add('show');
         }, 100);
 
         // Auto-remove after 3 seconds
         setTimeout(() => {
-            notification.style.opacity = '0';
-            notification.style.transform = 'translateY(-20px)';
+            notification.classList.remove('show');
+            notification.classList.add('hide');
             setTimeout(() => {
                 if (notification.parentNode) {
                     notification.parentNode.removeChild(notification);
@@ -423,14 +381,14 @@ export class UIController {
 
     disableButton(button) {
         button.disabled = true;
-        button.style.cursor = 'not-allowed';
-        button.style.opacity = '0.6';
+        button.classList.add('button-disabled');
+        button.classList.remove('button-enabled');
     }
 
     enableButton(button) {
         button.disabled = false;
-        button.style.cursor = 'pointer';
-        button.style.opacity = '1';
+        button.classList.add('button-enabled');
+        button.classList.remove('button-disabled');
     }
 
     enableAllButtons() {
