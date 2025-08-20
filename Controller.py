@@ -107,7 +107,10 @@ def save_map(map_id: str):
 
     try:
         new_map = BrickMap.from_dict(data)
-        new_map.validate()
+        validation_errors = new_map.validate()
+        if validation_errors:
+            error_messages = [error['message'] for error in validation_errors]
+            return jsonify({'error': f'Invalid map data: {"; ".join(error_messages)}'}), 400
     except Exception as e:
         return jsonify({'error': f'Invalid map data: {str(e)}'}), 400
 
@@ -158,6 +161,22 @@ def generate_map():
     brickmap = BrickMap(name = "Generated map")
     brickmap.bricks = bricks
     return jsonify({'map_id': "generated_map", 'map': brickmap.to_dict()}), 200
+
+@app.route('/caaluza/validate', methods=['POST'])
+def validate_map():
+    """Validate map data and return validation results."""
+    data = request.get_json()
+    
+    try:
+        brick_map = BrickMap.from_dict(data)
+        validation_errors = brick_map.validate()
+        
+        if validation_errors:
+            return jsonify({'valid': False, 'errors': validation_errors}), 200
+        else:
+            return jsonify({'valid': True, 'errors': []}), 200
+    except Exception as e:
+        return jsonify({'valid': False, 'errors': [{'type': 'parsing_error', 'message': str(e), 'offending_bricks': []}]}), 200
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

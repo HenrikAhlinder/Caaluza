@@ -112,21 +112,28 @@ class BrickMap:
 
     def validate(self):
         """Validate the BrickMap for consistency and correctness."""
-        occupied_points = set()
+        validation_errors = []
+        occupied_points = {}  # Maps point tuple to brick index
         
         # Check for overlapping bricks
-        for brick in self.bricks:
+        for brick_idx, brick in enumerate(self.bricks):
             for point in brick.points:
                 point_tuple = (point.x, point.y, point.z)
                 if point_tuple in occupied_points:
-                    raise ValueError(f"Brick overlap detected at point ({point.x}, {point.y}, {point.z})")
-                occupied_points.add(point_tuple)
+                    overlapping_brick_idx = occupied_points[point_tuple]
+                    validation_errors.append({
+                        'type': 'overlap',
+                        'message': f"Brick overlap detected at point ({point.x}, {point.y}, {point.z})",
+                        'offending_bricks': [brick_idx, overlapping_brick_idx],
+                        'point': (point.x, point.y, point.z)
+                    })
+                occupied_points[point_tuple] = brick_idx
         
         # Check that each brick is supported (secured to another piece or base)
         base_points = {(x, -1, z) for x in range(6) for z in range(6)}
-        all_support_points = base_points.union(occupied_points)
+        all_support_points = base_points.union(set(occupied_points.keys()))
         
-        for brick in self.bricks:
+        for brick_idx, brick in enumerate(self.bricks):
             is_supported = False
             for point in brick.points:
                 if ((point.x, point.y - 1, point.z) in all_support_points or
@@ -135,4 +142,13 @@ class BrickMap:
                     break
             
             if not is_supported:
-                raise ValueError(f"Brick with points {[(p.x, p.y, p.z) for p in brick.points]} is not supported")
+                validation_errors.append({
+                    'type': 'unsupported',
+                    'message': f"Brick with points {[(p.x, p.y, p.z) for p in brick.points]} is not supported",
+                    'offending_bricks': [brick_idx],
+                    'points': [(p.x, p.y, p.z) for p in brick.points]
+                })
+        
+        if validation_errors:
+            return validation_errors
+        return []

@@ -3,8 +3,10 @@ export class Brick {
     constructor(position, color, size, name) {
         this.position = position;
         this.color = color;
+        this.originalColor = color;
         this.size = size;
         this.buttonName = name;
+        this.hasBeenDropped = false;
         // Create a geometry centered at the origin
         // Adjust the geometry to align its top-left corner as the anchor point
         const geometry = new THREE.BoxGeometry(size.width, size.height, size.depth);
@@ -99,5 +101,40 @@ export class Brick {
         this.mesh.geometry.dispose();
         this.mesh.material.dispose();
         this.mesh = null; // Clear reference to the mesh
+    }
+
+    getPoints() {
+        const points = [];
+        const meshPosition = this.mesh.position;
+        
+        for (let x = 0; x < this.size.width; x++) {
+            for (let z = 0; z < this.size.depth; z++) {
+                points.push({
+                    x: Math.round(meshPosition.x - x),
+                    y: Math.round(meshPosition.y),
+                    z: Math.round(meshPosition.z - z)
+                });
+            }
+        }
+        
+        return points;
+    }
+
+    markAsInvalid() {
+        this.mesh.material.color.setHex(0x808080);
+        this.mesh.children.forEach(child => {
+            if (child.material) {
+                child.material.color.setHex(0x808080);
+            }
+        });
+    }
+
+    resetColor() {
+        this.mesh.material.color.setHex(this.originalColor);
+        this.mesh.children.forEach(child => {
+            if (child.material && child.geometry.type === 'CylinderGeometry') {
+                child.material.color.setHex(this.originalColor);
+            }
+        });
     }
 }

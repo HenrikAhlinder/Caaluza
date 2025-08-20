@@ -28,6 +28,7 @@ export class BrickManager {
     addBrick(brick) {
         this.bricks.push(brick);
         brick.addToScene(this.scene);
+        // Don't validate until brick is dropped for the first time
     }
 
     removeBrick(brick) {
@@ -35,6 +36,7 @@ export class BrickManager {
         if (index > -1) {
             this.bricks.splice(index, 1);
             brick.removeFromScene(this.scene);
+            this.validateMapAndMarkInvalid();
         }
     }
 
@@ -49,9 +51,13 @@ export class BrickManager {
     }
 
     stopDrag() {
+        if (this.currentlyDraggedBrick) {
+            this.currentlyDraggedBrick.hasBeenDropped = true;
+        }
         this.removeGhostBrick();
         this.currentlyDraggedBrick = null;
         this.dragOffset.set(0, 0, 0);
+        this.validateMapAndMarkInvalid();
     }
 
     updateDragPosition(x, z) {
@@ -144,5 +150,77 @@ export class BrickManager {
 
     isDragging() {
         return this.currentlyDraggedBrick !== null;
+    }
+
+    async validateMapAndMarkInvalid() {
+        // Reset all brick colors first
+        this.bricks.forEach(brick => {
+            brick.resetColor();
+        });
+
+        // Convert current bricks to map format for validation
+        const mapData = this.convertToMapFormat();
+        
+        try {
+            const response = await fetch('/caaluza/validate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(mapData)
+            });
+
+            const result = await response.json();
+            
+            if (!result.valid && result.errors && result.errors.length > 0) {
+                // Mark invalid bricks in red
+                this.markInvalidBricks(result.errors);
+            }
+        } catch (error) {
+            console.error('Validation error:', error);
+        }
+    }
+
+    convertToMapFormat() {
+        const bricks = this.bricks.filter(brick => brick.hasBeenDropped).map(brick => ({
+            color: `#${brick.color.toString(16).padStart(6, '0')}`,
+            name: brick.buttonName,
+            points: brick.getPoints().map(point => ({
+                x: point.x,
+                y: point.y,
+                z: point.z
+            }))
+        }));
+
+        return {
+            metadata: {
+                width: 6,
+                height: 10,
+                depth: 6,
+                name: "Current Map",
+                timestamp: new Date().toISOString()
+            },
+            bricks: bricks
+        };
+    }
+
+    markInvalidBricks(errors) {
+        const offendingBrickIndices = new Set();
+        const droppedBricks = this.bricks.filter(brick => brick.hasBeenDropped);
+        
+        errors.forEach(error => {
+            if (error.offending_bricks) {
+                error.offending_bricks.forEach(brickIndex => {
+                    offendingBrickIndices.add(brickIndex);
+                });
+            }
+        });
+        
+        // Mark only the specific offending bricks as invalid (from dropped bricks)
+        offendingBrickIndices.forEach(brickIndex => {
+            if (droppedBricks[brickIndex]) {
+                droppedBricks[brickIndex].markAsInvalid();
+            }
+        });
     }
 }
