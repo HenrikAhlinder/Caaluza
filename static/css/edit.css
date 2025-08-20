@@ -50,7 +50,7 @@ body {
     position: absolute;
     top: 10px;
     right: 10px;
-    width: 120px;
+    width: 160px;
     z-index: 1001;
 }
 
@@ -84,7 +84,7 @@ body {
     gap: 5px;
     max-height: 400px;
     overflow-y: auto;
-    width: 120px;
+    width: 160px;
 }
 
 .color-header {
@@ -93,19 +93,44 @@ body {
     margin-top: 5px;
 }
 
-.size-container {
+.all-bricks-container {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(4, 1fr);
     gap: 2px;
 }
 
 .size-button {
     padding: 3px;
-    border: 1px solid #ccc;
-    background: #fff;
+    border: none;
+    background: transparent;
     cursor: pointer;
     font-size: 10px;
     min-height: 20px;
+}
+
+.size-button.svg-button {
+    padding: 2px;
+    min-height: 25px;
+    max-height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    transform-origin: center;
+}
+
+.size-button.svg-button:hover {
+    transform: scale(1.5);
+    z-index: 10;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.size-button.svg-button svg {
+    max-width: 90%;
+    max-height: 90%;
+    pointer-events: none;
+    object-fit: contain;
 }
 
 .title-display-container {

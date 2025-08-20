@@ -23,16 +23,15 @@
         </button>
         <div class="brick-selector" id="brick-selector">
             <strong>Bricks:</strong>
-            {% for color in colors %}
-            <div class="color-header">{{ color.name }}</div>
-            <div class="size-container">
-                {% for size in sizes %}
-                <button class="size-button" title="{{ size.name }} {{ color.name }}">
-                    {{ size.name }}
-                </button>
+            <div class="all-bricks-container">
+                {% for color in colors %}
+                    {% for size in sizes %}
+                    <button class="size-button" title="{{ size.name }} {{ color.name }}">
+                        {{ size.name }}
+                    </button>
+                    {% endfor %}
                 {% endfor %}
             </div>
-            {% endfor %}
         </div>
     </div>
 
@@ -156,6 +155,42 @@
                     }
                 });
             }
+        });
+    </script>
+    <script type="module">
+        import { LegoSvgGenerator } from '/static/js/LegoSvgGenerator.js';
+        
+        // Make LegoSvgGenerator available globally for the template
+        window.LegoSvgGenerator = LegoSvgGenerator;
+        
+        // Initialize SVG buttons after DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            const buttons = document.querySelectorAll('.size-button');
+            buttons.forEach(button => {
+                const title = button.getAttribute('title');
+                const [sizeName, colorName] = title.split(' ');
+                
+                // Find the size and color data
+                const size = sizes.find(s => s.name === sizeName);
+                const color = colors.find(c => c.name === colorName);
+                
+                if (size && color) {
+                    // Convert hex color to CSS
+                    const cssColor = LegoSvgGenerator.hexToCSS(color.hex);
+                    
+                    // Generate SVG
+                    const svg = LegoSvgGenerator.generateBrick(
+                        size.width, 
+                        size.depth, 
+                        cssColor, 
+                        0.6 // Scale down for smaller button size
+                    );
+                    
+                    // Replace button content with SVG
+                    button.innerHTML = svg;
+                    button.classList.add('svg-button');
+                }
+            });
         });
     </script>
     <script type="module" src="/static/js/edit.js"></script>
