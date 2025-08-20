@@ -107,6 +107,7 @@ def save_map(map_id: str):
 
     try:
         new_map = BrickMap.from_dict(data)
+        new_map.validate()
     except Exception as e:
         return jsonify({'error': f'Invalid map data: {str(e)}'}), 400
 
