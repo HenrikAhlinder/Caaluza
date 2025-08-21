@@ -52,6 +52,10 @@ export class UIController {
         document.getElementById('generate-btn').addEventListener('click', () => {
             this.generateMap();
         });
+
+        document.getElementById('start-over-btn').addEventListener('click', () => {
+            this.startOver();
+        });
     }
 
     setupModal() {
@@ -403,5 +407,50 @@ export class UIController {
         if (button) {
             this.enableButton(button);
         }
+    }
+
+    async startOver() {
+        try {
+            await this.showConfirmModal(
+                'Start Over',
+                'This will remove all bricks from the map. Are you sure?'
+            );
+            
+            // User confirmed - clear everything
+            this.brickManager.clearAll();
+            this.enableAllButtons();
+            this.updateTitleDisplay('Untitled Map');
+        } catch (error) {
+            // User cancelled - do nothing
+        }
+    }
+
+    showConfirmModal(title, message) {
+        return new Promise((resolve, reject) => {
+            this.modalTitle.textContent = title;
+            this.modal.classList.add('show');
+            
+            // Replace modal body with confirmation message
+            const modalBody = this.modal.querySelector('.modal-body');
+            modalBody.innerHTML = `<p style="margin: 0; font-size: 16px;">${message}</p>`;
+            
+            // Update confirm button text
+            this.modalConfirm.textContent = 'Yes, Start Over';
+            
+            // Remove existing listeners
+            const newConfirmBtn = this.modalConfirm.cloneNode(true);
+            this.modalConfirm.parentNode.replaceChild(newConfirmBtn, this.modalConfirm);
+            this.modalConfirm = newConfirmBtn;
+
+            // Add new listener
+            this.modalConfirm.addEventListener('click', () => {
+                this.closeModal();
+                // Restore modal body and confirm button
+                modalBody.innerHTML = '<input type="text" id="modal-input" placeholder="Enter map title..." maxlength="50">';
+                this.modalInput = modalBody.querySelector('#modal-input');
+                this.modalConfirm.textContent = 'OK';
+                resolve();
+            });
+        });
     }
 }

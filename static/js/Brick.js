@@ -1,12 +1,13 @@
 // Create a Brick class to encapsulate the brick and its studs
 export class Brick {
-    constructor(position, color, size, name) {
+    constructor(position, color, size, name, isBaseplate = false) {
         this.position = position;
         this.color = color;
         this.originalColor = color;
         this.size = size;
         this.buttonName = name;
         this.hasBeenDropped = false;
+        this.isBaseplate = isBaseplate;
         // Create a geometry centered at the origin
         // Adjust the geometry to align its top-left corner as the anchor point
         const geometry = new THREE.BoxGeometry(size.width, size.height, size.depth);

@@ -235,7 +235,7 @@ export class BrickEditor {
             const intersectedMesh = intersects[0].object;
             const brick = this.brickManager.findBrickByMesh(intersectedMesh);
 
-            if (brick) {
+            if (brick && !brick.isBaseplate) {
                 const brickPosition = brick.mesh.position;
                 const offset = new THREE.Vector3().copy(intersects[0].point).sub(brickPosition);
                 this.brickManager.startDrag(brick, offset);
@@ -256,7 +256,7 @@ export class BrickEditor {
             const intersectedMesh = intersects[0].object;
             const brick = this.brickManager.findBrickByMesh(intersectedMesh);
 
-            if (brick) {
+            if (brick && !brick.isBaseplate) {
                 this.uiController.enableButtonByTitle(brick.buttonName);
                 this.brickManager.removeBrick(brick);
             }
@@ -305,6 +305,7 @@ export class BrickEditor {
         const saveBtn = document.getElementById('save-btn');
         const loadBtn = document.getElementById('load-btn');
         const generateBtn = document.getElementById('generate-btn');
+        const startOverBtn = document.getElementById('start-over-btn');
 
         if (this.mode === 'play') {
             if (this.showBricksBtn) this.showBricksBtn.classList.remove('ui-hidden');
@@ -316,6 +317,7 @@ export class BrickEditor {
             if (saveBtn) saveBtn.classList.add('ui-hidden');
             if (loadBtn) loadBtn.classList.add('ui-hidden');
             if (generateBtn) generateBtn.classList.add('ui-hidden');
+            if (startOverBtn) startOverBtn.classList.add('ui-hidden');
         } else {
             if (this.showBricksBtn) this.showBricksBtn.classList.add('ui-hidden');
             if (this.bricksDisplay) this.bricksDisplay.classList.add('ui-hidden');
@@ -326,6 +328,7 @@ export class BrickEditor {
             if (saveBtn) saveBtn.classList.remove('ui-hidden');
             if (loadBtn) loadBtn.classList.remove('ui-hidden');
             if (generateBtn) generateBtn.classList.remove('ui-hidden');
+            if (startOverBtn) startOverBtn.classList.remove('ui-hidden');
         }
     }
 

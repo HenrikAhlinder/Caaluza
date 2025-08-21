@@ -20,8 +20,11 @@ export class BrickManager {
             new THREE.Vector3(EditorConfig.GRID_SIZE, -EditorConfig.BASEPLATE_HEIGHT, EditorConfig.GRID_SIZE),
             0x808080,
             { width: EditorConfig.GRID_SIZE, height: EditorConfig.BASEPLATE_HEIGHT, depth: EditorConfig.GRID_SIZE },
-            'Baseplate'
+            'Baseplate',
+            true // Mark as baseplate
         );
+        baseplate.hasBeenDropped = true; // Baseplate is always considered "placed"
+        this.bricks.push(baseplate); // Track baseplate in bricks array
         baseplate.addToScene(this.scene);
     }
 
@@ -32,12 +35,19 @@ export class BrickManager {
     }
 
     removeBrick(brick) {
+        // Prevent baseplate removal
+        if (brick.isBaseplate) {
+            return false;
+        }
+        
         const index = this.bricks.indexOf(brick);
         if (index > -1) {
             this.bricks.splice(index, 1);
             brick.removeFromScene(this.scene);
             this.validateMapAndMarkInvalid();
+            return true;
         }
+        return false;
     }
 
     findBrickByMesh(mesh) {
@@ -45,9 +55,15 @@ export class BrickManager {
     }
 
     startDrag(brick, offset = new THREE.Vector3()) {
+        // Prevent baseplate dragging
+        if (brick.isBaseplate) {
+            return false;
+        }
+        
         this.currentlyDraggedBrick = brick;
         this.dragOffset.copy(offset);
         this.createGhostBrick();
+        return true;
     }
 
     stopDrag() {
@@ -138,10 +154,13 @@ export class BrickManager {
     }
 
     clearAll() {
-        this.bricks.forEach(brick => {
+        // Remove all non-baseplate bricks
+        const nonBaseplatesBricks = this.bricks.filter(brick => !brick.isBaseplate);
+        nonBaseplatesBricks.forEach(brick => {
             brick.removeFromScene(this.scene);
         });
-        this.bricks.length = 0;
+        // Keep only the baseplate
+        this.bricks = this.bricks.filter(brick => brick.isBaseplate);
     }
 
     getBricks() {
@@ -182,7 +201,7 @@ export class BrickManager {
     }
 
     convertToMapFormat() {
-        const bricks = this.bricks.filter(brick => brick.hasBeenDropped).map(brick => ({
+        const bricks = this.bricks.filter(brick => brick.hasBeenDropped && !brick.isBaseplate).map(brick => ({
             color: `#${brick.color.toString(16).padStart(6, '0')}`,
             name: brick.buttonName,
             points: brick.getPoints().map(point => ({
@@ -206,7 +225,7 @@ export class BrickManager {
 
     markInvalidBricks(errors) {
         const offendingBrickIndices = new Set();
-        const droppedBricks = this.bricks.filter(brick => brick.hasBeenDropped);
+        const droppedBricks = this.bricks.filter(brick => brick.hasBeenDropped && !brick.isBaseplate);
         
         errors.forEach(error => {
             if (error.offending_bricks) {
