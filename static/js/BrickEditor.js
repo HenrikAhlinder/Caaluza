@@ -145,6 +145,8 @@ export class BrickEditor {
                 if (intersection) {
                     this.brickManager.updateDragPosition(intersection.x, intersection.z);
                 }
+                // Show overlay when dragging
+                this.showBrickSelectorOverlay();
             }
         });
 
@@ -164,9 +166,59 @@ export class BrickEditor {
             if (event.button === 1 && this.mode === 'edit') { // Middle mouse button - only in edit mode
                 this.cameraSystem.stopCameraMovement();
             } else if (event.button === 0 && this.mode === 'edit' && this.brickManager.isDragging()) { // Left click release
-                this.brickManager.stopDrag();
+                // Hide overlay first
+                this.hideBrickSelectorOverlay();
+                
+                // Check if mouse is over brick selector overlay - if so, return brick to selector
+                if (this.isMouseOverElement(event.target, 'brick-selector-overlay') || 
+                    this.isMouseOverBrickSelector(event.clientX, event.clientY)) {
+                    // Get the dragged brick before stopping drag
+                    const draggedBrick = this.brickManager.currentlyDraggedBrick;
+                    if (draggedBrick) {
+                        // Re-enable the button first
+                        this.uiController.enableButtonByTitle(draggedBrick.buttonName);
+                        // Then properly stop the drag (this will clean up the drag state)
+                        this.brickManager.stopDrag();
+                        // Finally remove the brick from the scene
+                        this.brickManager.removeBrick(draggedBrick);
+                    }
+                } else {
+                    // Normal drop
+                    this.brickManager.stopDrag();
+                }
             }
         });
+
+        // Helper method to check if mouse is over brick selector
+        this.isMouseOverBrickSelector = (mouseX, mouseY) => {
+            const brickSelector = document.querySelector('.brick-selector-container');
+            if (!brickSelector) return false;
+            
+            const rect = brickSelector.getBoundingClientRect();
+            return mouseX >= rect.left && mouseX <= rect.right && 
+                   mouseY >= rect.top && mouseY <= rect.bottom;
+        };
+
+        // Helper method to check if element has specific id or class
+        this.isMouseOverElement = (element, idOrClass) => {
+            return element && (element.id === idOrClass || element.classList.contains(idOrClass));
+        };
+
+        // Show overlay when dragging
+        this.showBrickSelectorOverlay = () => {
+            const overlay = document.getElementById('brick-selector-overlay');
+            if (overlay) {
+                overlay.style.display = 'block';
+            }
+        };
+
+        // Hide overlay when not dragging
+        this.hideBrickSelectorOverlay = () => {
+            const overlay = document.getElementById('brick-selector-overlay');
+            if (overlay) {
+                overlay.style.display = 'none';
+            }
+        };
 
         // Keyboard events
         window.addEventListener('keydown', (event) => {

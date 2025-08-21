@@ -686,3 +686,18 @@ body {
 .ui-visible {
     display: block !important;
 }
+
+/* Drop overlay for brick selector */
+.brick-selector-drop-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 100, 100, 0.3);
+    border: 2px dashed #ff4444;
+    display: none;
+    z-index: 1100;
+    pointer-events: auto;
+    border-radius: 5px;
+}
