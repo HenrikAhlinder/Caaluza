@@ -203,9 +203,15 @@ export class UIController {
 
     async generateMap() {
          try {
-            const { pieces, height } = await this.promptForGenerate();
+            const { pieces, height, minHeight } = await this.promptForGenerate();
+            console.log('Generate params:', { pieces, height, minHeight });
             if (Number.isInteger(pieces) && Number.isInteger(height)) {
-                this.fetchAndHandle(`/caaluza/generate?nrpieces=${pieces}&maxheight=${height}`);
+                let url = `/caaluza/generate?nrpieces=${pieces}&maxheight=${height}`;
+                if (minHeight !== null && Number.isInteger(minHeight)) {
+                    url += `&minheight=${minHeight}`;
+                }
+                console.log('Generated URL:', url);
+                this.fetchAndHandle(url);
             }
         } catch (error) {
             // User cancelled
@@ -220,14 +226,19 @@ export class UIController {
             modal.innerHTML = `
                 <h3>Generate Map</h3>
                 <label>
-                    Number of pieces:
                     Number of pieces: <span id="piecesLabel">8</span>
-                    <input type="range" id="piecesInput" min="1" max = "28" defaultValue=8 required />
+                    <input type="range" id="piecesInput" min="1" max="28" value="8" required />
                 </label>
                 <br><br>
                 <label>
-                    Height: <span id="heightLabel">8</span>
-                    <input type="range" id="heightSlider" min="1" max="10" value="8" />
+                    Max Height: <span id="heightLabel">8</span>
+                    <input type="range" id="heightSlider" min="1" max="28" value="8" />
+                </label>
+                <br><br>
+                <label>
+                    <input type="checkbox" id="minHeightCheckbox" />
+                    Minimum Height: <span id="minHeightLabel">2</span>
+                    <input type="range" id="minHeightSlider" min="1" max="8" value="2" disabled />
                 </label>
                 <br><br>
                 <button id="submitBtn">Generate</button>
@@ -240,22 +251,45 @@ export class UIController {
             const piecesLabel = modal.querySelector('#piecesLabel');
             const heightSlider = modal.querySelector('#heightSlider');
             const heightLabel = modal.querySelector('#heightLabel');
+            const minHeightCheckbox = modal.querySelector('#minHeightCheckbox');
+            const minHeightSlider = modal.querySelector('#minHeightSlider');
+            const minHeightLabel = modal.querySelector('#minHeightLabel');
             const submitBtn = modal.querySelector('#submitBtn');
             const cancelBtn = modal.querySelector('#cancelBtn');
 
             heightSlider.addEventListener('input', () => {
                 heightLabel.textContent = heightSlider.value;
+                // Update min height max to be at most max height
+                minHeightSlider.max = heightSlider.value;
+                if (parseInt(minHeightSlider.value) > parseInt(heightSlider.value)) {
+                    minHeightSlider.value = heightSlider.value;
+                    minHeightLabel.textContent = heightSlider.value;
+                }
             });
 
             piecesInput.addEventListener('input', () => {
                 piecesLabel.textContent = piecesInput.value;
             });
 
+            // Initialize minimum height control state
+            minHeightSlider.disabled = !minHeightCheckbox.checked;
+            minHeightLabel.style.opacity = minHeightCheckbox.checked ? '1' : '0.5';
+
+            minHeightCheckbox.addEventListener('change', () => {
+                minHeightSlider.disabled = !minHeightCheckbox.checked;
+                minHeightLabel.style.opacity = minHeightCheckbox.checked ? '1' : '0.5';
+            });
+
+            minHeightSlider.addEventListener('input', () => {
+                minHeightLabel.textContent = minHeightSlider.value;
+            });
+
             submitBtn.onclick = () => {
                 const pieces = parseInt(piecesInput.value, 10);
                 const height = parseInt(heightSlider.value, 10);
+                const minHeight = minHeightCheckbox.checked ? parseInt(minHeightSlider.value, 10) : null;
                 document.body.removeChild(modal);
-                resolve({ pieces, height });
+                resolve({ pieces, height, minHeight });
             };
 
             cancelBtn.onclick = () => {

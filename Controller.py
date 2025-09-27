@@ -135,8 +135,10 @@ def generate_map():
 
     nr_pieces = int(request.args.get('nrpieces', None))
     max_height = int(request.args.get('maxheight', None))
+    min_height = request.args.get('minheight', None)
+    min_height = int(min_height)-1 if min_height is not None else None
 
-    map_data = genmap(Config(nr_pieces, max_height))
+    map_data = genmap(Config(nr_pieces, max_height, min_height))
 
     bricks: list[Brick] = []
     for brickdef in map_data:
