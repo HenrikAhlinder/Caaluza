@@ -335,6 +335,7 @@ export class BrickEditor {
     updateUIBasedOnMode() {
         const zoomControls = document.querySelector('.zoom-controls');
         const generateBtn = document.getElementById('generate-btn');
+        const loadFromSeedBtn = document.getElementById('load-seed-btn');
 
         if (this.mode === 'play') {
             if (this.showBricksBtn) this.showBricksBtn.classList.remove('ui-hidden');
@@ -342,12 +343,14 @@ export class BrickEditor {
             // Hide controls in play mode
             if (zoomControls) zoomControls.classList.add('ui-hidden');
             if (generateBtn) generateBtn.classList.add('ui-hidden');
+            if (loadFromSeedBtn) loadFromSeedBtn.classList.add('ui-hidden');
         } else {
             if (this.showBricksBtn) this.showBricksBtn.classList.add('ui-hidden');
             if (this.bricksDisplay) this.bricksDisplay.classList.add('ui-hidden');
             // Show controls in edit mode
             if (zoomControls) zoomControls.classList.remove('ui-hidden');
             if (generateBtn) generateBtn.classList.remove('ui-hidden');
+            if (loadFromSeedBtn) loadFromSeedBtn.classList.remove('ui-hidden');
         }
     }
 

@@ -279,9 +279,9 @@ body {
 
 .gen-button {
     position: fixed;
-    top: 15%;
-    left: 70%;
-    transform: translate(-50%, -50%);
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
     padding: 10px 20px;
     background-color: #2196F3;
     color: white;
@@ -298,6 +298,14 @@ body {
 
 .gen-button:hover {
     background-color: #1976D2;
+}
+
+#generate-btn {
+    left: calc(50% - 90px);
+}
+
+#load-seed-btn {
+    left: calc(50% + 90px);
 }
 
 .zoom-controls {
@@ -392,14 +400,38 @@ body {
         margin: 20% auto;
     }
 
-    #save-btn, .load-button, .gen-button {
+    #save-btn, .load-button {
         padding: 8px 16px;
         font-size: 12px;
         gap: 4px;
     }
 
-    .zoom-controls {
+    .gen-button {
+        padding: 8px 10px;
+        font-size: 10px;
+        gap: 3px;
         bottom: 15px;
+    }
+
+    #generate-btn {
+        left: calc(50% - 80px);
+    }
+
+    #load-seed-btn {
+        left: calc(50% + 80px);
+    }
+
+    .show-bricks-button {
+        padding: 8px 10px;
+        font-size: 10px;
+        gap: 3px;
+        top: 15px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .zoom-controls {
+        bottom: 70px;
         right: 15px;
         gap: 8px;
     }
@@ -416,21 +448,21 @@ body {
         top: 0 !important;
         left: 0 !important;
         right: 0;
-        bottom: 0;
-        width: 100% !important;
-        max-height: 100vh !important;
-        height: 100vh !important;
-        border-radius: 0;
-        padding: 15px;
-        box-sizing: border-box;
-        z-index: 5000 !important;
-        display: flex;
-        flex-direction: column;
-    }
+    bottom: 0;
+    width: 100% !important;
+    max-height: 100vh !important;
+    height: 100vh !important;
+    border-radius: 0;
+    padding: 15px;
+    box-sizing: border-box;
+    z-index: 5000 !important;
+    display: flex;
+    flex-direction: column;
+}
 
-    .bricks-display-header {
-        font-size: 18px;
-        margin-bottom: 15px;
+.bricks-display-header {
+    font-size: 18px;
+    margin-bottom: 15px;
         padding-right: 60px; /* Make room for close button */
         flex-shrink: 0;
     }
@@ -646,17 +678,22 @@ body {
 /* Show bricks button */
 .show-bricks-button {
     position: fixed;
-    top: 20px;
-    right: 40px;
+    top: 200px;
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 4001;
     background: #2196F3;
     color: #fff;
     border: none;
-    border-radius: 7px;
-    padding: 8px 18px;
-    font-size: 15px;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: bold;
     cursor: pointer;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .show-bricks-button:hover {
