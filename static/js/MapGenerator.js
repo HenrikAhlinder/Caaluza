@@ -93,9 +93,9 @@ function getMaxHeight(placedBricks) {
     return maxHeight;
 }
 
-function selectOptimalSpot(spots, config, placedBricks, bricksRemaining) {
+function selectOptimalSpot(spots, config, placedBricks, bricksRemaining, randomFn) {
     if (config.minHeight === null) {
-        return spots[Math.floor(Math.random() * spots.length)];
+        return spots[Math.floor(randomFn() * spots.length)];
     }
 
     const currentMaxHeight = getMaxHeight(placedBricks);
@@ -110,10 +110,10 @@ function selectOptimalSpot(spots, config, placedBricks, bricksRemaining) {
         );
 
         // Mild preference for higher spots (60% vs 40%)
-        if (maxHeightSpots.length > 0 && Math.random() < 0.6) {
-            return maxHeightSpots[Math.floor(Math.random() * maxHeightSpots.length)];
+        if (maxHeightSpots.length > 0 && randomFn() < 0.6) {
+            return maxHeightSpots[Math.floor(randomFn() * maxHeightSpots.length)];
         } else {
-            return spots[Math.floor(Math.random() * spots.length)];
+            return spots[Math.floor(randomFn() * spots.length)];
         }
     }
 
@@ -148,15 +148,15 @@ function selectOptimalSpot(spots, config, placedBricks, bricksRemaining) {
                 }
             }
             if (buildingOnExisting.length > 0) {
-                return buildingOnExisting[Math.floor(Math.random() * buildingOnExisting.length)];
+                return buildingOnExisting[Math.floor(randomFn() * buildingOnExisting.length)];
             }
         }
         // Always pick highest spot when critical
-        return maxHeightSpots[Math.floor(Math.random() * maxHeightSpots.length)];
+        return maxHeightSpots[Math.floor(randomFn() * maxHeightSpots.length)];
     } else {
         // Not critical: Probabilistically prefer height (75% chance)
         // This encourages upward building without forcing towers
-        if (Math.random() < 0.75) {
+        if (randomFn() < 0.75) {
             // Pick from higher spots (prefer building on existing structures)
             if (placedBricks.length > 0) {
                 const buildingOnExisting = [];
@@ -172,13 +172,13 @@ function selectOptimalSpot(spots, config, placedBricks, bricksRemaining) {
                     }
                 }
                 if (buildingOnExisting.length > 0) {
-                    return buildingOnExisting[Math.floor(Math.random() * buildingOnExisting.length)];
+                    return buildingOnExisting[Math.floor(randomFn() * buildingOnExisting.length)];
                 }
             }
-            return maxHeightSpots[Math.floor(Math.random() * maxHeightSpots.length)];
+            return maxHeightSpots[Math.floor(randomFn() * maxHeightSpots.length)];
         } else {
             // 25% of the time, pick any spot (allows for variety)
-            return spots[Math.floor(Math.random() * spots.length)];
+            return spots[Math.floor(randomFn() * spots.length)];
         }
     }
 }
@@ -289,7 +289,7 @@ function generateSingleMap(config, seed = null) {
         }
 
         // Always use optimal spot selection (respects min height requirements)
-        const spot = selectOptimalSpot(spots, config, placedBricks, bricksRemaining);
+        const spot = selectOptimalSpot(spots, config, placedBricks, bricksRemaining, random);
 
         placedBricks.push(new BrickDef(brick.width, brick.depth, brick.color, spot));
 
