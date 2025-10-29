@@ -117,8 +117,10 @@ function selectOptimalSpot(spots, config, placedBricks, bricksRemaining) {
         }
     }
 
-    // Haven't reached minimum height yet - be aggressive!
-    // Always pick the highest available spot
+    // Haven't reached minimum height yet
+    const heightDeficit = config.minHeight - currentMaxHeight;
+
+    // Calculate the maximum height spots
     const maxHeightInSpots = Math.max(...spots.map(spot =>
         Math.min(...spot.map(p => p.y))
     ));
@@ -126,30 +128,59 @@ function selectOptimalSpot(spots, config, placedBricks, bricksRemaining) {
         Math.min(...spot.map(p => p.y)) === maxHeightInSpots
     );
 
-    // Among the highest spots, strongly prefer ones that build on existing structures
-    if (placedBricks.length > 0) {
-        const buildingOnExisting = [];
-        for (const spot of maxHeightSpots) {
-            // Check if any point in this spot has a brick directly below it
-            for (const point of spot) {
-                const pointBelow = new Point(point.x, point.y - 1, point.z);
-                if (placedBricks.some(brick =>
-                    Array.from(brick.points).some(p => p.equals(pointBelow))
-                )) {
-                    buildingOnExisting.push(spot);
-                    break;
+    // Determine strategy based on how critical the situation is
+    const isCritical = bricksRemaining <= heightDeficit;
+
+    if (isCritical) {
+        // Critical: Must stack aggressively (100% pick highest)
+        // Prefer spots that build on existing structures
+        if (placedBricks.length > 0) {
+            const buildingOnExisting = [];
+            for (const spot of maxHeightSpots) {
+                for (const point of spot) {
+                    const pointBelow = new Point(point.x, point.y - 1, point.z);
+                    if (placedBricks.some(brick =>
+                        Array.from(brick.points).some(p => p.equals(pointBelow))
+                    )) {
+                        buildingOnExisting.push(spot);
+                        break;
+                    }
                 }
             }
+            if (buildingOnExisting.length > 0) {
+                return buildingOnExisting[Math.floor(Math.random() * buildingOnExisting.length)];
+            }
         }
-
-        // If we found spots that build on existing structures, use those
-        if (buildingOnExisting.length > 0) {
-            return buildingOnExisting[Math.floor(Math.random() * buildingOnExisting.length)];
+        // Always pick highest spot when critical
+        return maxHeightSpots[Math.floor(Math.random() * maxHeightSpots.length)];
+    } else {
+        // Not critical: Probabilistically prefer height (75% chance)
+        // This encourages upward building without forcing towers
+        if (Math.random() < 0.75) {
+            // Pick from higher spots (prefer building on existing structures)
+            if (placedBricks.length > 0) {
+                const buildingOnExisting = [];
+                for (const spot of maxHeightSpots) {
+                    for (const point of spot) {
+                        const pointBelow = new Point(point.x, point.y - 1, point.z);
+                        if (placedBricks.some(brick =>
+                            Array.from(brick.points).some(p => p.equals(pointBelow))
+                        )) {
+                            buildingOnExisting.push(spot);
+                            break;
+                        }
+                    }
+                }
+                if (buildingOnExisting.length > 0) {
+                    return buildingOnExisting[Math.floor(Math.random() * buildingOnExisting.length)];
+                }
+            }
+            return maxHeightSpots[Math.floor(Math.random() * maxHeightSpots.length)];
+        } else {
+            // 25% of the time, pick any spot (allows for variety)
+            return spots[Math.floor(Math.random() * spots.length)];
         }
     }
-
-    // Otherwise, just pick from the highest spots
-    return maxHeightSpots[Math.floor(Math.random() * maxHeightSpots.length)];
 }
 
 function assertNoOverlappingBricks(placedBricks) {
