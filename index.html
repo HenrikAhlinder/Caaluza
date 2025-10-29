@@ -194,6 +194,103 @@
         .error-message.show {
             display: block;
         }
+
+        /* View buttons and dropdown styles */
+        .view-dropdown {
+            display: none;
+            position: relative;
+        }
+
+        .view-dropdown-toggle {
+            padding: 5px 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .view-dropdown-toggle:hover {
+            background-color: #45a049;
+        }
+
+        .view-dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 4px;
+            margin-top: 5px;
+            min-width: 120px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            z-index: 1000;
+        }
+
+        .view-dropdown-menu.show {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .view-dropdown-menu button {
+            padding: 8px 12px;
+            background-color: transparent;
+            color: white;
+            border: none;
+            text-align: left;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background-color 0.2s;
+        }
+
+        .view-dropdown-menu button:hover {
+            background-color: #3a3a3a;
+        }
+
+        .view-dropdown-menu button:first-child {
+            border-radius: 4px 4px 0 0;
+        }
+
+        .view-dropdown-menu button:last-child {
+            border-radius: 0 0 4px 4px;
+        }
+
+        /* Desktop: show individual buttons, hide dropdown */
+        @media screen and (min-width: 769px) {
+            .view-dropdown {
+                display: none !important;
+            }
+        }
+
+        /* Mobile: hide individual buttons, show dropdown */
+        @media screen and (max-width: 768px) {
+            .view-share-button {
+                display: none !important;
+            }
+
+            .view-dropdown {
+                display: block;
+            }
+
+            .seed-display {
+                flex-wrap: wrap;
+                max-width: 90%;
+                padding: 8px 15px;
+            }
+
+            .seed-display button {
+                font-size: 11px;
+                padding: 4px 8px;
+            }
+
+            .seed-value {
+                font-size: 11px;
+                padding: 4px 8px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -210,11 +307,21 @@
         <span>Seed:</span>
         <span class="seed-value" id="seed-value"></span>
         <button onclick="copySeedToClipboard()">Copy Seed</button>
-        <button onclick="sharePlayURL('Top')">Top</button>
-        <button onclick="sharePlayURL('North')">North</button>
-        <button onclick="sharePlayURL('South')">South</button>
-        <button onclick="sharePlayURL('East')">East</button>
-        <button onclick="sharePlayURL('West')">West</button>
+        <button onclick="sharePlayURL('Top')" class="view-share-button">Top</button>
+        <button onclick="sharePlayURL('North')" class="view-share-button">North</button>
+        <button onclick="sharePlayURL('South')" class="view-share-button">South</button>
+        <button onclick="sharePlayURL('East')" class="view-share-button">East</button>
+        <button onclick="sharePlayURL('West')" class="view-share-button">West</button>
+        <div class="view-dropdown">
+            <button class="view-dropdown-toggle" onclick="toggleViewDropdown()">Share View ▼</button>
+            <div id="view-dropdown-menu" class="view-dropdown-menu">
+                <button onclick="sharePlayURL('Top'); toggleViewDropdown()">Top</button>
+                <button onclick="sharePlayURL('North'); toggleViewDropdown()">North</button>
+                <button onclick="sharePlayURL('South'); toggleViewDropdown()">South</button>
+                <button onclick="sharePlayURL('East'); toggleViewDropdown()">East</button>
+                <button onclick="sharePlayURL('West'); toggleViewDropdown()">West</button>
+            </div>
+        </div>
     </div>
 
 
@@ -281,6 +388,14 @@
                 <div class="form-group">
                     <label for="min-height">Min Height (optional):</label>
                     <input type="number" id="min-height" name="minHeight" min="1" max="20" placeholder="Leave empty for no limit">
+                </div>
+                <div class="form-group">
+                    <label for="density">Density (<span id="density-value">1.00</span>):</label>
+                    <input type="range" id="density" name="density" min="0" max="1" step="0.05" value="1.0" style="width: 100%;">
+                    <div style="display: flex; justify-content: space-between; color: #888; font-size: 12px; margin-top: 5px;">
+                        <span>Sparse (0.0)</span>
+                        <span>Dense (1.0)</span>
+                    </div>
                 </div>
                 <div class="error-message" id="error-message"></div>
                 <div class="form-actions">
@@ -399,6 +514,20 @@
             document.getElementById('seed-input').value = '';
         }
 
+        window.toggleViewDropdown = function() {
+            const menu = document.getElementById('view-dropdown-menu');
+            menu.classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.querySelector('.view-dropdown');
+            const menu = document.getElementById('view-dropdown-menu');
+            if (dropdown && menu && !dropdown.contains(event.target)) {
+                menu.classList.remove('show');
+            }
+        });
+
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             // Generate button
@@ -429,6 +558,15 @@
                     if (e.target === this) {
                         closeLoadSeedModal();
                     }
+                });
+            }
+
+            // Density slider update
+            const densitySlider = document.getElementById('density');
+            const densityValue = document.getElementById('density-value');
+            if (densitySlider && densityValue) {
+                densitySlider.addEventListener('input', function(e) {
+                    densityValue.textContent = parseFloat(e.target.value).toFixed(2);
                 });
             }
         });
