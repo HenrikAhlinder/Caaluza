@@ -2,39 +2,54 @@
 
 /**
  * Encodes map generation parameters into a compact seed string
- * Format: {nrBricks}-{maxHeight}-{minHeight}-{randomSeed}
- * Example: "10-5-2-12345" means 10 bricks, max height 5, min height 2, random seed 12345
+ * Format: {nrBricks}-{maxHeight}-{minHeight}-{density}-{randomSeed}
+ * Example: "10-5-2-0.7-12345" means 10 bricks, max height 5, min height 2, density 0.7, random seed 12345
  */
-export function encodeToSeed(nrBricks, maxHeight, minHeight) {
+export function encodeToSeed(nrBricks, maxHeight, minHeight, density = 1.0) {
     // Generate a random seed for the RNG
     const randomSeed = Math.floor(Math.random() * 1000000);
 
     // Use null-safe encoding
     const maxH = maxHeight !== null ? maxHeight : 'null';
     const minH = minHeight !== null ? minHeight : 'null';
+    const dens = density !== null ? density.toFixed(2) : '1.00';
 
-    return `${nrBricks}-${maxH}-${minH}-${randomSeed}`;
+    return `${nrBricks}-${maxH}-${minH}-${dens}-${randomSeed}`;
 }
 
 /**
  * Decodes a seed string into map generation parameters
- * Returns: {nrBricks, maxHeight, minHeight, randomSeed}
+ * Returns: {nrBricks, maxHeight, minHeight, density, randomSeed}
+ * Supports both old format (4 parts, density defaults to 1.0) and new format (5 parts)
  */
 export function decodeFromSeed(seed) {
     try {
         const parts = seed.split('-');
-        if (parts.length !== 4) {
+
+        // Support both old format (4 parts) and new format (5 parts)
+        if (parts.length === 4) {
+            // Old format: nrBricks-maxHeight-minHeight-randomSeed
+            const [nrBricks, maxHeight, minHeight, randomSeed] = parts;
+            return {
+                nrBricks: parseInt(nrBricks, 10),
+                maxHeight: maxHeight === 'null' ? null : parseInt(maxHeight, 10),
+                minHeight: minHeight === 'null' ? null : parseInt(minHeight, 10),
+                density: 1.0, // Default to full density for old seeds
+                randomSeed: parseInt(randomSeed, 10)
+            };
+        } else if (parts.length === 5) {
+            // New format: nrBricks-maxHeight-minHeight-density-randomSeed
+            const [nrBricks, maxHeight, minHeight, density, randomSeed] = parts;
+            return {
+                nrBricks: parseInt(nrBricks, 10),
+                maxHeight: maxHeight === 'null' ? null : parseInt(maxHeight, 10),
+                minHeight: minHeight === 'null' ? null : parseInt(minHeight, 10),
+                density: parseFloat(density),
+                randomSeed: parseInt(randomSeed, 10)
+            };
+        } else {
             throw new Error('Invalid seed format');
         }
-
-        const [nrBricks, maxHeight, minHeight, randomSeed] = parts;
-
-        return {
-            nrBricks: parseInt(nrBricks, 10),
-            maxHeight: maxHeight === 'null' ? null : parseInt(maxHeight, 10),
-            minHeight: minHeight === 'null' ? null : parseInt(minHeight, 10),
-            randomSeed: parseInt(randomSeed, 10)
-        };
     } catch (e) {
         throw new Error('Failed to decode seed: ' + e.message);
     }
@@ -52,6 +67,9 @@ export function isValidSeed(seed) {
             decoded.nrBricks <= 100 &&
             (decoded.maxHeight === null || (!isNaN(decoded.maxHeight) && decoded.maxHeight > 0)) &&
             (decoded.minHeight === null || (!isNaN(decoded.minHeight) && decoded.minHeight >= 0)) &&
+            !isNaN(decoded.density) &&
+            decoded.density >= 0.0 &&
+            decoded.density <= 1.0 &&
             !isNaN(decoded.randomSeed)
         );
     } catch (e) {

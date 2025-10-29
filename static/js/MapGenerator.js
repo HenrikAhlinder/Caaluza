@@ -41,10 +41,11 @@ export class BrickDef {
 }
 
 export class Config {
-    constructor(nrBricks, maxHeight = null, minHeight = null) {
+    constructor(nrBricks, maxHeight = null, minHeight = null, density = 1.0) {
         this.nrBricks = nrBricks;
         this.maxHeight = maxHeight;
         this.minHeight = minHeight;
+        this.density = density; // 0.0 (sparse) to 1.0 (dense)
     }
 }
 
@@ -193,10 +194,11 @@ function assertNoOverlappingBricks(placedBricks) {
     }
 }
 
-function addNewAvailablePegs(availablePegs, config, placedBricks, spot) {
+function addNewAvailablePegs(availablePegs, config, placedBricks, spot, random) {
     for (const p of spot) {
         // Add peg above if within max height limit (or no limit)
-        if (config.maxHeight === null || p.y + 1 < config.maxHeight) {
+        // Use density to probabilistically add pegs (lower density = fewer pegs)
+        if ((config.maxHeight === null || p.y + 1 < config.maxHeight) && random() < config.density) {
             const abovePoint = new Point(p.x, p.y + 1, p.z);
             if (placedBricks.every(brick =>
                 brick.sharesNoPoints([abovePoint])
@@ -207,7 +209,8 @@ function addNewAvailablePegs(availablePegs, config, placedBricks, spot) {
         }
 
         // Add hanging peg below (only above baseplate level)
-        if (p.y > 0) {
+        // Use density for hanging pegs too
+        if (p.y > 0 && random() < config.density) {
             const hangingPoint = new Point(p.x, p.y - 1, p.z);
             if (placedBricks.every(brick =>
                 brick.sharesNoPoints([hangingPoint])
@@ -298,7 +301,7 @@ function generateSingleMap(config, seed = null) {
             availablePegs.delete(point);
         }
 
-        addNewAvailablePegs(availablePegs, config, placedBricks, spot);
+        addNewAvailablePegs(availablePegs, config, placedBricks, spot, random);
     }
 
     return placedBricks;

@@ -342,7 +342,7 @@ body {
     .brick-selector-toggle {
         display: flex;
     }
-    
+
     .brick-selector {
         display: none;
         position: absolute;
@@ -355,59 +355,122 @@ body {
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         z-index: 1002;
     }
-    
+
     .brick-selector.show {
         display: flex;
     }
-    
+
     .brick-selector-container {
         width: auto;
         min-width: 120px;
     }
-    
+
     /* Adjust other elements for mobile */
     .button-container {
         flex-direction: row;
         flex-wrap: wrap;
         gap: 3px;
     }
-    
+
     .view-button {
         padding: 8px 12px;
         font-size: 12px;
         gap: 3px;
     }
-    
+
     .title-display-container {
         top: 15%;
         left: 50%;
     }
-    
+
     .title-display-text {
         font-size: 14px;
     }
-    
+
     .modal-content {
         width: 350px;
         margin: 20% auto;
     }
-    
+
     #save-btn, .load-button, .gen-button {
         padding: 8px 16px;
         font-size: 12px;
         gap: 4px;
     }
-    
+
     .zoom-controls {
         bottom: 15px;
         right: 15px;
         gap: 8px;
     }
-    
+
     .zoom-button {
         width: 45px;
         height: 45px;
         font-size: 20px;
+    }
+
+    /* Bricks display - full screen on mobile */
+    .bricks-display {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0;
+        bottom: 0;
+        width: 100% !important;
+        max-height: 100vh !important;
+        height: 100vh !important;
+        border-radius: 0;
+        padding: 15px;
+        box-sizing: border-box;
+        z-index: 5000 !important;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .bricks-display-header {
+        font-size: 18px;
+        margin-bottom: 15px;
+        padding-right: 60px; /* Make room for close button */
+        flex-shrink: 0;
+    }
+
+    .bricks-display-close {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        padding: 5px 12px;
+        font-size: 16px;
+        z-index: 10;
+    }
+
+    #bricks-list {
+        flex: 1;
+        overflow-y: auto;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        align-content: start;
+    }
+
+    .brick-column {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .brick-item {
+        margin-bottom: 10px;
+        padding-bottom: 10px;
+        font-size: 14px;
+    }
+
+    .bricks-separator {
+        margin: 10px 0;
+    }
+
+    /* Hide the show bricks button when display is open */
+    .show-bricks-button.hidden {
+        display: none !important;
     }
 }
 

@@ -47,10 +47,12 @@ export class BrickEditor {
             this.updateBricksDisplay();
             this.bricksDisplay.classList.remove('ui-hidden');
             this.bricksDisplay.classList.add('ui-visible');
+            this.showBricksBtn.classList.add('hidden');
         });
         this.bricksDisplay.querySelector('#close-bricks-display').addEventListener('click', () => {
             this.bricksDisplay.classList.remove('ui-visible');
             this.bricksDisplay.classList.add('ui-hidden');
+            this.showBricksBtn.classList.remove('hidden');
         });
     }
 
@@ -69,15 +71,36 @@ export class BrickEditor {
             return acc;
         }, {});
 
-        // Render all bricks, grouped by color, with a separator between groups
-        list.innerHTML = Object.keys(groups).map(hex => {
+        // Define which colors go in left column (green, blue) vs right column (yellow, red)
+        const leftColumnColors = ['00ff00', '0000ff']; // green, blue
+        const rightColumnColors = ['ffff00', 'ff0000']; // yellow, red
+
+        const leftColumn = [];
+        const rightColumn = [];
+
+        Object.keys(groups).forEach(hex => {
             const bricksHtml = groups[hex].map(brick => {
                 return `<div class="brick-item">
                             <span class="brick-item-name">${brick.buttonName}</span>
                         </div>`;
             }).join('');
-            return `<div>${bricksHtml}</div><hr class="bricks-separator">`;
-        }).join('');
+            const colorGroup = `<div>${bricksHtml}</div><hr class="bricks-separator">`;
+
+            if (leftColumnColors.includes(hex)) {
+                leftColumn.push(colorGroup);
+            } else if (rightColumnColors.includes(hex)) {
+                rightColumn.push(colorGroup);
+            } else {
+                // Default: put unknown colors in right column
+                rightColumn.push(colorGroup);
+            }
+        });
+
+        // Render two columns
+        list.innerHTML = `
+            <div class="brick-column">${leftColumn.join('')}</div>
+            <div class="brick-column">${rightColumn.join('')}</div>
+        `;
     }
 
     constructor(mode = 'edit') {

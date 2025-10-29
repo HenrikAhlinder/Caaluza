@@ -115,7 +115,8 @@ function loadMapFromSeed(seed, hideMapInitially = false) {
         const config = new Config(
             params.nrBricks,
             params.maxHeight,
-            params.minHeight
+            params.minHeight,
+            params.density
         );
 
         // Generate map with the seed
@@ -154,9 +155,11 @@ function setupGeneratorForm() {
         const nrBricks = parseInt(document.getElementById('nr-bricks').value, 10);
         const maxHeightInput = document.getElementById('max-height').value;
         const minHeightInput = document.getElementById('min-height').value;
+        const densityInput = document.getElementById('density').value;
 
         const maxHeight = maxHeightInput ? parseInt(maxHeightInput, 10) : null;
         const minHeight = minHeightInput ? parseInt(minHeightInput, 10) : null;
+        const density = densityInput ? parseFloat(densityInput) : 1.0;
 
         // Validate inputs
         const errorMsg = document.getElementById('error-message');
@@ -182,7 +185,7 @@ function setupGeneratorForm() {
 
         try {
             // Generate seed
-            const seed = encodeToSeed(nrBricks, maxHeight, minHeight);
+            const seed = encodeToSeed(nrBricks, maxHeight, minHeight, density);
 
             // Update URL
             updateURLWithSeed(seed);
