@@ -83,8 +83,8 @@ export class BrickEditor {
         this.setupRenderer();
         addCompassOverlay();
         
-        this.cameraSystem = new CameraSystem(EditorConfig.GRID_CENTER, views, selectedView);
-        this.lightingSystem = new LightingSystem(this.scene, EditorConfig.GRID_CENTER, views);
+        this.cameraSystem = new CameraSystem(EditorConfig.GRID_CENTER, window.views, window.selectedView);
+        this.lightingSystem = new LightingSystem(this.scene, EditorConfig.GRID_CENTER, window.views);
         this.interactionSystem = new InteractionSystem();
         this.brickManager = new BrickManager(this.scene);
         this.uiController = new UIController(this.brickManager, document.querySelector('.brick-selector'));
@@ -94,8 +94,8 @@ export class BrickEditor {
         this.setupModeControls();
         
         // Load existing map if available
-        if (typeof existingMap !== 'undefined' && existingMap) {
-            this.loadExistingMap(existingMap);
+        if (typeof window.existingMap !== 'undefined' && window.existingMap) {
+            this.loadExistingMap(window.existingMap);
         }
         
         this.startRenderLoop();

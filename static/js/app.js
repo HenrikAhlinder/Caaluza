@@ -28,29 +28,6 @@ function init() {
 
     // Setup generator form
     setupGeneratorForm();
-
-    // Setup new button
-    setupNewButton();
-}
-
-function setupNewButton() {
-    const newBtn = document.getElementById('new-btn');
-    if (!newBtn) return;
-
-    newBtn.addEventListener('click', function() {
-        // Clear the URL
-        const url = new URL(window.location);
-        url.searchParams.delete('seed');
-        window.history.pushState({}, '', url);
-
-        // Hide seed display
-        if (typeof hideSeedDisplay === 'function') {
-            hideSeedDisplay();
-        }
-
-        // Reload with empty editor
-        window.location.reload();
-    });
 }
 
 function initializeEditor(mapData = null) {
@@ -92,8 +69,8 @@ function loadMapFromSeed(seed) {
 
         // Show seed display
         currentSeed = seed;
-        if (typeof showSeedDisplay === 'function') {
-            showSeedDisplay(seed);
+        if (typeof window.showSeedDisplay === 'function') {
+            window.showSeedDisplay(seed);
         }
 
         console.log('Map loaded from seed:', seed);
@@ -151,8 +128,8 @@ function setupGeneratorForm() {
             loadMapFromSeed(seed);
 
             // Close modal
-            if (typeof closeGeneratorModal === 'function') {
-                closeGeneratorModal();
+            if (typeof window.closeGeneratorModal === 'function') {
+                window.closeGeneratorModal();
             }
         } catch (error) {
             errorMsg.textContent = 'Failed to generate map: ' + error.message;

@@ -20,8 +20,8 @@ export class UIController {
         this.brickSelector.querySelectorAll('.size-button').forEach(button => {
             button.addEventListener('mousedown', (event) => {
                 const [sizeName, colorName] = button.title.split(' ');
-                const color = colors.find(c => c.name === colorName);
-                const size = sizes.find(s => s.name === sizeName);
+                const color = window.colors.find(c => c.name === colorName);
+                const size = window.sizes.find(s => s.name === sizeName);
 
                 if (!this.brickManager.isDragging() && color && size) {
                     const newBrick = new Brick(
@@ -41,44 +41,69 @@ export class UIController {
     }
 
     setupSaveLoad() {
-        document.getElementById('save-btn').addEventListener('click', () => {
-            this.promptForSave();
-        });
+        // Save and load buttons don't exist in client-only version
+        const saveBtn = document.getElementById('save-btn');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', () => {
+                this.promptForSave();
+            });
+        }
 
-        document.getElementById('load-btn').addEventListener('click', () => {
-            this.promptForLoad();
-        });
+        const loadBtn = document.getElementById('load-btn');
+        if (loadBtn) {
+            loadBtn.addEventListener('click', () => {
+                this.promptForLoad();
+            });
+        }
 
-        document.getElementById('generate-btn').addEventListener('click', () => {
-            this.generateMap();
-        });
+        // Generate button is handled by app.js in client-only version
+        const generateBtn = document.getElementById('generate-btn');
+        if (generateBtn && generateBtn.getAttribute('data-legacy') === 'true') {
+            generateBtn.addEventListener('click', () => {
+                this.generateMap();
+            });
+        }
     }
 
     setupModal() {
         this.modal = document.getElementById('prompt-modal');
+
+        // Modal might not exist in client-only version
+        if (!this.modal) {
+            return;
+        }
+
         this.modalTitle = document.getElementById('modal-title');
         this.modalInput = document.getElementById('modal-input');
         this.modalConfirm = document.getElementById('modal-confirm');
         this.modalCancel = document.getElementById('modal-cancel');
         this.closeBtn = this.modal.querySelector('.close');
 
-        // Close modal events
-        this.closeBtn.addEventListener('click', () => this.closeModal());
-        this.modalCancel.addEventListener('click', () => this.closeModal());
+        if (this.closeBtn) {
+            this.closeBtn.addEventListener('click', () => this.closeModal());
+        }
+
+        if (this.modalCancel) {
+            this.modalCancel.addEventListener('click', () => this.closeModal());
+        }
 
         // Close modal when clicking outside
-        this.modal.addEventListener('click', (event) => {
-            if (event.target === this.modal) {
-                this.closeModal();
-            }
-        });
+        if (this.modal) {
+            this.modal.addEventListener('click', (event) => {
+                if (event.target === this.modal) {
+                    this.closeModal();
+                }
+            });
+        }
 
         // Handle Enter key in modal input
-        this.modalInput.addEventListener('keypress', (event) => {
-            if (event.key === 'Enter') {
-                this.modalConfirm.click();
-            }
-        });
+        if (this.modalInput) {
+            this.modalInput.addEventListener('keypress', (event) => {
+                if (event.key === 'Enter') {
+                    this.modalConfirm.click();
+                }
+            });
+        }
     }
 
     showModal(title, placeholder = '', defaultValue = '', authorDefault = '') {
@@ -382,9 +407,9 @@ export class UIController {
         const buttons = this.brickSelector.querySelectorAll('button');
 
         // Find matching color
-        let colorMatch = colors.find(c => c.hex === brickData.color);
+        let colorMatch = window.colors.find(c => c.hex === brickData.color);
         if (!colorMatch) {
-            colorMatch = colors.find(c => c.name === brickData.color);
+            colorMatch = window.colors.find(c => c.name === brickData.color);
         }
         const brickColor = colorMatch ? colorMatch.hex : 0x808080;
 
