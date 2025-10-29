@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test</title>
+</head>
+<body>
+    <h1>Config Test</h1>
+    <div id="output"></div>
+    <script>
+        window.colors = [{name: "Red", hex: 0xff0000}];
+        window.views = [{name: "Top"}];
+        window.mode = "edit";
+
+        document.getElementById('output').innerHTML = `
+            Colors: ${JSON.stringify(window.colors)}<br>
+            Views: ${JSON.stringify(window.views)}<br>
+            Mode: ${window.mode}
+        `;
+    </script>
+    <script type="module">
+        console.log('Module colors:', window.colors);
+        console.log('Module views:', window.views);
+    </script>
+</body>
+</html>

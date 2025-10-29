@@ -11,7 +11,10 @@ export class UIController {
         this.titleDisplay = document.getElementById('title-display');
         this.currentMapName = '';
 
-        this.setupBrickSelector();
+        // Only setup if brick selector exists
+        if (this.brickSelector) {
+            this.setupBrickSelector();
+        }
         this.setupSaveLoad();
         this.setupModal();
     }
@@ -404,7 +407,8 @@ export class UIController {
     }
 
     loadBrick(brickData) {
-        const buttons = this.brickSelector.querySelectorAll('button');
+        // Get buttons if brick selector exists
+        const buttons = this.brickSelector ? this.brickSelector.querySelectorAll('button') : [];
 
         // Find matching color
         let colorMatch = window.colors.find(c => c.hex === brickData.color);
@@ -451,16 +455,20 @@ export class UIController {
     }
 
     enableAllButtons() {
-        this.brickSelector.querySelectorAll('button').forEach(button => {
-            this.enableButton(button);
-        });
+        if (this.brickSelector) {
+            this.brickSelector.querySelectorAll('button').forEach(button => {
+                this.enableButton(button);
+            });
+        }
     }
 
     enableButtonByTitle(title) {
-        const button = Array.from(this.brickSelector.querySelectorAll('button'))
-            .find(btn => btn.title === title);
-        if (button) {
-            this.enableButton(button);
+        if (this.brickSelector) {
+            const button = Array.from(this.brickSelector.querySelectorAll('button'))
+                .find(btn => btn.title === title);
+            if (button) {
+                this.enableButton(button);
+            }
         }
     }
 }

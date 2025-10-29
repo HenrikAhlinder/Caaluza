@@ -68,6 +68,23 @@ export function getSeedFromURL() {
 }
 
 /**
+ * Gets the view parameter from the URL query parameter
+ */
+export function getViewFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('view');
+}
+
+/**
+ * Gets the mode parameter from the URL query parameter
+ * Can be 'edit' or 'play'
+ */
+export function getModeFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('mode');
+}
+
+/**
  * Updates the URL with the given seed (without page reload)
  */
 export function updateURLWithSeed(seed) {
@@ -88,8 +105,28 @@ export function clearSeedFromURL() {
 /**
  * Creates a shareable URL with the seed
  */
-export function createShareableURL(seed) {
+export function createShareableURL(seed, view = null, mode = null) {
     const url = new URL(window.location.origin + window.location.pathname);
     url.searchParams.set('seed', seed);
+    if (view) {
+        url.searchParams.set('view', view);
+    }
+    if (mode) {
+        url.searchParams.set('mode', mode);
+    }
     return url.toString();
+}
+
+/**
+ * Updates the URL with view and mode parameters
+ */
+export function updateURLWithViewAndMode(view, mode) {
+    const url = new URL(window.location);
+    if (view) {
+        url.searchParams.set('view', view);
+    }
+    if (mode) {
+        url.searchParams.set('mode', mode);
+    }
+    window.history.pushState({}, '', url);
 }

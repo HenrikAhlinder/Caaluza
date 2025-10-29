@@ -36,11 +36,15 @@ A web-based 3D LEGO-like brick builder application that runs entirely in your br
 ### Sharing Maps
 
 When you generate a map, a seed is created and added to the URL. You can:
-- Copy the seed directly
-- Share the entire URL
-- Anyone with the URL can view the exact same map
+- **Copy Seed** - Just the seed string for manual use
+- **Copy URL** - Edit mode URL (full controls)
+- **Play Mode Buttons** - Five buttons for viewer-only mode (Play: Top, Play: North, Play: South, Play: East, Play: West)
 
-Example URL: `https://yourusername.github.io/Caaluza/?seed=10-5-2-123456`
+Example URLs:
+- Edit mode: `https://yourusername.github.io/Caaluza/?seed=10-5-2-123456`
+- Play mode (top view): `https://yourusername.github.io/Caaluza/?seed=10-5-2-123456&mode=play&view=Top`
+- Play mode (north view): `https://yourusername.github.io/Caaluza/?seed=10-5-2-123456&mode=play&view=North`
+- Specific view in edit mode: `https://yourusername.github.io/Caaluza/?seed=10-5-2-123456&view=North`
 
 ## Deployment to GitHub Pages
 
@@ -77,8 +81,11 @@ Caaluza/
 
 ## Technical Details
 
-### Seed Format
+### URL Parameters
 
+The application supports the following URL parameters:
+
+#### `seed` - Map Configuration
 Seeds are encoded in the format: `{nrBricks}-{maxHeight}-{minHeight}-{randomSeed}`
 
 - `nrBricks`: Number of bricks (1-100)
@@ -86,7 +93,28 @@ Seeds are encoded in the format: `{nrBricks}-{maxHeight}-{minHeight}-{randomSeed
 - `minHeight`: Minimum height or "null"
 - `randomSeed`: Random seed for deterministic generation
 
-Example: `15-8-null-456789`
+Example: `?seed=15-8-null-456789`
+
+#### `mode` - View Mode
+- `edit` (default): Full editing interface with all controls
+- `play`: Viewer mode with UI elements hidden
+
+Example: `?seed=10-5-2-123456&mode=play`
+
+#### `view` - Camera View
+Sets the initial camera position. Available views:
+- `Top` - Bird's eye view from above
+- `North` - View from the north side
+- `South` - View from the south side
+- `East` - View from the east side
+- `West` - View from the west side
+
+Example: `?seed=10-5-2-123456&view=Top`
+
+#### Combined Examples
+- Full editor: `?seed=10-5-2-123456`
+- Play mode with top view: `?seed=10-5-2-123456&mode=play&view=Top`
+- Edit mode with north view: `?seed=10-5-2-123456&view=North`
 
 ### Map Generation Algorithm
 

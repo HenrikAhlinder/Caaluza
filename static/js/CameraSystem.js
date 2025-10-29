@@ -104,24 +104,28 @@ export class CameraSystem {
 
             this.playerCameras[view.name] = camera;
 
-            // Set up view button event listener
-            const viewButton = buttonContainer.querySelector(`.view-button.${view.name}`);
-            if (viewButton) {
-                viewButton.addEventListener('click', () => {
-                    this.setActiveCamera(camera);
-                });
+            // Set up view button event listener only if button container exists
+            if (buttonContainer) {
+                const viewButton = buttonContainer.querySelector(`.view-button.${view.name}`);
+                if (viewButton) {
+                    viewButton.addEventListener('click', () => {
+                        this.setActiveCamera(camera);
+                    });
+                }
             }
         });
 
-        // Handle generic view buttons
-        buttonContainer.querySelectorAll('.view-button').forEach(button => {
-            const viewName = button.textContent.trim();
-            button.addEventListener('click', () => {
-                if (this.playerCameras[viewName]) {
-                    this.setActiveCamera(this.playerCameras[viewName]);
-                }
+        // Handle generic view buttons only if button container exists
+        if (buttonContainer) {
+            buttonContainer.querySelectorAll('.view-button').forEach(button => {
+                const viewName = button.textContent.trim();
+                button.addEventListener('click', () => {
+                    if (this.playerCameras[viewName]) {
+                        this.setActiveCamera(this.playerCameras[viewName]);
+                    }
+                });
             });
-        });
+        }
     }
 
     setActiveCamera(camera) {

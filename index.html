@@ -141,6 +141,50 @@
             background-color: #45a049;
         }
 
+        /* Map visibility toggle */
+        #three-canvas.hidden {
+            display: none;
+        }
+
+        .map-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #1a1a1a;
+            z-index: 1;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .map-overlay.show {
+            display: flex;
+        }
+
+        .map-overlay button {
+            padding: 15px 30px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .map-overlay button:hover {
+            background-color: #45a049;
+        }
+
+        .map-overlay .message {
+            color: #ccc;
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
         .error-message {
             color: #ff6b6b;
             margin-top: 10px;
@@ -155,35 +199,24 @@
 <body>
     <canvas id="three-canvas"></canvas>
 
+    <!-- Map Overlay (to hide map initially) -->
+    <div id="map-overlay" class="map-overlay">
+        <div class="message">Map generated! Click below to view it.</div>
+        <button onclick="showMap()">Show Map</button>
+    </div>
+
     <!-- Seed Display -->
     <div id="seed-display" class="seed-display">
         <span>Seed:</span>
         <span class="seed-value" id="seed-value"></span>
-        <button onclick="copySeedToClipboard()">Copy</button>
-        <button onclick="shareURL()">Share</button>
+        <button onclick="copySeedToClipboard()">Copy Seed</button>
+        <button onclick="sharePlayURL('Top')">Play: Top</button>
+        <button onclick="sharePlayURL('North')">Play: North</button>
+        <button onclick="sharePlayURL('South')">Play: South</button>
+        <button onclick="sharePlayURL('East')">Play: East</button>
+        <button onclick="sharePlayURL('West')">Play: West</button>
     </div>
 
-    <!-- Brick Selector -->
-    <div class="brick-selector-container">
-        <button class="brick-selector-toggle" id="brick-selector-toggle">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z"/>
-            </svg>
-            Bricks
-            <svg class="dropdown-arrow" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M7 10l5 5 5-5z"/>
-            </svg>
-        </button>
-        <div class="brick-selector" id="brick-selector">
-            <strong>Bricks:</strong>
-            <!-- Colors and sizes will be dynamically added -->
-        </div>
-    </div>
-
-    <!-- View Buttons -->
-    <div class="button-container" id="view-buttons">
-        <!-- View buttons will be dynamically added -->
-    </div>
 
     <!-- Zoom Controls -->
     <div class="zoom-controls">
@@ -199,12 +232,6 @@
         </button>
     </div>
 
-    <!-- Title Display -->
-    <div class="title-display-container">
-        <div class="title-display-box">
-            <span class="title-display-text" id="title-display">Caaluza Builder</span>
-        </div>
-    </div>
 
     <!-- Action Buttons -->
     <button id="generate-btn" class="gen-button">
@@ -307,68 +334,52 @@
 
         window.shareURL = function() {
             const seed = document.getElementById('seed-value').textContent;
-            const url = new URL(window.location);
+            const url = new URL(window.location.origin + window.location.pathname);
             url.searchParams.set('seed', seed);
             navigator.clipboard.writeText(url.toString()).then(() => {
-                alert('Shareable URL copied to clipboard!');
+                alert('Edit URL copied to clipboard!');
             });
         }
 
-        // Initialize brick selector
+        window.sharePlayURL = function(viewName = 'Top') {
+            const seed = document.getElementById('seed-value').textContent;
+            const url = new URL(window.location.origin + window.location.pathname);
+            url.searchParams.set('seed', seed);
+            url.searchParams.set('mode', 'play');
+            url.searchParams.set('view', viewName);
+            navigator.clipboard.writeText(url.toString()).then(() => {
+                alert(`Play mode URL copied to clipboard! (${viewName} view, UI hidden)`);
+            });
+        }
+
+        // Map visibility controls
+        window.showMap = function() {
+            // Hide the overlay to reveal the canvas
+            document.getElementById('map-overlay').classList.remove('show');
+        }
+
+        window.hideMap = function() {
+            // Show the overlay to hide the canvas
+            document.getElementById('map-overlay').classList.add('show');
+        }
+
+        // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            // Populate brick selector
-            const selector = document.getElementById('brick-selector');
-            colors.forEach(color => {
-                const colorHeader = document.createElement('div');
-                colorHeader.className = 'color-header';
-                colorHeader.textContent = color.name;
-                selector.appendChild(colorHeader);
+            // Generate button
+            const generateBtn = document.getElementById('generate-btn');
+            if (generateBtn) {
+                generateBtn.addEventListener('click', openGeneratorModal);
+            }
 
-                const sizeContainer = document.createElement('div');
-                sizeContainer.className = 'size-container';
-                sizes.forEach(size => {
-                    const button = document.createElement('button');
-                    button.className = 'size-button';
-                    button.title = `${size.name} ${color.name}`;
-                    button.textContent = size.name;
-                    sizeContainer.appendChild(button);
-                });
-                selector.appendChild(sizeContainer);
-            });
-
-            // Populate view buttons
-            const viewContainer = document.getElementById('view-buttons');
-            views.forEach(view => {
-                const button = document.createElement('button');
-                button.className = `view-button ${view.name}`;
-                button.setAttribute('data-position', JSON.stringify(view.position));
-                button.innerHTML = `${view.name}`;
-                viewContainer.appendChild(button);
-            });
-
-            // Brick selector toggle
-            const toggle = document.getElementById('brick-selector-toggle');
-            if (toggle && selector) {
-                toggle.addEventListener('click', function() {
-                    selector.classList.toggle('show');
-                    const arrow = toggle.querySelector('.dropdown-arrow path');
-                    if (selector.classList.contains('show')) {
-                        arrow.setAttribute('d', 'M7 14l5-5 5 5z');
-                    } else {
-                        arrow.setAttribute('d', 'M7 10l5 5 5-5z');
+            // Close modal when clicking outside
+            const modal = document.getElementById('generator-modal');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        closeGeneratorModal();
                     }
                 });
             }
-
-            // Generate button
-            document.getElementById('generate-btn').addEventListener('click', openGeneratorModal);
-
-            // Close modal when clicking outside
-            document.getElementById('generator-modal').addEventListener('click', function(e) {
-                if (e.target === this) {
-                    closeGeneratorModal();
-                }
-            });
         });
     </script>
     <!-- Load app.js for client-only version (replaces edit.js) -->

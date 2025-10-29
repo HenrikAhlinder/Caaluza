@@ -305,32 +305,20 @@ export class BrickEditor {
     }
 
     updateUIBasedOnMode() {
-        const brickSelectorContainer = document.querySelector('.brick-selector-container');
-        const buttonContainer = document.querySelector('.button-container');
         const zoomControls = document.querySelector('.zoom-controls');
-        const saveBtn = document.getElementById('save-btn');
-        const loadBtn = document.getElementById('load-btn');
         const generateBtn = document.getElementById('generate-btn');
 
         if (this.mode === 'play') {
             if (this.showBricksBtn) this.showBricksBtn.classList.remove('ui-hidden');
             if (this.bricksDisplay) this.bricksDisplay.classList.add('ui-hidden');
-            // Hide all buttons in play mode
-            if (brickSelectorContainer) brickSelectorContainer.classList.add('ui-hidden');
-            if (buttonContainer) buttonContainer.classList.add('ui-hidden');
+            // Hide controls in play mode
             if (zoomControls) zoomControls.classList.add('ui-hidden');
-            if (saveBtn) saveBtn.classList.add('ui-hidden');
-            if (loadBtn) loadBtn.classList.add('ui-hidden');
             if (generateBtn) generateBtn.classList.add('ui-hidden');
         } else {
             if (this.showBricksBtn) this.showBricksBtn.classList.add('ui-hidden');
             if (this.bricksDisplay) this.bricksDisplay.classList.add('ui-hidden');
-            // Show all buttons in edit mode
-            if (brickSelectorContainer) brickSelectorContainer.classList.remove('ui-hidden');
-            if (buttonContainer) buttonContainer.classList.remove('ui-hidden');
+            // Show controls in edit mode
             if (zoomControls) zoomControls.classList.remove('ui-hidden');
-            if (saveBtn) saveBtn.classList.remove('ui-hidden');
-            if (loadBtn) loadBtn.classList.remove('ui-hidden');
             if (generateBtn) generateBtn.classList.remove('ui-hidden');
         }
     }

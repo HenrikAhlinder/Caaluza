@@ -6,6 +6,8 @@ import {
     decodeFromSeed,
     isValidSeed,
     getSeedFromURL,
+    getViewFromURL,
+    getModeFromURL,
     updateURLWithSeed,
     createShareableURL
 } from './SeedSystem.js';
@@ -15,8 +17,23 @@ let currentSeed = null;
 
 // Initialize the application
 function init() {
-    // Check if there's a seed in the URL
+    // Check URL parameters
     const seedFromURL = getSeedFromURL();
+    const viewFromURL = getViewFromURL();
+    const modeFromURL = getModeFromURL();
+
+    // Set mode from URL or default to 'edit'
+    const mode = modeFromURL || 'edit';
+    window.mode = mode;
+
+    // Set selected view from URL
+    if (viewFromURL) {
+        // Find the view object
+        const viewObj = window.views.find(v => v.name.toLowerCase() === viewFromURL.toLowerCase());
+        if (viewObj) {
+            window.selectedView = viewFromURL;
+        }
+    }
 
     if (seedFromURL && isValidSeed(seedFromURL)) {
         // Load map from seed
@@ -49,7 +66,7 @@ function initializeEditor(mapData = null) {
     brickEditor = new BrickEditor(window.mode || 'edit');
 }
 
-function loadMapFromSeed(seed) {
+function loadMapFromSeed(seed, hideMapInitially = false) {
     try {
         const params = decodeFromSeed(seed);
 
@@ -71,6 +88,11 @@ function loadMapFromSeed(seed) {
         currentSeed = seed;
         if (typeof window.showSeedDisplay === 'function') {
             window.showSeedDisplay(seed);
+        }
+
+        // Hide map if requested (e.g., when generating new map)
+        if (hideMapInitially && typeof window.hideMap === 'function') {
+            window.hideMap();
         }
 
         console.log('Map loaded from seed:', seed);
@@ -124,8 +146,8 @@ function setupGeneratorForm() {
             // Update URL
             updateURLWithSeed(seed);
 
-            // Load map from seed
-            loadMapFromSeed(seed);
+            // Load map from seed (hide it initially so user can copy seed first)
+            loadMapFromSeed(seed, true);
 
             // Close modal
             if (typeof window.closeGeneratorModal === 'function') {
