@@ -135,6 +135,18 @@ export class CameraSystem {
         return this.activeCamera;
     }
 
+    isTopView() {
+        // Check if current camera is the Top view (or close to it)
+        if (this.activeCamera === this.playerCameras['Top']) {
+            return true;
+        }
+        // Also check if main camera is in top-down position
+        if (this.activeCamera === this.mainCamera && this.phi < 0.5) {
+            return true;
+        }
+        return false;
+    }
+
     startCameraMovement(mouseX, mouseY) {
         this.shouldMove = true;
         this.lastMouseX = mouseX;
@@ -191,6 +203,34 @@ export class CameraSystem {
              this.gridCenter.y + y,
              this.gridCenter.z + z
          );
+
+        // Update compass rotation
+        updateCompassRotation(getCompassDirectionVector(this.activeCamera.position, this.gridCenter));
+        this.activeCamera.lookAt(this.gridCenter);
+
+        this.lastMouseX = mouseX;
+        this.lastMouseY = mouseY;
+    }
+
+    updateCameraRotation(mouseX, mouseY) {
+        if (!this.shouldMove) return;
+
+        const deltaX = mouseX - this.lastMouseX;
+
+        // Only update horizontal rotation (theta)
+        this.theta -= deltaX * EditorConfig.CAMERA_ROTATION_SPEED;
+
+        // Convert spherical to Cartesian coordinates
+        const x = this.radius * Math.sin(this.phi) * Math.cos(this.theta);
+        const y = this.radius * Math.cos(this.phi);
+        const z = this.radius * Math.sin(this.phi) * Math.sin(this.theta);
+
+        // Update camera position
+        this.activeCamera.position.set(
+            this.gridCenter.x + x,
+            this.gridCenter.y + y,
+            this.gridCenter.z + z
+        );
 
         // Update compass rotation
         updateCompassRotation(getCompassDirectionVector(this.activeCamera.position, this.gridCenter));
