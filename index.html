@@ -210,11 +210,11 @@
         <span>Seed:</span>
         <span class="seed-value" id="seed-value"></span>
         <button onclick="copySeedToClipboard()">Copy Seed</button>
-        <button onclick="sharePlayURL('Top')">Play: Top</button>
-        <button onclick="sharePlayURL('North')">Play: North</button>
-        <button onclick="sharePlayURL('South')">Play: South</button>
-        <button onclick="sharePlayURL('East')">Play: East</button>
-        <button onclick="sharePlayURL('West')">Play: West</button>
+        <button onclick="sharePlayURL('Top')">Top</button>
+        <button onclick="sharePlayURL('North')">North</button>
+        <button onclick="sharePlayURL('South')">South</button>
+        <button onclick="sharePlayURL('East')">East</button>
+        <button onclick="sharePlayURL('West')">West</button>
     </div>
 
 
@@ -240,6 +240,30 @@
         </svg>
         Generate
     </button>
+    <button id="load-seed-btn" class="gen-button" style="top: 23%;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+        </svg>
+        Load From Seed
+    </button>
+
+    <!-- Load Seed Modal -->
+    <div id="load-seed-modal" class="generator-modal">
+        <div class="generator-content">
+            <h2>Load Map from Seed</h2>
+            <form id="load-seed-form">
+                <div class="form-group">
+                    <label for="seed-input">Seed:</label>
+                    <input type="text" id="seed-input" name="seed" placeholder="e.g. 10-5-null-123456" required>
+                </div>
+                <div class="error-message" id="seed-error-message"></div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeLoadSeedModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Load</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- Generator Modal -->
     <div id="generator-modal" class="generator-modal">
@@ -247,7 +271,7 @@
             <h2>Generate Map</h2>
             <form id="generator-form">
                 <div class="form-group">
-                    <label for="nr-bricks">Number of Bricks (1-100):</label>
+                    <label for="nr-bricks">Number of Bricks (1-28):</label>
                     <input type="number" id="nr-bricks" name="nrBricks" min="1" max="100" value="10" required>
                 </div>
                 <div class="form-group">
@@ -363,6 +387,18 @@
             document.getElementById('map-overlay').classList.add('show');
         }
 
+        // Load Seed modal functions
+        window.openLoadSeedModal = function() {
+            document.getElementById('load-seed-modal').classList.add('show');
+            document.getElementById('seed-input').focus();
+        }
+
+        window.closeLoadSeedModal = function() {
+            document.getElementById('load-seed-modal').classList.remove('show');
+            document.getElementById('seed-error-message').classList.remove('show');
+            document.getElementById('seed-input').value = '';
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             // Generate button
@@ -371,12 +407,27 @@
                 generateBtn.addEventListener('click', openGeneratorModal);
             }
 
-            // Close modal when clicking outside
-            const modal = document.getElementById('generator-modal');
-            if (modal) {
-                modal.addEventListener('click', function(e) {
+            // Load Seed button
+            const loadSeedBtn = document.getElementById('load-seed-btn');
+            if (loadSeedBtn) {
+                loadSeedBtn.addEventListener('click', openLoadSeedModal);
+            }
+
+            // Close modals when clicking outside
+            const generatorModal = document.getElementById('generator-modal');
+            if (generatorModal) {
+                generatorModal.addEventListener('click', function(e) {
                     if (e.target === this) {
                         closeGeneratorModal();
+                    }
+                });
+            }
+
+            const loadSeedModal = document.getElementById('load-seed-modal');
+            if (loadSeedModal) {
+                loadSeedModal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        closeLoadSeedModal();
                     }
                 });
             }

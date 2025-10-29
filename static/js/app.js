@@ -45,6 +45,47 @@ function init() {
 
     // Setup generator form
     setupGeneratorForm();
+
+    // Setup load seed form
+    setupLoadSeedForm();
+}
+
+function setupLoadSeedForm() {
+    const form = document.getElementById('load-seed-form');
+    if (!form) return;
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const seedInput = document.getElementById('seed-input').value.trim();
+        const errorMsg = document.getElementById('seed-error-message');
+
+        // Validate seed
+        if (!isValidSeed(seedInput)) {
+            errorMsg.textContent = 'Invalid seed format. Expected format: nrBricks-maxHeight-minHeight-randomSeed (e.g., 10-5-null-123456)';
+            errorMsg.classList.add('show');
+            return;
+        }
+
+        errorMsg.classList.remove('show');
+
+        try {
+            // Update URL
+            updateURLWithSeed(seedInput);
+
+            // Load map from seed (don't hide initially since user explicitly loaded it)
+            loadMapFromSeed(seedInput, false);
+
+            // Close modal
+            if (typeof window.closeLoadSeedModal === 'function') {
+                window.closeLoadSeedModal();
+            }
+        } catch (error) {
+            errorMsg.textContent = 'Failed to load seed: ' + error.message;
+            errorMsg.classList.add('show');
+            console.error('Load seed error:', error);
+        }
+    });
 }
 
 function initializeEditor(mapData = null) {

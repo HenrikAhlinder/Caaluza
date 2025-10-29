@@ -6,6 +6,11 @@ import { BrickManager } from './BrickManager.js';
 import { UIController } from './UIController.js';
 
 function addCompassOverlay() {
+    // Check if compass already exists
+    if (document.querySelector('.compass-overlay')) {
+        return; // Compass already added, don't add another
+    }
+
     const compass = document.createElement('div');
     compass.className = 'compass-overlay';
     compass.innerHTML = `
