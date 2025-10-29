@@ -117,23 +117,8 @@ function selectOptimalSpot(spots, config, placedBricks, bricksRemaining) {
         }
     }
 
-    // Calculate aggressiveness based on safety margin
-    const heightDeficit = config.minHeight - currentMaxHeight;
-    const safetyMargin = bricksRemaining - heightDeficit;
-
-    let aggressiveness;
-    if (safetyMargin >= 3) {
-        aggressiveness = 0.1;
-    } else if (safetyMargin === 2) {
-        aggressiveness = 0.3;
-    } else if (safetyMargin === 1) {
-        aggressiveness = 0.6;
-    } else if (safetyMargin === 0) {
-        aggressiveness = 0.8;
-    } else {
-        aggressiveness = 1.0;
-    }
-
+    // Haven't reached minimum height yet - be aggressive!
+    // Always pick the highest available spot
     const maxHeightInSpots = Math.max(...spots.map(spot =>
         Math.min(...spot.map(p => p.y))
     ));
@@ -141,31 +126,30 @@ function selectOptimalSpot(spots, config, placedBricks, bricksRemaining) {
         Math.min(...spot.map(p => p.y)) === maxHeightInSpots
     );
 
-    // Apply scaled aggressiveness
-    if (maxHeightSpots.length > 0 && Math.random() < aggressiveness) {
-        // When being aggressive, prefer spots that build on existing structures
-        if (aggressiveness >= 0.8 && placedBricks.length > 0) {
-            const buildingOnExisting = [];
-            for (const spot of maxHeightSpots) {
-                for (const point of spot) {
-                    const pointBelow = new Point(point.x, point.y - 1, point.z);
-                    if (placedBricks.some(brick =>
-                        Array.from(brick.points).some(p => p.equals(pointBelow))
-                    )) {
-                        buildingOnExisting.push(spot);
-                        break;
-                    }
+    // Among the highest spots, strongly prefer ones that build on existing structures
+    if (placedBricks.length > 0) {
+        const buildingOnExisting = [];
+        for (const spot of maxHeightSpots) {
+            // Check if any point in this spot has a brick directly below it
+            for (const point of spot) {
+                const pointBelow = new Point(point.x, point.y - 1, point.z);
+                if (placedBricks.some(brick =>
+                    Array.from(brick.points).some(p => p.equals(pointBelow))
+                )) {
+                    buildingOnExisting.push(spot);
+                    break;
                 }
-            }
-            if (buildingOnExisting.length > 0) {
-                return buildingOnExisting[Math.floor(Math.random() * buildingOnExisting.length)];
             }
         }
 
-        return maxHeightSpots[Math.floor(Math.random() * maxHeightSpots.length)];
-    } else {
-        return spots[Math.floor(Math.random() * spots.length)];
+        // If we found spots that build on existing structures, use those
+        if (buildingOnExisting.length > 0) {
+            return buildingOnExisting[Math.floor(Math.random() * buildingOnExisting.length)];
+        }
     }
+
+    // Otherwise, just pick from the highest spots
+    return maxHeightSpots[Math.floor(Math.random() * maxHeightSpots.length)];
 }
 
 function assertNoOverlappingBricks(placedBricks) {
@@ -180,25 +164,25 @@ function assertNoOverlappingBricks(placedBricks) {
 
 function addNewAvailablePegs(availablePegs, config, placedBricks, spot) {
     for (const p of spot) {
-        if (p.y + 1 >= config.maxHeight) {
-            continue;
-        }
-        const abovePoint = new Point(p.x, p.y + 1, p.z);
-        if (placedBricks.every(brick =>
-            brick.sharesNoPoints([abovePoint])
-        )) {
-            // Add to set using string representation to avoid duplicates
-            availablePegs.add(abovePoint);
+        // Add peg above if within max height limit (or no limit)
+        if (config.maxHeight === null || p.y + 1 < config.maxHeight) {
+            const abovePoint = new Point(p.x, p.y + 1, p.z);
+            if (placedBricks.every(brick =>
+                brick.sharesNoPoints([abovePoint])
+            )) {
+                // Add to set using string representation to avoid duplicates
+                availablePegs.add(abovePoint);
+            }
         }
 
-        if (p.y <= 0) {
-            continue;
-        }
-        const hangingPoint = new Point(p.x, p.y - 1, p.z);
-        if (placedBricks.every(brick =>
-            brick.sharesNoPoints([hangingPoint])
-        )) {
-            availablePegs.add(hangingPoint);
+        // Add hanging peg below (only above baseplate level)
+        if (p.y > 0) {
+            const hangingPoint = new Point(p.x, p.y - 1, p.z);
+            if (placedBricks.every(brick =>
+                brick.sharesNoPoints([hangingPoint])
+            )) {
+                availablePegs.add(hangingPoint);
+            }
         }
     }
 }
@@ -273,15 +257,8 @@ function generateSingleMap(config, seed = null) {
             throw new Error("No spots available");
         }
 
-        // Use seeded random for spot selection if available
-        let spot;
-        if (seed !== null) {
-            // Simplified selection for deterministic behavior
-            const spotIndex = Math.floor(random() * spots.length);
-            spot = spots[spotIndex];
-        } else {
-            spot = selectOptimalSpot(spots, config, placedBricks, bricksRemaining);
-        }
+        // Always use optimal spot selection (respects min height requirements)
+        const spot = selectOptimalSpot(spots, config, placedBricks, bricksRemaining);
 
         placedBricks.push(new BrickDef(brick.width, brick.depth, brick.color, spot));
 
