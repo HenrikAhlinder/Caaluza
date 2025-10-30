@@ -41,15 +41,15 @@ export class BrickDef {
 }
 
 export class Config {
-    constructor(nrBricks, maxHeight = null, minHeight = null, density = 1.0) {
+    constructor(nrBricks, maxHeight = null, minHeight = null, excludeMiddle = false) {
         this.nrBricks = nrBricks;
         this.maxHeight = maxHeight;
         this.minHeight = minHeight;
-        this.density = density; // 0.0 (sparse) to 1.0 (dense)
+        this.excludeMiddle = excludeMiddle; // Exclude middle 2x2 pegs from bottom plate
     }
 }
 
-function findPlaceableSpots(brick, placedBricks, availablePegs) {
+function findPlaceableSpots(brick, placedBricks, availablePegs, config) {
     const possiblePoints = [];
     const orientations = [
         [brick.width, brick.depth],
@@ -66,6 +66,18 @@ function findPlaceableSpots(brick, placedBricks, availablePegs) {
                             coordinates.push(
                                 new Point(peg.x - xOffset + x, peg.y, peg.z - zOffset + z)
                             );
+                        }
+                    }
+
+                    // Check if excludeMiddle is enabled and this placement would overlap with middle 2x2
+                    if (config.excludeMiddle) {
+                        const overlapsMiddle = coordinates.some(point =>
+                            point.y === 0 &&
+                            point.x >= 2 && point.x <= 3 &&
+                            point.z >= 2 && point.z <= 3
+                        );
+                        if (overlapsMiddle) {
+                            continue; // Skip this placement
                         }
                     }
 
@@ -197,8 +209,7 @@ function assertNoOverlappingBricks(placedBricks) {
 function addNewAvailablePegs(availablePegs, config, placedBricks, spot, random) {
     for (const p of spot) {
         // Add peg above if within max height limit (or no limit)
-        // Use density to probabilistically add pegs (lower density = fewer pegs)
-        if ((config.maxHeight === null || p.y + 1 < config.maxHeight) && random() < config.density) {
+        if (config.maxHeight === null || p.y + 1 < config.maxHeight) {
             const abovePoint = new Point(p.x, p.y + 1, p.z);
             if (placedBricks.every(brick =>
                 brick.sharesNoPoints([abovePoint])
@@ -209,8 +220,7 @@ function addNewAvailablePegs(availablePegs, config, placedBricks, spot, random) 
         }
 
         // Add hanging peg below (only above baseplate level)
-        // Use density for hanging pegs too
-        if (p.y > 0 && random() < config.density) {
+        if (p.y > 0) {
             const hangingPoint = new Point(p.x, p.y - 1, p.z);
             if (placedBricks.every(brick =>
                 brick.sharesNoPoints([hangingPoint])
@@ -275,6 +285,15 @@ function generateSingleMap(config, seed = null) {
     const baseplate = new BrickDef(6, 6, "gray", baseplatePoints);
 
     const availablePegs = new Set(baseplatePoints);
+
+    // Remove middle 2x2 pegs if requested
+    if (config.excludeMiddle) {
+        for (const point of availablePegs) {
+            if (point.y === 0 && point.x >= 2 && point.x <= 3 && point.z >= 2 && point.z <= 3) {
+                availablePegs.delete(point);
+            }
+        }
+    }
     const availableBricks = getAvailableBricks(config.nrBricks, seed);
 
     const placedBricks = [];
@@ -286,7 +305,7 @@ function generateSingleMap(config, seed = null) {
         const brick = availableBricks[i];
         const bricksRemaining = availableBricks.length - i - 1;
 
-        const spots = findPlaceableSpots(brick, placedBricks, availablePegs);
+        const spots = findPlaceableSpots(brick, placedBricks, availablePegs, config);
         if (spots.length === 0) {
             throw new Error("No spots available");
         }

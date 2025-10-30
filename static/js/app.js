@@ -62,7 +62,7 @@ function setupLoadSeedForm() {
 
         // Validate seed
         if (!isValidSeed(seedInput)) {
-            errorMsg.textContent = 'Invalid seed format. Expected format: nrBricks-maxHeight-minHeight-randomSeed (e.g., 10-5-null-123456)';
+            errorMsg.textContent = 'Invalid seed format. Expected format: nrBricks-maxHeight-minHeight-excludeMiddle-randomSeed (e.g., 10-5-null-false-123456)';
             errorMsg.classList.add('show');
             return;
         }
@@ -116,7 +116,7 @@ function loadMapFromSeed(seed, hideMapInitially = false) {
             params.nrBricks,
             params.maxHeight,
             params.minHeight,
-            params.density
+            params.excludeMiddle
         );
 
         // Generate map with the seed
@@ -155,11 +155,10 @@ function setupGeneratorForm() {
         const nrBricks = parseInt(document.getElementById('nr-bricks').value, 10);
         const maxHeightInput = document.getElementById('max-height').value;
         const minHeightInput = document.getElementById('min-height').value;
-        const densityInput = document.getElementById('density').value;
+        const excludeMiddle = document.getElementById('exclude-middle').checked;
 
         const maxHeight = maxHeightInput ? parseInt(maxHeightInput, 10) : null;
         const minHeight = minHeightInput ? parseInt(minHeightInput, 10) : null;
-        const density = densityInput ? parseFloat(densityInput) : 1.0;
 
         // Validate inputs
         const errorMsg = document.getElementById('error-message');
@@ -185,7 +184,7 @@ function setupGeneratorForm() {
 
         try {
             // Generate seed
-            const seed = encodeToSeed(nrBricks, maxHeight, minHeight, density);
+            const seed = encodeToSeed(nrBricks, maxHeight, minHeight, excludeMiddle);
 
             // Update URL
             updateURLWithSeed(seed);
