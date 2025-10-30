@@ -175,10 +175,12 @@ export class BrickEditor {
         window.addEventListener('mousemove', (event) => {
             this.interactionSystem.updateMouse(event.clientX, event.clientY);
 
-            // Allow camera movement in edit mode, or rotation in play/edit mode (top view only)
+            // Camera movement logic:
             if (this.mode === 'edit') {
+                // Edit mode: always allow full camera movement
                 this.cameraSystem.updateCameraMovement(event.clientX, event.clientY);
             } else if (this.mode === 'play' && this.cameraSystem.isTopView()) {
+                // Play mode + top view: only rotate around vertical axis
                 this.cameraSystem.updateCameraRotation(event.clientX, event.clientY);
             }
 
@@ -195,8 +197,14 @@ export class BrickEditor {
         window.addEventListener('mousedown', (event) => {
             if (event.button === 1) { // Middle mouse button - both modes
                 this.cameraSystem.startCameraMovement(event.clientX, event.clientY);
-            } else if (event.button === 0 && !this.brickManager.isDragging()) { // Left click
-                this.handleLeftClick();
+            } else if (event.button === 0) { // Left click
+                if (this.mode === 'play' && this.cameraSystem.isTopView()) {
+                    // In play mode top view, left click starts camera rotation
+                    this.cameraSystem.startCameraMovement(event.clientX, event.clientY);
+                } else if (this.mode === 'edit' && !this.brickManager.isDragging()) {
+                    // In edit mode, left click handles brick selection
+                    this.handleLeftClick();
+                }
             } else if (event.button === 2) { // Right click
                 this.handleRightClick();
                 event.preventDefault();
@@ -206,8 +214,14 @@ export class BrickEditor {
         window.addEventListener('mouseup', (event) => {
             if (event.button === 1) { // Middle mouse button - both modes
                 this.cameraSystem.stopCameraMovement();
-            } else if (event.button === 0 && this.mode === 'edit' && this.brickManager.isDragging()) { // Left click release
-                this.brickManager.stopDrag();
+            } else if (event.button === 0) { // Left click release
+                if (this.mode === 'play' && this.cameraSystem.isTopView()) {
+                    // In play mode top view, left click release stops camera rotation
+                    this.cameraSystem.stopCameraMovement();
+                } else if (this.mode === 'edit' && this.brickManager.isDragging()) {
+                    // In edit mode, left click release stops brick dragging
+                    this.brickManager.stopDrag();
+                }
             }
         });
 
@@ -223,19 +237,28 @@ export class BrickEditor {
 
         window.addEventListener('touchstart', (e) => {
             if (e.touches.length === 1) {
-                this.cameraSystem.startCameraMovement(e.touches[0].clientX, e.touches[0].clientY);
+                // Only allow camera movement in edit mode or play mode + top view
+                if (this.mode === 'edit' || (this.mode === 'play' && this.cameraSystem.isTopView())) {
+                    this.cameraSystem.startCameraMovement(e.touches[0].clientX, e.touches[0].clientY);
+                }
             }
         });
 
         window.addEventListener('touchmove', (e) => {
             if (e.touches.length === 1) {
+                // Prevent scrolling while rotating camera
+                e.preventDefault();
+
+                // Camera movement logic:
                 if (this.mode === 'edit') {
+                    // Edit mode: always allow full camera movement
                     this.cameraSystem.updateCameraMovement(e.touches[0].clientX, e.touches[0].clientY);
                 } else if (this.mode === 'play' && this.cameraSystem.isTopView()) {
+                    // Play mode + top view: only rotate around vertical axis
                     this.cameraSystem.updateCameraRotation(e.touches[0].clientX, e.touches[0].clientY);
                 }
             }
-        });
+        }, { passive: false });
 
         window.addEventListener('touchend', () => {
             this.cameraSystem.stopCameraMovement();

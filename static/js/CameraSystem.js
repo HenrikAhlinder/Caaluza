@@ -11,19 +11,34 @@ function updateCompassRotation(direction) {
     }
 }
 
-function getCompassDirectionVector(cameraPos, targetPos) {
-    const dx = targetPos.x - cameraPos.x;
-    const dz = targetPos.z - cameraPos.z;
+function getCompassDirectionVector(camera, targetPos) {
+    // For top-down views, use the camera's forward direction in the XZ plane
+    // This works when the camera rotates in place
+    const forward = new THREE.Vector3(0, 0, -1); // Camera's default forward direction
+    forward.applyQuaternion(camera.quaternion); // Apply camera's rotation
 
-    const length = Math.sqrt(dx*dx + dz*dz);
+    // Project to XZ plane and normalize
+    const length = Math.sqrt(forward.x * forward.x + forward.z * forward.z);
 
     if (length === 0) {
-        return { x: 0, z: 0 };
+        // Fallback: use position-based direction
+        const dx = targetPos.x - camera.position.x;
+        const dz = targetPos.z - camera.position.z;
+        const fallbackLength = Math.sqrt(dx*dx + dz*dz);
+
+        if (fallbackLength === 0) {
+            return { x: 0, z: -1 }; // Default north
+        }
+
+        return {
+            x: dx / fallbackLength,
+            z: dz / fallbackLength
+        };
     }
 
     return {
-        x: dx / length,
-        z: dz / length
+        x: forward.x / length,
+        z: forward.z / length
     };
 }
 
@@ -37,7 +52,7 @@ export class CameraSystem {
         this.playerCameras = {};
         this.mainCamera = null;
         this.activeCamera = null;
-        this.shouldMove = false;
+        this.shouldMove = true;
         this.lastMouseX = 0;
         this.lastMouseY = 0;
         // Spherical coordinates
@@ -50,7 +65,7 @@ export class CameraSystem {
         this.minPhi = 0.1;         // minimum vertical angle (near top)
         this.maxPhi = Math.PI - 0.1; // maximum vertical angle (horizon)
         this.totalRotationY = 0;
-        this.selectedView = selectedView
+        this.selectedView = selectedView;
 
         this.init();
     }
@@ -61,7 +76,7 @@ export class CameraSystem {
 
         this.activeCamera = this.mainCamera;
         if (this.selectedView !== null) {
-            this.setActiveCamera(this.playerCameras[selectedView]);
+            this.setActiveCamera(this.playerCameras[this.selectedView]);
         }
 
         // Sync spherical coordinates with the actual active camera position
@@ -101,7 +116,7 @@ export class CameraSystem {
              this.gridCenter.z + z
          );
         this.mainCamera.lookAt(this.gridCenter);
-        updateCompassRotation(getCompassDirectionVector(this.mainCamera.position, this.gridCenter));
+        updateCompassRotation(getCompassDirectionVector(this.mainCamera, this.gridCenter));
     }
 
     createPlayerCameras() {
@@ -150,7 +165,7 @@ export class CameraSystem {
         // Sync spherical coordinates with the new camera position
         this.syncSphericalCoordinates();
         // Update compass rotation when switching cameras
-        updateCompassRotation(getCompassDirectionVector(camera.position, this.gridCenter));
+        updateCompassRotation(getCompassDirectionVector(camera, this.gridCenter));
     }
 
     getActiveCamera() {
@@ -177,12 +192,12 @@ export class CameraSystem {
     }
 
     isTopView() {
-        // Check if current camera is the Top view (or close to it)
+        // Check if current camera is the Top view
         if (this.activeCamera === this.playerCameras['Top']) {
             return true;
         }
         // Also check if main camera is in top-down position
-        if (this.activeCamera === this.mainCamera && this.phi < 0.5) {
+        if (this.activeCamera === this.mainCamera && this.phi < 0.3) {
             return true;
         }
         return false;
@@ -236,7 +251,7 @@ export class CameraSystem {
          );
 
         // Update compass rotation
-        updateCompassRotation(getCompassDirectionVector(this.activeCamera.position, this.gridCenter));
+        updateCompassRotation(getCompassDirectionVector(this.activeCamera, this.gridCenter));
         this.activeCamera.lookAt(this.gridCenter);
 
         this.lastMouseX = mouseX;
@@ -248,24 +263,44 @@ export class CameraSystem {
 
         const deltaX = mouseX - this.lastMouseX;
 
-        // Only update horizontal rotation (theta)
-        this.theta -= deltaX * EditorConfig.CAMERA_ROTATION_SPEED;
+        // For top view rotation, rotate the camera in place (change orientation, not position)
+        if (Math.abs(this.phi) < 0.3) {
+            // Top view: rotate the camera's up vector around the vertical axis
+            const angle = deltaX * EditorConfig.CAMERA_ROTATION_SPEED;
 
-        // Convert spherical to Cartesian coordinates
-        const x = this.radius * Math.sin(this.phi) * Math.cos(this.theta);
-        const y = this.radius * Math.cos(this.phi);
-        const z = this.radius * Math.sin(this.phi) * Math.sin(this.theta);
+            // Rotate camera around its own vertical axis (yaw rotation)
+            // Keep position the same, but change where it's looking
+            const rotationAxis = new THREE.Vector3(0, 1, 0); // Y axis (vertical)
+            const quaternion = new THREE.Quaternion();
+            quaternion.setFromAxisAngle(rotationAxis, angle);
 
-        // Update camera position
-        this.activeCamera.position.set(
-            this.gridCenter.x + x,
-            this.gridCenter.y + y,
-            this.gridCenter.z + z
-        );
+            // Apply rotation to camera's current orientation
+            this.activeCamera.quaternion.multiplyQuaternions(quaternion, this.activeCamera.quaternion);
+
+            // Update the camera's up vector to maintain orientation
+            this.activeCamera.up.applyQuaternion(quaternion);
+        } else {
+            // Other views: use spherical coordinates (orbit around center)
+            this.theta -= deltaX * EditorConfig.CAMERA_ROTATION_SPEED;
+
+            // Convert spherical to Cartesian coordinates
+            const x = this.radius * Math.sin(this.phi) * Math.cos(this.theta);
+            const y = this.radius * Math.cos(this.phi);
+            const z = this.radius * Math.sin(this.phi) * Math.sin(this.theta);
+
+            // Update camera position
+            this.activeCamera.position.set(
+                this.gridCenter.x + x,
+                this.gridCenter.y + y,
+                this.gridCenter.z + z
+            );
+
+            // Always look at center
+            this.activeCamera.lookAt(this.gridCenter);
+        }
 
         // Update compass rotation
-        updateCompassRotation(getCompassDirectionVector(this.activeCamera.position, this.gridCenter));
-        this.activeCamera.lookAt(this.gridCenter);
+        updateCompassRotation(getCompassDirectionVector(this.activeCamera, this.gridCenter));
 
         this.lastMouseX = mouseX;
         this.lastMouseY = mouseY;
