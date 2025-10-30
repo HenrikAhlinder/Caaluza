@@ -51,6 +51,7 @@ export class Config {
 
 function findPlaceableSpots(brick, placedBricks, availablePegs, config) {
     const possiblePoints = [];
+    const possiblePointsMetadata = []; // Track which spots overlap middle 2x2
     const orientations = [
         [brick.width, brick.depth],
         [brick.depth, brick.width]
@@ -69,28 +70,28 @@ function findPlaceableSpots(brick, placedBricks, availablePegs, config) {
                         }
                     }
 
-                    // Check if excludeMiddle is enabled and this placement would overlap with middle 2x2
-                    if (config.excludeMiddle) {
-                        const overlapsMiddle = coordinates.some(point =>
-                            point.y === 0 &&
-                            point.x >= 2 && point.x <= 3 &&
-                            point.z >= 2 && point.z <= 3
-                        );
-                        if (overlapsMiddle) {
-                            continue; // Skip this placement
-                        }
-                    }
-
                     // Check if all placed bricks share no points with these coordinates
                     if (placedBricks.every(b => b.sharesNoPoints(coordinates))) {
                         possiblePoints.push(coordinates);
+
+                        // Track if this spot overlaps with middle 2x2 (for weighting later)
+                        if (config.excludeMiddle) {
+                            const overlapsMiddle = coordinates.some(point =>
+                                point.y === 0 &&
+                                point.x >= 2 && point.x <= 3 &&
+                                point.z >= 2 && point.z <= 3
+                            );
+                            possiblePointsMetadata.push({ overlapsMiddle });
+                        } else {
+                            possiblePointsMetadata.push({ overlapsMiddle: false });
+                        }
                     }
                 }
             }
         }
     }
 
-    return possiblePoints;
+    return { spots: possiblePoints, metadata: possiblePointsMetadata };
 }
 
 function getMaxHeight(placedBricks) {
@@ -106,94 +107,78 @@ function getMaxHeight(placedBricks) {
     return maxHeight;
 }
 
-function selectOptimalSpot(spots, config, placedBricks, bricksRemaining, randomFn) {
+/**
+ * Weighted random selection - picks an item based on weights
+ * @param {Array} items - Array of items to choose from
+ * @param {Array} weights - Array of weights (same length as items)
+ * @param {Function} randomFn - Random function to use
+ * @returns Selected item
+ */
+function weightedRandomSelect(items, weights, randomFn) {
+    const totalWeight = weights.reduce((sum, w) => sum + w, 0);
+    let random = randomFn() * totalWeight;
+
+    for (let i = 0; i < items.length; i++) {
+        random -= weights[i];
+        if (random <= 0) {
+            return items[i];
+        }
+    }
+
+    // Fallback (shouldn't happen)
+    return items[items.length - 1];
+}
+
+function selectOptimalSpot(spots, metadata, config, placedBricks, bricksRemaining, randomFn) {
+    // Calculate weights for each spot based on its minimum height
+    const spotHeights = spots.map(spot => Math.min(...spot.map(p => p.y)));
+
+    // Determine height preference multiplier based on situation
+    let heightMultiplier;
+
     if (config.minHeight === null) {
-        return spots[Math.floor(randomFn() * spots.length)];
-    }
-
-    const currentMaxHeight = getMaxHeight(placedBricks);
-
-    // If we've already reached minimum height, play naturally with slight height preference
-    if (currentMaxHeight >= config.minHeight) {
-        const maxHeightInSpots = Math.max(...spots.map(spot =>
-            Math.min(...spot.map(p => p.y))
-        ));
-        const maxHeightSpots = spots.filter(spot =>
-            Math.min(...spot.map(p => p.y)) === maxHeightInSpots
-        );
-
-        // Mild preference for higher spots (60% vs 40%)
-        if (maxHeightSpots.length > 0 && randomFn() < 0.6) {
-            return maxHeightSpots[Math.floor(randomFn() * maxHeightSpots.length)];
-        } else {
-            return spots[Math.floor(randomFn() * spots.length)];
-        }
-    }
-
-    // Haven't reached minimum height yet
-    const heightDeficit = config.minHeight - currentMaxHeight;
-
-    // Calculate the maximum height spots
-    const maxHeightInSpots = Math.max(...spots.map(spot =>
-        Math.min(...spot.map(p => p.y))
-    ));
-    const maxHeightSpots = spots.filter(spot =>
-        Math.min(...spot.map(p => p.y)) === maxHeightInSpots
-    );
-
-    // Determine strategy based on how critical the situation is
-    const isCritical = bricksRemaining <= heightDeficit;
-
-    if (isCritical) {
-        // Critical: Must stack aggressively (100% pick highest)
-        // Prefer spots that build on existing structures
-        if (placedBricks.length > 0) {
-            const buildingOnExisting = [];
-            for (const spot of maxHeightSpots) {
-                for (const point of spot) {
-                    const pointBelow = new Point(point.x, point.y - 1, point.z);
-                    if (placedBricks.some(brick =>
-                        Array.from(brick.points).some(p => p.equals(pointBelow))
-                    )) {
-                        buildingOnExisting.push(spot);
-                        break;
-                    }
-                }
-            }
-            if (buildingOnExisting.length > 0) {
-                return buildingOnExisting[Math.floor(randomFn() * buildingOnExisting.length)];
-            }
-        }
-        // Always pick highest spot when critical
-        return maxHeightSpots[Math.floor(randomFn() * maxHeightSpots.length)];
+        // No minimum height requirement: mild preference for height (more natural building)
+        heightMultiplier = 1.5;
     } else {
-        // Not critical: Probabilistically prefer height (75% chance)
-        // This encourages upward building without forcing towers
-        if (randomFn() < 0.75) {
-            // Pick from higher spots (prefer building on existing structures)
-            if (placedBricks.length > 0) {
-                const buildingOnExisting = [];
-                for (const spot of maxHeightSpots) {
-                    for (const point of spot) {
-                        const pointBelow = new Point(point.x, point.y - 1, point.z);
-                        if (placedBricks.some(brick =>
-                            Array.from(brick.points).some(p => p.equals(pointBelow))
-                        )) {
-                            buildingOnExisting.push(spot);
-                            break;
-                        }
-                    }
-                }
-                if (buildingOnExisting.length > 0) {
-                    return buildingOnExisting[Math.floor(randomFn() * buildingOnExisting.length)];
-                }
-            }
-            return maxHeightSpots[Math.floor(randomFn() * maxHeightSpots.length)];
+        const currentMaxHeight = getMaxHeight(placedBricks);
+
+        if (currentMaxHeight >= config.minHeight) {
+            // Already reached minimum height: mild preference for continued upward building
+            heightMultiplier = 1.5;
         } else {
-            // 25% of the time, pick any spot (allows for variety)
-            return spots[Math.floor(randomFn() * spots.length)];
+            // Haven't reached minimum height yet
+            const heightDeficit = config.minHeight - currentMaxHeight;
+            const safetyMargin = bricksRemaining - heightDeficit;
+
+            if (safetyMargin <= 0) {
+                // Critical: MUST reach height - extremely aggressive
+                heightMultiplier = 100.0;
+            } else if (safetyMargin === 1) {
+                // Very low safety: very aggressive
+                heightMultiplier = 20.0;
+            } else if (safetyMargin === 2) {
+                // Some safety: moderate-strong preference
+                heightMultiplier = 2.5;
+            } else {
+                // Good safety: moderate preference
+                heightMultiplier = 2.0;
+            }
         }
     }
+
+    // Calculate weights for each spot: weight = heightMultiplier ^ height
+    // This gives exponentially more weight to higher spots, but fairly distributed
+    const weights = spotHeights.map(height => Math.pow(heightMultiplier, height));
+
+    // Apply penalty for spots that overlap with middle 2x2 (10% of normal weight = 90% chance to avoid)
+    for (let i = 0; i < spots.length; i++) {
+        if (metadata[i].overlapsMiddle) {
+            weights[i] *= 0.1; // Strong disincentive (90% chance to place elsewhere)
+        }
+    }
+
+    // Use weighted random selection
+    return weightedRandomSelect(spots, weights, randomFn);
 }
 
 function assertNoOverlappingBricks(placedBricks) {
@@ -285,15 +270,6 @@ function generateSingleMap(config, seed = null) {
     const baseplate = new BrickDef(6, 6, "gray", baseplatePoints);
 
     const availablePegs = new Set(baseplatePoints);
-
-    // Remove middle 2x2 pegs if requested
-    if (config.excludeMiddle) {
-        for (const point of availablePegs) {
-            if (point.y === 0 && point.x >= 2 && point.x <= 3 && point.z >= 2 && point.z <= 3) {
-                availablePegs.delete(point);
-            }
-        }
-    }
     const availableBricks = getAvailableBricks(config.nrBricks, seed);
 
     const placedBricks = [];
@@ -305,13 +281,13 @@ function generateSingleMap(config, seed = null) {
         const brick = availableBricks[i];
         const bricksRemaining = availableBricks.length - i - 1;
 
-        const spots = findPlaceableSpots(brick, placedBricks, availablePegs, config);
+        const { spots, metadata } = findPlaceableSpots(brick, placedBricks, availablePegs, config);
         if (spots.length === 0) {
             throw new Error("No spots available");
         }
 
         // Always use optimal spot selection (respects min height requirements)
-        const spot = selectOptimalSpot(spots, config, placedBricks, bricksRemaining, random);
+        const spot = selectOptimalSpot(spots, metadata, config, placedBricks, bricksRemaining, random);
 
         placedBricks.push(new BrickDef(brick.width, brick.depth, brick.color, spot));
 
