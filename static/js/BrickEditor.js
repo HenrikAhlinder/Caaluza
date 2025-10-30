@@ -38,15 +38,17 @@ export class BrickEditor {
         // Create the placed bricks display overlay
         this.bricksDisplay = document.createElement('div');
         this.bricksDisplay.className = 'bricks-display ui-hidden';
-        this.bricksDisplay.innerHTML = '<div class="bricks-display-header">Placed Bricks <button id="close-bricks-display" class="bricks-display-close">×</button></div><div id="bricks-list"></div>';
+        this.bricksDisplay.innerHTML = '<div class="bricks-display-header">Bricks <button id="close-bricks-display" class="bricks-display-close">×</button></div><div id="bricks-list"></div>';
         document.body.appendChild(this.bricksDisplay);
 
         // Button to show placed bricks - add to bottom bar
         const showBricksBtn = document.getElementById('show-bricks-btn');
         showBricksBtn.addEventListener('click', () => {
             this.updateBricksDisplay();
+            this.bricksDisplay.classList.remove('ui-hidden');
         });
         this.bricksDisplay.querySelector('#close-bricks-display').addEventListener('click', () => {
+            this.bricksDisplay.classList.add('ui-hidden');
         });
     }
 
