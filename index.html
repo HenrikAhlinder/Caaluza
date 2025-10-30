@@ -4,156 +4,149 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Caaluza - LEGO Builder</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.min.js"></script>
+
+    <!-- Edit CSS for compass, bricks display, etc. -->
     <link rel="stylesheet" href="static/css/edit.css">
+
     <style>
-        /* Generator modal styles */
-        .generator-modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
+        /* Dark theme colors */
+        :root {
+            --bg-dark: #1a1a1a;
+            --bg-darker: #2a2a2a;
+            --bg-darkest: #333;
+            --text-light: #ccc;
+            --primary-green: #4CAF50;
+            --primary-green-hover: #45a049;
+            --primary-blue: #2196F3;
+            --error-red: #ff6b6b;
+            --border-gray: #555;
         }
 
-        .generator-modal.show {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .generator-content {
-            background-color: #2a2a2a;
-            padding: 30px;
-            border-radius: 8px;
-            max-width: 500px;
-            width: 90%;
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-dark);
             color: white;
+            overflow: hidden;
         }
 
-        .generator-content h2 {
-            margin-top: 0;
-            color: #4CAF50;
+        /* Navbar styling */
+        .navbar {
+            background-color: var(--bg-darker) !important;
+            border-bottom: 1px solid var(--border-gray);
         }
 
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            color: #ccc;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #555;
-            border-radius: 4px;
-            background-color: #333;
-            color: white;
-            font-size: 14px;
-            box-sizing: border-box;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: #4CAF50;
-        }
-
-        .form-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 25px;
-        }
-
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
+        .navbar-brand {
+            color: var(--primary-green) !important;
             font-weight: bold;
         }
 
-        .btn-primary {
-            background-color: #4CAF50;
-            color: white;
+        /* Canvas container */
+        #canvas-container {
+            height: calc(100vh - 56px - 60px); /* viewport - navbar - bottom bar */
+            position: relative;
+            overflow: hidden;
         }
 
-        .btn-primary:hover {
-            background-color: #45a049;
+        #three-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
         }
 
-        .btn-secondary {
-            background-color: #666;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background-color: #555;
-        }
-
-        .seed-display {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #2a2a2a;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 4px;
-            display: none;
-            align-items: center;
-            gap: 10px;
-            z-index: 100;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-        }
-
-        .seed-display.show {
-            display: flex;
-        }
-
-        .seed-value {
-            font-family: monospace;
-            background-color: #333;
-            padding: 5px 10px;
-            border-radius: 3px;
-            user-select: all;
-        }
-
-        .seed-display button {
-            padding: 5px 10px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-
-        .seed-display button:hover {
-            background-color: #45a049;
-        }
-
-        /* Map visibility toggle */
         #three-canvas.hidden {
             display: none;
         }
 
+        /* Bottom controls bar */
+        .bottom-bar {
+            background-color: var(--bg-darker);
+            border-top: 1px solid var(--border-gray);
+            height: 60px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        /* Button styling */
+        .btn-primary-custom {
+            background-color: var(--primary-green);
+            border-color: var(--primary-green);
+            color: white;
+        }
+
+        .btn-primary-custom:hover {
+            background-color: var(--primary-green-hover);
+            border-color: var(--primary-green-hover);
+        }
+
+        .btn-secondary-custom {
+            background-color: #666;
+            border-color: #666;
+            color: white;
+        }
+
+        .btn-secondary-custom:hover {
+            background-color: #555;
+            border-color: #555;
+        }
+
+        .btn-blue {
+            background-color: var(--primary-blue);
+            border-color: var(--primary-blue);
+            color: white;
+        }
+
+        .btn-blue:hover {
+            background-color: #1976D2;
+            border-color: #1976D2;
+        }
+
+        /* Zoom buttons */
+        .zoom-btn {
+            width: 45px;
+            height: 45px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        /* Seed display */
+        .seed-chip {
+            background-color: var(--bg-darker);
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: 1px solid var(--border-gray);
+        }
+
+        .seed-value {
+            font-family: monospace;
+            background-color: var(--bg-darkest);
+            padding: 3px 8px;
+            border-radius: 3px;
+            user-select: all;
+            font-size: 0.9rem;
+        }
+
+        /* Map overlay */
         .map-overlay {
             position: fixed;
-            top: 0;
+            top: 56px;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #1a1a1a;
-            z-index: 1;
+            right: 0;
+            bottom: 60px;
+            background-color: var(--bg-dark);
+            z-index: 100;
             display: none;
             align-items: center;
             justify-content: center;
@@ -164,29 +157,55 @@
             display: flex;
         }
 
-        .map-overlay button {
-            padding: 15px 30px;
-            background-color: #4CAF50;
+        /* Modal styling */
+        .modal-content {
+            background-color: var(--bg-darker);
             color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
+            border: 1px solid var(--border-gray);
         }
 
-        .map-overlay button:hover {
-            background-color: #45a049;
+        .modal-header {
+            border-bottom-color: var(--border-gray);
         }
 
-        .map-overlay .message {
-            color: #ccc;
-            margin-bottom: 20px;
-            font-size: 18px;
+        .modal-footer {
+            border-top-color: var(--border-gray);
+        }
+
+        .modal-title {
+            color: var(--primary-green);
+        }
+
+        .form-label {
+            color: var(--text-light);
+        }
+
+        .form-control {
+            background-color: var(--bg-darkest);
+            border-color: var(--border-gray);
+            color: white;
+        }
+
+        .form-control:focus {
+            background-color: var(--bg-darkest);
+            border-color: var(--primary-green);
+            color: white;
+            box-shadow: 0 0 0 0.25rem rgba(76, 175, 80, 0.25);
+        }
+
+        .form-check-input {
+            background-color: var(--bg-darkest);
+            border-color: var(--border-gray);
+        }
+
+        .form-check-input:checked {
+            background-color: var(--primary-green);
+            border-color: var(--primary-green);
         }
 
         .error-message {
-            color: #ff6b6b;
+            color: var(--error-red);
+            font-size: 0.875rem;
             margin-top: 10px;
             display: none;
         }
@@ -195,214 +214,237 @@
             display: block;
         }
 
-        /* View buttons and dropdown styles */
-        .view-dropdown {
-            display: none;
-            position: relative;
-        }
-
-        .view-dropdown-toggle {
-            padding: 5px 10px;
-            background-color: #4CAF50;
+        /* Offcanvas styling */
+        .offcanvas {
+            background-color: var(--bg-darker);
             color: white;
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
-            font-size: 12px;
-            white-space: nowrap;
         }
 
-        .view-dropdown-toggle:hover {
-            background-color: #45a049;
+        .offcanvas-header {
+            border-bottom: 1px solid var(--border-gray);
         }
 
-        .view-dropdown-menu {
-            display: none;
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background-color: #2a2a2a;
-            border: 1px solid #444;
-            border-radius: 4px;
-            margin-top: 5px;
-            min-width: 120px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-            z-index: 1000;
+        .offcanvas-title {
+            color: var(--primary-green);
         }
 
-        .view-dropdown-menu.show {
-            display: flex;
-            flex-direction: column;
+        .btn-close {
+            filter: invert(1);
         }
 
-        .view-dropdown-menu button {
-            padding: 8px 12px;
-            background-color: transparent;
-            color: white;
-            border: none;
-            text-align: left;
-            cursor: pointer;
-            font-size: 12px;
-            transition: background-color 0.2s;
-        }
-
-        .view-dropdown-menu button:hover {
-            background-color: #3a3a3a;
-        }
-
-        .view-dropdown-menu button:first-child {
-            border-radius: 4px 4px 0 0;
-        }
-
-        .view-dropdown-menu button:last-child {
-            border-radius: 0 0 4px 4px;
-        }
-
-        /* Desktop: show individual buttons, hide dropdown */
-        @media screen and (min-width: 769px) {
-            .view-dropdown {
-                display: none !important;
-            }
-        }
-
-        /* Mobile: hide individual buttons, show dropdown */
-        @media screen and (max-width: 768px) {
-            .view-share-button {
-                display: none !important;
-            }
-
-            .view-dropdown {
-                display: block;
-            }
-
-            .seed-display {
-                flex-wrap: wrap;
-                max-width: 90%;
-                padding: 8px 15px;
-            }
-
-            .seed-display button {
-                font-size: 11px;
-                padding: 4px 8px;
+        /* Responsive adjustments */
+        @media (max-width: 575.98px) {
+            .seed-chip {
+                font-size: 0.8rem;
+                padding: 6px 10px;
             }
 
             .seed-value {
-                font-size: 11px;
-                padding: 4px 8px;
+                font-size: 0.75rem;
+                padding: 2px 6px;
+            }
+
+            #canvas-container {
+                height: calc(100vh - 56px - 70px);
+            }
+
+            .bottom-bar {
+                height: 70px;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .navbar-brand {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Position compass inside canvas container */
+        #canvas-container {
+            position: relative; /* Make it a positioning context for absolute children */
+        }
+
+        .compass-overlay {
+            position: absolute !important; /* Relative to canvas container, not viewport */
+            left: 24px;
+            bottom: 24px;
+            z-index: 100; /* Above canvas, below modals */
+        }
+
+        .bricks-display {
+            z-index: 1070 !important; /* Above everything when open */
+        }
+
+        /* Show bricks button positioning in bottom bar */
+        #show-bricks-btn {
+            /* Override edit.css positioning */
+            position: absolute !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            left: auto !important;
+            z-index: auto !important;
+        }
+
+        /* Mobile: adjust show bricks button position */
+        @media (max-width: 575.98px) {
+            #show-bricks-btn {
+                right: 70px !important; /* Adjust for mobile zoom button size */
+                font-size: 0.8rem;
+                padding: 0.25rem 0.5rem;
             }
         }
     </style>
 </head>
 <body>
-    <canvas id="three-canvas"></canvas>
+    <!-- Top Navbar -->
+    <nav class="navbar navbar-expand-md navbar-dark">
+        <div class="container-fluid">
+            <!-- Brand -->
+            <a class="navbar-brand" href="#">Caaluza</a>
 
-    <!-- Map Overlay (to hide map initially) -->
-    <div id="map-overlay" class="map-overlay">
-        <div class="message">Map generated! Click below to view it.</div>
-        <button onclick="showMap()">Show Map</button>
+            <!-- Mobile hamburger (for view controls) -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#viewOffcanvas" aria-controls="viewOffcanvas">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Desktop: Seed display in center -->
+            <div class="d-none d-md-flex justify-content-center flex-grow-1" id="seed-display-desktop">
+                <!-- Seed chip will be inserted here dynamically -->
+            </div>
+
+            <!-- Action buttons -->
+            <div class="d-flex gap-2">
+                <button id="generate-btn" class="btn btn-blue btn-sm">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="d-none d-md-inline">
+                        <path d="M12,2A2,2 0 0,1 14,4C14,4.74 13.6,5.39 13,5.73V7H14A7,7 0 0,1 21,14H22A1,1 0 0,1 23,15V18A1,1 0 0,1 22,19H21V20A2,2 0 0,1 19,22H5A2,2 0 0,1 3,20V19H2A1,1 0 0,1 1,18V15A1,1 0 0,1 2,14H3A7,7 0 0,1 10,7H11V5.73C10.4,5.39 10,4.74 10,4A2,2 0 0,1 12,2M7.5,13A2.5,2.5 0 0,0 5,15.5A2.5,2.5 0 0,0 7.5,18A2.5,2.5 0 0,0 10,15.5A2.5,2.5 0 0,0 7.5,13M16.5,13A2.5,2.5 0 0,0 14,15.5A2.5,2.5 0 0,0 16.5,18A2.5,2.5 0 0,0 19,15.5A2.5,2.5 0 0,0 16.5,13Z"/>
+                    </svg>
+                    <span class="d-none d-md-inline ms-1">Generate</span>
+                    <span class="d-md-none">Gen</span>
+                </button>
+                <button id="load-seed-btn" class="btn btn-blue btn-sm">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="d-none d-md-inline">
+                        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                    </svg>
+                    <span class="d-none d-md-inline ms-1">Load Seed</span>
+                    <span class="d-md-none">Load</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile: Seed display (shown when active) -->
+    <div class="d-md-none p-2 text-center" id="seed-display-mobile" style="background-color: var(--bg-darker); border-bottom: 1px solid var(--border-gray); display: none;">
+        <!-- Seed chip will be inserted here dynamically -->
     </div>
 
-    <!-- Seed Display -->
-    <div id="seed-display" class="seed-display">
-        <span>Seed:</span>
-        <span class="seed-value" id="seed-value"></span>
-        <button onclick="copySeedToClipboard()">Copy Seed</button>
-        <button onclick="sharePlayURL('Top')" class="view-share-button">Top</button>
-        <button onclick="sharePlayURL('North')" class="view-share-button">North</button>
-        <button onclick="sharePlayURL('South')" class="view-share-button">South</button>
-        <button onclick="sharePlayURL('East')" class="view-share-button">East</button>
-        <button onclick="sharePlayURL('West')" class="view-share-button">West</button>
-        <div class="view-dropdown">
-            <button class="view-dropdown-toggle" onclick="toggleViewDropdown()">Share View ▼</button>
-            <div id="view-dropdown-menu" class="view-dropdown-menu">
-                <button onclick="sharePlayURL('Top'); toggleViewDropdown()">Top</button>
-                <button onclick="sharePlayURL('North'); toggleViewDropdown()">North</button>
-                <button onclick="sharePlayURL('South'); toggleViewDropdown()">South</button>
-                <button onclick="sharePlayURL('East'); toggleViewDropdown()">East</button>
-                <button onclick="sharePlayURL('West'); toggleViewDropdown()">West</button>
+    <!-- Canvas Container -->
+    <div id="canvas-container">
+        <canvas id="three-canvas"></canvas>
+
+        <!-- Map Overlay (for generated maps) -->
+        <div id="map-overlay" class="map-overlay">
+            <h4 class="mb-3">Map generated!</h4>
+            <button onclick="showMap()" class="btn btn-primary-custom btn-lg">Show Map</button>
+        </div>
+    </div>
+
+    <!-- Bottom Controls Bar -->
+    <div class="bottom-bar d-flex align-items-center justify-content-center">
+        <div class="btn-group" role="group" aria-label="Zoom controls">
+            <button id="zoom-in-btn" class="btn btn-primary-custom zoom-btn" title="Zoom In">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                </svg>
+            </button>
+            <button id="zoom-out-btn" class="btn btn-primary-custom zoom-btn" title="Zoom Out">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 13H5v-2h14v2z"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Offcanvas for View Controls (Mobile) -->
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="viewOffcanvas" aria-labelledby="viewOffcanvasLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="viewOffcanvasLabel">Camera Views</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <div class="d-grid gap-2" id="view-controls-container">
+                <!-- View buttons will be added here dynamically -->
             </div>
         </div>
     </div>
 
-
-    <!-- Zoom Controls -->
-    <div class="zoom-controls">
-        <button id="zoom-in-btn" class="zoom-button" title="Zoom In">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-            </svg>
-        </button>
-        <button id="zoom-out-btn" class="zoom-button" title="Zoom Out">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19 13H5v-2h14v2z"/>
-            </svg>
-        </button>
-    </div>
-
-
-    <!-- Action Buttons -->
-    <button id="generate-btn" class="gen-button">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12,2A2,2 0 0,1 14,4C14,4.74 13.6,5.39 13,5.73V7H14A7,7 0 0,1 21,14H22A1,1 0 0,1 23,15V18A1,1 0 0,1 22,19H21V20A2,2 0 0,1 19,22H5A2,2 0 0,1 3,20V19H2A1,1 0 0,1 1,18V15A1,1 0 0,1 2,14H3A7,7 0 0,1 10,7H11V5.73C10.4,5.39 10,4.74 10,4A2,2 0 0,1 12,2M7.5,13A2.5,2.5 0 0,0 5,15.5A2.5,2.5 0 0,0 7.5,18A2.5,2.5 0 0,0 10,15.5A2.5,2.5 0 0,0 7.5,13M16.5,13A2.5,2.5 0 0,0 14,15.5A2.5,2.5 0 0,0 16.5,18A2.5,2.5 0 0,0 19,15.5A2.5,2.5 0 0,0 16.5,13Z"/>
-        </svg>
-        Generate
-    </button>
-    <button id="load-seed-btn" class="gen-button">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
-        </svg>
-        Load From Seed
-    </button>
-
     <!-- Load Seed Modal -->
-    <div id="load-seed-modal" class="generator-modal">
-        <div class="generator-content">
-            <h2>Load Map from Seed</h2>
-            <form id="load-seed-form">
-                <div class="form-group">
-                    <label for="seed-input">Seed:</label>
-                    <input type="text" id="seed-input" name="seed" placeholder="e.g. 10-5-null-false-123456" required>
+    <div class="modal fade" id="load-seed-modal" tabindex="-1" aria-labelledby="loadSeedModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="loadSeedModalLabel">Load Map from Seed</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="error-message" id="seed-error-message"></div>
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeLoadSeedModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Load</button>
-                </div>
-            </form>
+                <form id="load-seed-form">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="seed-input" class="form-label">Seed:</label>
+                            <input type="text" class="form-control" id="seed-input" name="seed" placeholder="e.g. 10-5-null-false-123456" required>
+                        </div>
+                        <div class="error-message" id="seed-error-message"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary-custom" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary-custom">Load</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
     <!-- Generator Modal -->
-    <div id="generator-modal" class="generator-modal">
-        <div class="generator-content">
-            <h2>Generate Map</h2>
-            <form id="generator-form">
-                <div class="form-group">
-                    <label for="nr-bricks">Number of Bricks (1-28):</label>
-                    <input type="number" id="nr-bricks" name="nrBricks" min="1" max="100" value="10" required>
+    <div class="modal fade" id="generator-modal" tabindex="-1" aria-labelledby="generatorModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="generatorModalLabel">Generate Map</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="form-group">
-                    <label for="max-height">Max Height (optional):</label>
-                    <input type="number" id="max-height" name="maxHeight" min="1" max="20" placeholder="Leave empty for no limit">
-                </div>
-                <div class="form-group">
-                    <label for="min-height">Min Height (optional):</label>
-                    <input type="number" id="min-height" name="minHeight" min="1" max="20" placeholder="Leave empty for no limit">
-                </div>
-                <div class="form-group">
-                    <label style="display: flex; align-items: center; cursor: pointer;">
-                        <input type="checkbox" id="exclude-middle" name="excludeMiddle" style="width: auto; margin-right: 10px;">
-                        Exclude middle 2x2 pegs from bottom plate
-                    </label>
-                </div>
-                <div class="error-message" id="error-message"></div>
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeGeneratorModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Generate</button>
-                </div>
-            </form>
+                <form id="generator-form">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="nr-bricks" class="form-label">Number of Bricks (1-100):</label>
+                            <input type="number" class="form-control" id="nr-bricks" name="nrBricks" min="1" max="100" value="10" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="max-height" class="form-label">Max Height (optional):</label>
+                            <input type="number" class="form-control" id="max-height" name="maxHeight" min="1" max="20" placeholder="Leave empty for no limit">
+                        </div>
+                        <div class="mb-3">
+                            <label for="min-height" class="form-label">Min Height (optional):</label>
+                            <input type="number" class="form-control" id="min-height" name="minHeight" min="1" max="20" placeholder="Leave empty for no limit">
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="exclude-middle" name="excludeMiddle">
+                                <label class="form-check-label" for="exclude-middle">
+                                    Exclude middle 2x2 pegs from bottom plate
+                                </label>
+                            </div>
+                        </div>
+                        <div class="error-message" id="error-message"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary-custom" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary-custom">Generate</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
         // Configuration data - expose as globals for BrickEditor
@@ -443,45 +485,81 @@
         var selectedView = window.selectedView;
         var existingMap = window.existingMap;
 
-        // Generator modal functions - expose as globals
+        // Bootstrap modal instances
+        let generatorModal, loadSeedModal;
+
+        // Modal functions - Updated for Bootstrap
         window.openGeneratorModal = function() {
-            document.getElementById('generator-modal').classList.add('show');
+            generatorModal.show();
         }
 
         window.closeGeneratorModal = function() {
-            document.getElementById('generator-modal').classList.remove('show');
+            generatorModal.hide();
             document.getElementById('error-message').classList.remove('show');
         }
 
+        window.openLoadSeedModal = function() {
+            loadSeedModal.show();
+            setTimeout(() => document.getElementById('seed-input').focus(), 200);
+        }
+
+        window.closeLoadSeedModal = function() {
+            loadSeedModal.hide();
+            document.getElementById('seed-error-message').classList.remove('show');
+            document.getElementById('seed-input').value = '';
+        }
+
+        // Seed display functions - Updated for responsive design
         window.showSeedDisplay = function(seed) {
-            document.getElementById('seed-value').textContent = seed;
-            document.getElementById('seed-display').classList.add('show');
+            const seedChipHTML = `
+                <div class="seed-chip d-inline-flex align-items-center gap-2 flex-wrap">
+                    <span class="small">Seed:</span>
+                    <span class="seed-value">${seed}</span>
+                    <button onclick="copySeedToClipboard()" class="btn btn-primary-custom btn-sm py-0 px-2">Copy</button>
+                    <div class="dropdown d-inline">
+                        <button class="btn btn-primary-custom btn-sm py-0 px-2 dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            Share
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-dark">
+                            <li><a class="dropdown-item" href="#" onclick="sharePlayURL('Top'); return false;">Top View</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="sharePlayURL('North'); return false;">North View</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="sharePlayURL('South'); return false;">South View</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="sharePlayURL('East'); return false;">East View</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="sharePlayURL('West'); return false;">West View</a></li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+
+            // Show in desktop location
+            const desktopContainer = document.getElementById('seed-display-desktop');
+            desktopContainer.innerHTML = seedChipHTML;
+
+            // Show in mobile location
+            const mobileContainer = document.getElementById('seed-display-mobile');
+            mobileContainer.innerHTML = seedChipHTML;
+            mobileContainer.style.display = 'block';
         }
 
         window.hideSeedDisplay = function() {
-            document.getElementById('seed-display').classList.remove('show');
+            document.getElementById('seed-display-desktop').innerHTML = '';
+            const mobileContainer = document.getElementById('seed-display-mobile');
+            mobileContainer.innerHTML = '';
+            mobileContainer.style.display = 'none';
         }
 
         window.copySeedToClipboard = function() {
-            const seed = document.getElementById('seed-value').textContent;
-            navigator.clipboard.writeText(seed).then(() => {
+            const seedValue = document.querySelector('.seed-value').textContent;
+            navigator.clipboard.writeText(seedValue).then(() => {
+                // Use Bootstrap toast or alert
                 alert('Seed copied to clipboard!');
             });
         }
 
-        window.shareURL = function() {
-            const seed = document.getElementById('seed-value').textContent;
-            const url = new URL(window.location.origin + window.location.pathname);
-            url.searchParams.set('seed', seed);
-            navigator.clipboard.writeText(url.toString()).then(() => {
-                alert('Edit URL copied to clipboard!');
-            });
-        }
-
         window.sharePlayURL = function(viewName = 'Top') {
-            const seed = document.getElementById('seed-value').textContent;
+            const seedValue = document.querySelector('.seed-value').textContent;
             const url = new URL(window.location.origin + window.location.pathname);
-            url.searchParams.set('seed', seed);
+            url.searchParams.set('seed', seedValue);
             url.searchParams.set('mode', 'play');
             url.searchParams.set('view', viewName);
             navigator.clipboard.writeText(url.toString()).then(() => {
@@ -491,76 +569,56 @@
 
         // Map visibility controls
         window.showMap = function() {
-            // Hide the overlay to reveal the canvas
             document.getElementById('map-overlay').classList.remove('show');
         }
 
         window.hideMap = function() {
-            // Show the overlay to hide the canvas
             document.getElementById('map-overlay').classList.add('show');
         }
 
-        // Load Seed modal functions
-        window.openLoadSeedModal = function() {
-            document.getElementById('load-seed-modal').classList.add('show');
-            document.getElementById('seed-input').focus();
-        }
+        // Populate view controls in hamburger menu
+        function populateViewControls() {
+            const container = document.getElementById('view-controls-container');
+            if (!container || !window.views) return;
 
-        window.closeLoadSeedModal = function() {
-            document.getElementById('load-seed-modal').classList.remove('show');
-            document.getElementById('seed-error-message').classList.remove('show');
-            document.getElementById('seed-input').value = '';
+            window.views.forEach(view => {
+                const button = document.createElement('button');
+                button.className = 'btn btn-primary-custom';
+                button.textContent = view.name;
+                button.onclick = () => {
+                    // This will be called by BrickEditor's camera system
+                    if (window.brickEditor && window.brickEditor.cameraSystem) {
+                        window.brickEditor.cameraSystem.setActiveCamera(
+                            window.brickEditor.cameraSystem.playerCameras[view.name]
+                        );
+                    }
+                    // Close offcanvas on mobile
+                    const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('viewOffcanvas'));
+                    if (offcanvas) offcanvas.hide();
+                };
+                container.appendChild(button);
+            });
         }
-
-        window.toggleViewDropdown = function() {
-            const menu = document.getElementById('view-dropdown-menu');
-            menu.classList.toggle('show');
-        }
-
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function(event) {
-            const dropdown = document.querySelector('.view-dropdown');
-            const menu = document.getElementById('view-dropdown-menu');
-            if (dropdown && menu && !dropdown.contains(event.target)) {
-                menu.classList.remove('show');
-            }
-        });
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Bootstrap modals
+            generatorModal = new bootstrap.Modal(document.getElementById('generator-modal'));
+            loadSeedModal = new bootstrap.Modal(document.getElementById('load-seed-modal'));
+
             // Generate button
-            const generateBtn = document.getElementById('generate-btn');
-            if (generateBtn) {
-                generateBtn.addEventListener('click', openGeneratorModal);
-            }
+            document.getElementById('generate-btn').addEventListener('click', openGeneratorModal);
 
             // Load Seed button
-            const loadSeedBtn = document.getElementById('load-seed-btn');
-            if (loadSeedBtn) {
-                loadSeedBtn.addEventListener('click', openLoadSeedModal);
-            }
+            document.getElementById('load-seed-btn').addEventListener('click', openLoadSeedModal);
 
-            // Close modals when clicking outside
-            const generatorModal = document.getElementById('generator-modal');
-            if (generatorModal) {
-                generatorModal.addEventListener('click', function(e) {
-                    if (e.target === this) {
-                        closeGeneratorModal();
-                    }
-                });
-            }
+            // Populate view controls
+            populateViewControls();
 
-            const loadSeedModal = document.getElementById('load-seed-modal');
-            if (loadSeedModal) {
-                loadSeedModal.addEventListener('click', function(e) {
-                    if (e.target === this) {
-                        closeLoadSeedModal();
-                    }
-                });
-            }
-
+            // Form submit handlers stay the same - they're handled in app.js
         });
     </script>
+
     <!-- Load app.js for client-only version (replaces edit.js) -->
     <script type="module" src="static/js/app.js"></script>
 </body>

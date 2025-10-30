@@ -508,7 +508,8 @@ body {
 
 /* Compass overlay styles */
 .compass-overlay {
-    position: fixed;
+    /* Position is overridden in index.html to be absolute within canvas container */
+    position: fixed; /* Default for templates/edit.html */
     left: 24px;
     bottom: 24px;
     width: 90px;

@@ -105,6 +105,9 @@ function initializeEditor(mapData = null) {
     }
 
     brickEditor = new BrickEditor(window.mode || 'edit');
+
+    // Expose globally for view controls
+    window.brickEditor = brickEditor;
 }
 
 function loadMapFromSeed(seed, hideMapInitially = false) {

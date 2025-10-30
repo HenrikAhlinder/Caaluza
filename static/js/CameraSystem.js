@@ -139,6 +139,25 @@ export class CameraSystem {
         return this.activeCamera;
     }
 
+    updateAspectRatio(aspectRatio) {
+        // Update orthographic camera frustum based on new aspect ratio
+        if (this.mainCamera instanceof THREE.OrthographicCamera) {
+            this.mainCamera.left = -EditorConfig.ORTHO_SIZE * aspectRatio;
+            this.mainCamera.right = EditorConfig.ORTHO_SIZE * aspectRatio;
+            this.mainCamera.top = EditorConfig.ORTHO_SIZE;
+            this.mainCamera.bottom = -EditorConfig.ORTHO_SIZE;
+            this.mainCamera.updateProjectionMatrix();
+        }
+
+        // Update player cameras if they're perspective cameras
+        Object.values(this.playerCameras).forEach(camera => {
+            if (camera instanceof THREE.PerspectiveCamera) {
+                camera.aspect = aspectRatio;
+                camera.updateProjectionMatrix();
+            }
+        });
+    }
+
     isTopView() {
         // Check if current camera is the Top view (or close to it)
         if (this.activeCamera === this.playerCameras['Top']) {

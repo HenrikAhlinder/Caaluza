@@ -21,7 +21,13 @@ function addCompassOverlay() {
     `;
     // Compass styling handled by CSS
     // Compass direction styling handled by CSS
-    document.body.appendChild(compass);
+    // Append to canvas container instead of body
+    const canvasContainer = document.getElementById('canvas-container');
+    if (canvasContainer) {
+        canvasContainer.appendChild(compass);
+    } else {
+        document.body.appendChild(compass);
+    }
 }
 
 /**
@@ -35,12 +41,18 @@ export class BrickEditor {
         this.bricksDisplay.innerHTML = '<div class="bricks-display-header">Placed Bricks <button id="close-bricks-display" class="bricks-display-close">×</button></div><div id="bricks-list"></div>';
         document.body.appendChild(this.bricksDisplay);
 
-        // Button to show placed bricks
-        this.showBricksBtn = document.createElement('button');
-        this.showBricksBtn.id = 'show-bricks-btn';
-        this.showBricksBtn.textContent = 'Show Placed Bricks';
-        this.showBricksBtn.className = 'show-bricks-button ui-hidden';
-        document.body.appendChild(this.showBricksBtn);
+        // Button to show placed bricks - add to bottom bar
+        const bottomBar = document.querySelector('.bottom-bar');
+        if (bottomBar) {
+            this.showBricksBtn = document.createElement('button');
+            this.showBricksBtn.id = 'show-bricks-btn';
+            this.showBricksBtn.textContent = 'Show Bricks';
+            this.showBricksBtn.className = 'btn btn-primary-custom btn-sm ui-hidden';
+            this.showBricksBtn.style.position = 'absolute';
+            this.showBricksBtn.style.right = '100px'; // Place to the left of zoom controls
+
+            bottomBar.appendChild(this.showBricksBtn);
+        }
 
         // Show/hide logic
         this.showBricksBtn.addEventListener('click', () => {
@@ -152,9 +164,26 @@ export class BrickEditor {
     }
 
     setupRenderer() {
-        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        // Get the canvas container to size the renderer appropriately
+        const canvas = document.getElementById('three-canvas');
+        const container = canvas.parentElement;
+
+        // Use container dimensions instead of full window
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+
+        this.renderer.setSize(width, height);
         this.renderer.setPixelRatio(window.devicePixelRatio);
-        document.body.appendChild(this.renderer.domElement);
+
+        // Canvas already exists in DOM, no need to append
+        // Add resize observer to handle container size changes
+        const resizeObserver = new ResizeObserver(() => {
+            const newWidth = container.clientWidth;
+            const newHeight = container.clientHeight;
+            this.renderer.setSize(newWidth, newHeight);
+            this.cameraSystem.updateAspectRatio(newWidth / newHeight);
+        });
+        resizeObserver.observe(container);
     }
 
     setupEventListeners() {
@@ -333,24 +362,68 @@ export class BrickEditor {
     }
 
     updateUIBasedOnMode() {
-        const zoomControls = document.querySelector('.zoom-controls');
-        const generateBtn = document.getElementById('generate-btn');
-        const loadFromSeedBtn = document.getElementById('load-seed-btn');
+        const navbar = document.querySelector('.navbar');
+        const bottomBar = document.querySelector('.bottom-bar');
+        const seedDisplayMobile = document.getElementById('seed-display-mobile');
+        const canvasContainer = document.getElementById('canvas-container');
 
         if (this.mode === 'play') {
+            // Add play mode class to body for CSS styling
+            document.body.classList.add('play-mode');
+
+            // Show bricks button in play mode
             if (this.showBricksBtn) this.showBricksBtn.classList.remove('ui-hidden');
             if (this.bricksDisplay) this.bricksDisplay.classList.add('ui-hidden');
-            // Hide controls in play mode
-            if (zoomControls) zoomControls.classList.add('ui-hidden');
-            if (generateBtn) generateBtn.classList.add('ui-hidden');
-            if (loadFromSeedBtn) loadFromSeedBtn.classList.add('ui-hidden');
+
+            // Hide navbar and bottom bar for immersive play experience
+            if (navbar) navbar.style.display = 'none';
+            if (bottomBar) bottomBar.style.display = 'none';
+            if (seedDisplayMobile) seedDisplayMobile.style.display = 'none';
+
+            // Make canvas full-screen
+            if (canvasContainer) {
+                canvasContainer.style.height = '100vh';
+            }
+
+            // Trigger resize to update canvas dimensions
+            setTimeout(() => {
+                const canvas = document.getElementById('three-canvas');
+                if (canvas && canvas.parentElement) {
+                    const container = canvas.parentElement;
+                    const width = container.clientWidth;
+                    const height = container.clientHeight;
+                    this.renderer.setSize(width, height);
+                    this.cameraSystem.updateAspectRatio(width / height);
+                }
+            }, 100);
         } else {
+            // Remove play mode class from body
+            document.body.classList.remove('play-mode');
+
+            // Hide bricks display in edit mode
             if (this.showBricksBtn) this.showBricksBtn.classList.add('ui-hidden');
             if (this.bricksDisplay) this.bricksDisplay.classList.add('ui-hidden');
-            // Show controls in edit mode
-            if (zoomControls) zoomControls.classList.remove('ui-hidden');
-            if (generateBtn) generateBtn.classList.remove('ui-hidden');
-            if (loadFromSeedBtn) loadFromSeedBtn.classList.remove('ui-hidden');
+
+            // Show navbar and bottom bar in edit mode
+            if (navbar) navbar.style.display = '';
+            if (bottomBar) bottomBar.style.display = '';
+
+            // Restore canvas container height
+            if (canvasContainer) {
+                canvasContainer.style.height = '';
+            }
+
+            // Trigger resize to update canvas dimensions
+            setTimeout(() => {
+                const canvas = document.getElementById('three-canvas');
+                if (canvas && canvas.parentElement) {
+                    const container = canvas.parentElement;
+                    const width = container.clientWidth;
+                    const height = container.clientHeight;
+                    this.renderer.setSize(width, height);
+                    this.cameraSystem.updateAspectRatio(width / height);
+                }
+            }, 100);
         }
     }
 
