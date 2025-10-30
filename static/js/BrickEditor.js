@@ -42,29 +42,11 @@ export class BrickEditor {
         document.body.appendChild(this.bricksDisplay);
 
         // Button to show placed bricks - add to bottom bar
-        const bottomBar = document.querySelector('.bottom-bar');
-        if (bottomBar) {
-            this.showBricksBtn = document.createElement('button');
-            this.showBricksBtn.id = 'show-bricks-btn';
-            this.showBricksBtn.textContent = 'Show Bricks';
-            this.showBricksBtn.className = 'btn btn-primary-custom btn-sm ui-hidden';
-            this.showBricksBtn.style.position = 'absolute';
-            this.showBricksBtn.style.right = '100px'; // Place to the left of zoom controls
-
-            bottomBar.appendChild(this.showBricksBtn);
-        }
-
-        // Show/hide logic
-        this.showBricksBtn.addEventListener('click', () => {
+        const showBricksBtn = document.getElementById('show-bricks-btn');
+        showBricksBtn.addEventListener('click', () => {
             this.updateBricksDisplay();
-            this.bricksDisplay.classList.remove('ui-hidden');
-            this.bricksDisplay.classList.add('ui-visible');
-            this.showBricksBtn.classList.add('hidden');
         });
         this.bricksDisplay.querySelector('#close-bricks-display').addEventListener('click', () => {
-            this.bricksDisplay.classList.remove('ui-visible');
-            this.bricksDisplay.classList.add('ui-hidden');
-            this.showBricksBtn.classList.remove('hidden');
         });
     }
 
@@ -364,21 +346,17 @@ export class BrickEditor {
     updateUIBasedOnMode() {
         const navbar = document.querySelector('.navbar');
         const bottomBar = document.querySelector('.bottom-bar');
-        const seedDisplayMobile = document.getElementById('seed-display-mobile');
+        const seedDisplayContainer = document.getElementById('seed-display-container');
         const canvasContainer = document.getElementById('canvas-container');
 
         if (this.mode === 'play') {
             // Add play mode class to body for CSS styling
             document.body.classList.add('play-mode');
 
-            // Show bricks button in play mode
-            if (this.showBricksBtn) this.showBricksBtn.classList.remove('ui-hidden');
-            if (this.bricksDisplay) this.bricksDisplay.classList.add('ui-hidden');
-
             // Hide navbar and bottom bar for immersive play experience
             if (navbar) navbar.style.display = 'none';
             if (bottomBar) bottomBar.style.display = 'none';
-            if (seedDisplayMobile) seedDisplayMobile.style.display = 'none';
+            if (seedDisplayContainer) seedDisplayContainer.style.display = 'none';
 
             // Make canvas full-screen
             if (canvasContainer) {
@@ -399,10 +377,6 @@ export class BrickEditor {
         } else {
             // Remove play mode class from body
             document.body.classList.remove('play-mode');
-
-            // Hide bricks display in edit mode
-            if (this.showBricksBtn) this.showBricksBtn.classList.add('ui-hidden');
-            if (this.bricksDisplay) this.bricksDisplay.classList.add('ui-hidden');
 
             // Show navbar and bottom bar in edit mode
             if (navbar) navbar.style.display = '';
