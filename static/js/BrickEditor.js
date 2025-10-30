@@ -346,26 +346,18 @@ export class BrickEditor {
     }
 
     updateUIBasedOnMode() {
-        const navbar = document.querySelector('.navbar');
         const bottomBar = document.querySelector('.bottom-bar');
         const seedDisplayContainer = document.getElementById('seed-display-container');
-        const canvasContainer = document.getElementById('canvas-container');
 
         if (this.mode === 'play') {
             // Add play mode class to body for CSS styling
             document.body.classList.add('play-mode');
 
-            // Hide navbar and bottom bar for immersive play experience
-            if (navbar) navbar.style.display = 'none';
+            // Hide bottom bar for immersive play experience
             if (bottomBar) bottomBar.style.display = 'none';
             if (seedDisplayContainer) seedDisplayContainer.style.display = 'none';
 
-            // Make canvas full-screen
-            if (canvasContainer) {
-                canvasContainer.style.height = '100vh';
-            }
-
-            // Trigger resize to update canvas dimensions
+            // Trigger resize to update canvas dimensions (flexbox handles height automatically)
             setTimeout(() => {
                 const canvas = document.getElementById('three-canvas');
                 if (canvas && canvas.parentElement) {
@@ -380,16 +372,10 @@ export class BrickEditor {
             // Remove play mode class from body
             document.body.classList.remove('play-mode');
 
-            // Show navbar and bottom bar in edit mode
-            if (navbar) navbar.style.display = '';
+            // Show bottom bar in edit mode
             if (bottomBar) bottomBar.style.display = '';
 
-            // Restore canvas container height
-            if (canvasContainer) {
-                canvasContainer.style.height = '';
-            }
-
-            // Trigger resize to update canvas dimensions
+            // Trigger resize to update canvas dimensions (flexbox handles height automatically)
             setTimeout(() => {
                 const canvas = document.getElementById('three-canvas');
                 if (canvas && canvas.parentElement) {

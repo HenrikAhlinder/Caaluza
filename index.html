@@ -36,22 +36,9 @@
             overflow: hidden;
         }
 
-        /* Navbar styling */
-        .navbar {
-            background-color: var(--bg-darker) !important;
-            border-bottom: 1px solid var(--border-gray);
-        }
-
-        .navbar-brand {
-            color: var(--primary-green) !important;
-            font-weight: bold;
-        }
-
         /* Canvas container */
         #canvas-container {
-            height: calc(100vh - 56px - 60px); /* viewport - navbar - bottom bar */
             position: relative;
-            overflow: visible; /* Allow compass to be fully visible */
         }
 
         #three-canvas {
@@ -71,12 +58,9 @@
         .bottom-bar {
             background-color: var(--bg-darker);
             border-top: 1px solid var(--border-gray);
-            height: 60px;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
+            padding: 0.75rem 0;
             z-index: 1000;
+            position: relative;
         }
 
         /* Button styling */
@@ -267,14 +251,6 @@
                 padding: 2px 6px;
             }
 
-            #canvas-container {
-                height: calc(100vh - 56px - 70px);
-            }
-
-            .bottom-bar {
-                height: 70px;
-            }
-
             /* Modal adjustments for small screens */
             .modal-dialog {
                 max-width: 95vw;
@@ -309,17 +285,8 @@
             }
         }
 
-        @media (min-width: 768px) {
-            .navbar-brand {
-                font-size: 1.5rem;
-            }
-        }
 
-        /* Position compass inside canvas container */
-        #canvas-container {
-            position: relative; /* Make it a positioning context for absolute children */
-        }
-
+        /* Compass overlay positioning */
         .compass-overlay {
             position: absolute !important; /* Relative to canvas container, not viewport */
             left: 10px;
@@ -419,7 +386,7 @@
         }
     </style>
 </head>
-<body>
+<body class="d-flex flex-column vh-100">
     <!-- Seed display and view controls (shown when active) -->
     <div class="p-2 text-center" id="seed-display-container" style="background-color: var(--bg-darker); border-bottom: 1px solid var(--border-gray); display: none;">
         <div id="seed-display-content">
@@ -431,7 +398,7 @@
     </div>
 
     <!-- Canvas Container -->
-    <div id="canvas-container">
+    <div id="canvas-container" class="flex-grow-1 overflow-hidden">
         <canvas id="three-canvas"></canvas>
 
         <!-- Map Overlay (for generated maps) -->
