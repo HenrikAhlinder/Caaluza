@@ -63,6 +63,23 @@ export class CameraSystem {
         if (this.selectedView !== null) {
             this.setActiveCamera(this.playerCameras[selectedView]);
         }
+
+        // Sync spherical coordinates with the actual active camera position
+        this.syncSphericalCoordinates();
+    }
+
+    syncSphericalCoordinates() {
+        // Calculate spherical coordinates from current active camera position
+        const relativePos = this.activeCamera.position.clone().sub(this.gridCenter);
+
+        this.radius = relativePos.length();
+        this.phi = Math.acos(Math.max(-1, Math.min(1, relativePos.y / this.radius)));
+        this.theta = Math.atan2(relativePos.z, relativePos.x);
+
+        // Handle singularity at top view
+        if (Math.abs(this.phi) < 0.02) {
+            this.theta = Math.PI / 2; // Default theta for top view
+        }
     }
 
     createMainCamera() {
@@ -130,7 +147,8 @@ export class CameraSystem {
 
     setActiveCamera(camera) {
         this.activeCamera = camera;
-        // Reset total rotation when switching cameras
+        // Sync spherical coordinates with the new camera position
+        this.syncSphericalCoordinates();
         // Update compass rotation when switching cameras
         updateCompassRotation(getCompassDirectionVector(camera.position, this.gridCenter));
     }
@@ -179,23 +197,13 @@ export class CameraSystem {
             return;
         }
 
+        // Switch from player camera to main camera
         this.mainCamera.position.copy(this.activeCamera.position);
         this.mainCamera.rotation.copy(this.activeCamera.rotation);
-
-        // Calculate spherical coordinates from current camera position
-        const relativePos = this.mainCamera.position.clone().sub(this.gridCenter);
-
-        this.radius = relativePos.length();
-        this.phi = Math.acos(relativePos.y / this.radius);
-        this.theta = Math.atan2(relativePos.z, relativePos.x);
-
-        // The top view is a singularity, avoid it.
-        this.phi = Math.max(Math.acos(relativePos.y / this.radius), 0.01); // Avoid phi=0
-        if (Math.abs(this.phi) < 0.02) {
-            this.theta = Math.PI / 2; // Default theta for top view
-        }
-
         this.activeCamera = this.mainCamera;
+
+        // Sync spherical coordinates with the current position
+        this.syncSphericalCoordinates();
     }
 
     stopCameraMovement() {
