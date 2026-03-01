@@ -140,9 +140,13 @@ export function updateURLWithViewAndMode(view, mode) {
     const url = new URL(window.location);
     if (view) {
         url.searchParams.set('view', view);
+    } else {
+        url.searchParams.delete('view');
     }
     if (mode) {
         url.searchParams.set('mode', mode);
+    } else {
+        url.searchParams.delete('mode');
     }
     window.history.pushState({}, '', url);
 }

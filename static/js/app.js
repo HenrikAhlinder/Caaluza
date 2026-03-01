@@ -9,11 +9,20 @@ import {
     getViewFromURL,
     getModeFromURL,
     updateURLWithSeed,
+    updateURLWithViewAndMode,
     createShareableURL
 } from './SeedSystem.js';
 
 let brickEditor = null;
 let currentSeed = null;
+
+// Expose immediately so inline scripts can call these before window.caaluza is assigned
+window.caaluza = {
+    decodeFromSeed,
+    updateURLWithSeed,
+    updateURLWithViewAndMode,
+    loadMapFromSeed: (...args) => loadMapFromSeed(...args),
+};
 
 // Initialize the application
 function init() {
@@ -36,8 +45,8 @@ function init() {
     }
 
     if (seedFromURL && isValidSeed(seedFromURL)) {
-        // Load map from seed
-        loadMapFromSeed(seedFromURL);
+        // Load map from seed — hide map initially when in play mode (e.g. opened via QR code)
+        loadMapFromSeed(seedFromURL, mode === 'play');
     } else {
         // Initialize empty editor
         initializeEditor();
@@ -125,6 +134,9 @@ function loadMapFromSeed(seed, hideMapInitially = false) {
         // Generate map with the seed
         const brickDefs = generateMap(config, params.randomSeed);
         const mapData = brickDefsToMapData(brickDefs);
+
+        // Always use play mode when loading from a seed
+        window.mode = 'play';
 
         // Initialize editor with the map
         initializeEditor(mapData);
@@ -214,11 +226,3 @@ if (document.readyState === 'loading') {
     init();
 }
 
-// Export for debugging
-window.caaluza = {
-    brickEditor,
-    generateMap,
-    encodeToSeed,
-    decodeFromSeed,
-    loadMapFromSeed
-};
