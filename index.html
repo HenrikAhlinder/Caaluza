@@ -309,7 +309,7 @@
             align-items: center !important;
             justify-content: center !important;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5) !important;
-            transition: transform 0.1s ease-out !important;
+            transition: none !important;
         }
 
         /* Compass direction labels */
@@ -389,11 +389,12 @@
     <!-- Canvas Container -->
     <div id="canvas-container" class="flex-grow-1 overflow-hidden">
         <canvas id="three-canvas"></canvas>
+        <button id="check-solution-btn" onclick="checkSolution()" style="display:none; position:absolute; bottom:16px; right:16px; z-index:100;" class="btn btn-primary-custom btn-sm">Check solution</button>
 
         <!-- Map Overlay (for generated maps) -->
-        <div id="map-overlay" class="map-overlay">
-            <h4 class="mb-3">Map generated!</h4>
-            <button onclick="showMap()" class="btn btn-primary-custom btn-lg">Show Map</button>
+        <div id="map-overlay" class="map-overlay" style="text-align:center;">
+            <h4 class="mb-3">Choose your view</h4>
+            <div id="map-overlay-view-buttons" class="d-flex flex-column gap-2 align-items-center"></div>
         </div>
     </div>
 
@@ -433,6 +434,7 @@
                 <span class="d-none d-sm-inline ms-1">Generate</span>
                 <span class="d-sm-none">Gen</span>
             </button>
+            <button id="next-seed-btn" onclick="nextSeed()" class="btn btn-blue btn-sm" style="display:none;">Next</button>
             <button id="load-seed-btn" class="btn btn-blue btn-sm">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="d-none d-sm-inline">
                     <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
@@ -512,6 +514,9 @@
     <!-- Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
+    <!-- QR Code library -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
     <script>
         // Configuration data - expose as globals for BrickEditor
         window.colors = [
@@ -582,16 +587,16 @@
                     <span class="small">Seed:</span>
                     <span class="seed-value">${seed}</span>
                     <button onclick="copySeedToClipboard()" class="btn btn-primary-custom btn-sm py-0 px-2">Copy</button>
+                    <button onclick="showQRCode()" class="btn btn-secondary-custom btn-sm py-0 px-2">QR</button>
                 </div>
             `;
 
-            // Show seed display container
             const container = document.getElementById('seed-display-container');
             const contentDiv = document.getElementById('seed-display-content');
             contentDiv.innerHTML = seedChipHTML;
             container.style.display = 'block';
+            document.getElementById('next-seed-btn').style.display = '';
 
-            // Populate view buttons if not already done
             populateViewButtons();
         }
 
@@ -599,6 +604,23 @@
             const container = document.getElementById('seed-display-container');
             container.style.display = 'none';
             document.getElementById('seed-display-content').innerHTML = '';
+            document.getElementById('next-seed-btn').style.display = 'none';
+        }
+
+        window.nextSeed = function() {
+            const seedValue = document.querySelector('.seed-value')?.textContent;
+            if (!seedValue) return;
+            const params = window.caaluza.decodeFromSeed(seedValue);
+            const nextRandomSeed = (params.randomSeed + 1) % 1000000;
+            const nextSeedStr = [
+                params.nrBricks,
+                params.maxHeight ?? 'null',
+                params.minHeight ?? 'null',
+                params.excludeMiddle,
+                nextRandomSeed
+            ].join('-');
+            window.caaluza.updateURLWithSeed(nextSeedStr);
+            window.caaluza.loadMapFromSeed(nextSeedStr, true);
         }
 
         window.copySeedToClipboard = function() {
@@ -620,31 +642,103 @@
             });
         }
 
-        // Map visibility controls
-        window.showMap = function() {
-            document.getElementById('map-overlay').classList.remove('show');
+        let qrModal;
+
+        window.showQRCode = function() {
+            const seedValue = document.querySelector('.seed-value').textContent;
+            const url = new URL(window.location.origin + window.location.pathname);
+            url.searchParams.set('seed', seedValue);
+            url.searchParams.set('mode', 'play');
+
+            document.getElementById('qr-view-label').textContent = 'Scan to open map';
+
+            const container = document.getElementById('qr-code-container');
+            container.innerHTML = '';
+            new QRCode(container, {
+                text: url.toString(),
+                width: 200,
+                height: 200,
+                colorDark: '#000000',
+                colorLight: '#ffffff',
+            });
+
+            const testLink = document.getElementById('qr-test-link');
+            testLink.href = url.toString();
+
+            qrModal.show();
         }
 
+        // State machine: 'picking' | 'viewing' | 'free'
+        // picking: map hidden, user must choose a view
+        // viewing: fixed camera, rotation locked, check solution visible
+        // free:    free camera rotation, check solution hidden, view buttons switch back to viewing
+
+        function setState(state, viewName = null) {
+            const overlay = document.getElementById('map-overlay');
+            const checkBtn = document.getElementById('check-solution-btn');
+
+            if (state === 'picking') {
+                window.brickEditor.setMode('play');
+                const container = document.getElementById('map-overlay-view-buttons');
+                container.innerHTML = '';
+                (window.views || []).forEach(view => {
+                    const btn = document.createElement('button');
+                    btn.className = 'btn btn-primary-custom btn-lg';
+                    btn.style.minWidth = '140px';
+                    btn.textContent = view.name;
+                    btn.onclick = () => setState('viewing', view.name);
+                    container.appendChild(btn);
+                });
+                overlay.classList.add('show');
+                checkBtn.style.display = 'none';
+                window.caaluza.updateURLWithViewAndMode(null, 'play');
+
+            } else if (state === 'viewing') {
+                window.brickEditor.setMode('play');
+                if (viewName && window.brickEditor.cameraSystem) {
+                    const cam = window.brickEditor.cameraSystem.playerCameras[viewName];
+                    if (cam) window.brickEditor.cameraSystem.setActiveCamera(cam);
+                }
+                window.selectedView = viewName;
+                overlay.classList.remove('show');
+                checkBtn.style.display = 'block';
+                window.caaluza.updateURLWithViewAndMode(viewName, 'play');
+
+            } else if (state === 'free') {
+                window.brickEditor.cameraSystem.setActiveCamera(window.brickEditor.cameraSystem.mainCamera);
+                window.brickEditor.setMode('free');
+                overlay.classList.remove('show');
+                checkBtn.style.display = 'none';
+                window.caaluza.updateURLWithViewAndMode(null, 'free');
+            }
+        }
+
+        window.checkSolution = function() {
+            if (window.brickEditor) setState('free');
+        }
+
+        // Called by app.js after generating/loading a map that should start hidden.
+        // If a view is already in the URL (e.g. page reload), jump straight to viewing.
         window.hideMap = function() {
-            document.getElementById('map-overlay').classList.add('show');
+            if (!window.brickEditor) return;
+            const view = window.selectedView;
+            if (view) {
+                setState('viewing', view);
+            } else {
+                setState('picking');
+            }
         }
 
-        // Populate view buttons below seed display
+        // Populate view buttons in the top seed bar
         function populateViewButtons() {
             const container = document.getElementById('view-controls-row');
             if (!container || !window.views) return;
-
-            // Clear existing buttons
             container.innerHTML = '';
-
             window.views.forEach(view => {
                 const button = document.createElement('button');
                 button.className = 'btn btn-primary-custom btn-sm';
                 button.textContent = view.name;
-                button.onclick = () => {
-                    // Copy play mode URL for this view to clipboard
-                    sharePlayURL(view.name);
-                };
+                button.onclick = () => setState('viewing', view.name);
                 container.appendChild(button);
             });
         }
@@ -668,6 +762,7 @@
             // Initialize Bootstrap modals
             generatorModal = new bootstrap.Modal(document.getElementById('generator-modal'));
             loadSeedModal = new bootstrap.Modal(document.getElementById('load-seed-modal'));
+            qrModal = new bootstrap.Modal(document.getElementById('qr-modal'));
 
             // Generate button
             document.getElementById('generate-btn').addEventListener('click', openGeneratorModal);
@@ -678,6 +773,25 @@
             // Form submit handlers stay the same - they're handled in app.js
         });
     </script>
+
+    <!-- QR Code Modal -->
+    <div class="modal fade" id="qr-modal" tabindex="-1" aria-labelledby="qrModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="qrModalLabel">QR Code</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <p id="qr-view-label" class="small mb-3" style="color: var(--text-light);"></p>
+                    <div id="qr-code-container" class="d-inline-block p-3" style="background: white; border-radius: 8px;"></div>
+                    <div class="mt-3">
+                        <a id="qr-test-link" href="#" target="_blank" class="small" style="color: var(--primary-green);">Open link</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Load app.js for client-only version (replaces edit.js) -->
     <script type="module" src="static/js/app.js"></script>

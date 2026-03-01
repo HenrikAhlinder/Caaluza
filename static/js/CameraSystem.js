@@ -1,45 +1,28 @@
 import { EditorConfig } from './EditorConfig.js';
 
-function updateCompassRotation(direction) {
+// Single source of truth for compass orientation.
+// For normal views: use camera forward projected to XZ (which direction is the camera looking horizontally).
+// For top/bottom views (forward ≈ straight down): forward has no XZ component, so fall back to
+// the camera's up vector which encodes the horizontal rotation applied by the user.
+function syncCompass(camera) {
     const compass = document.querySelector('.compass-overlay');
-    if (compass) {
-        // Calculate the angle between the direction vector and "up" (screen +Y, which is { x: 0, z: -1 })
-        const angle = Math.atan2(direction.x, -direction.z); // atan2(z, x) because north is (1, 0)
+    if (!compass) return;
 
-        // Rotate the compass in the opposite direction to simulate fixed-world north
-        compass.style.setProperty('transform', `rotate(${-angle}rad)`);
-    }
-}
+    const forward = new THREE.Vector3(0, 0, -1);
+    forward.applyQuaternion(camera.quaternion);
 
-function getCompassDirectionVector(camera, targetPos) {
-    // For top-down views, use the camera's forward direction in the XZ plane
-    // This works when the camera rotates in place
-    const forward = new THREE.Vector3(0, 0, -1); // Camera's default forward direction
-    forward.applyQuaternion(camera.quaternion); // Apply camera's rotation
-
-    // Project to XZ plane and normalize
-    const length = Math.sqrt(forward.x * forward.x + forward.z * forward.z);
-
-    if (length === 0) {
-        // Fallback: use position-based direction
-        const dx = targetPos.x - camera.position.x;
-        const dz = targetPos.z - camera.position.z;
-        const fallbackLength = Math.sqrt(dx*dx + dz*dz);
-
-        if (fallbackLength === 0) {
-            return { x: 0, z: -1 }; // Default north
-        }
-
-        return {
-            x: dx / fallbackLength,
-            z: dz / fallbackLength
-        };
+    let angle;
+    if (Math.abs(forward.y) > 0.9) {
+        // Top/bottom view: up vector carries the horizontal orientation
+        const up = new THREE.Vector3(0, 1, 0);
+        up.applyQuaternion(camera.quaternion);
+        angle = Math.atan2(up.x, -up.z);
+    } else {
+        // Side/orbit view: horizontal forward direction determines compass
+        angle = Math.atan2(forward.x, -forward.z);
     }
 
-    return {
-        x: forward.x / length,
-        z: forward.z / length
-    };
+    compass.style.setProperty('transform', `rotate(${-angle}rad)`);
 }
 
 /**
@@ -64,7 +47,6 @@ export class CameraSystem {
         // Clamp Phi to avoid rotation over top of the world
         this.minPhi = 0.1;         // minimum vertical angle (near top)
         this.maxPhi = Math.PI - 0.1; // maximum vertical angle (horizon)
-        this.totalRotationY = 0;
         this.selectedView = selectedView;
 
         this.init();
@@ -116,7 +98,7 @@ export class CameraSystem {
              this.gridCenter.z + z
          );
         this.mainCamera.lookAt(this.gridCenter);
-        updateCompassRotation(getCompassDirectionVector(this.mainCamera, this.gridCenter));
+        syncCompass(this.mainCamera);
     }
 
     createPlayerCameras() {
@@ -132,6 +114,9 @@ export class CameraSystem {
                 1000
             );
             camera.position.set(view.position.x, view.position.y, view.position.z);
+            // Top camera needs explicit up direction to avoid lookAt singularity (forward ≈ up).
+            // {0,0,-1} means North (−Z) appears at the top of the screen.
+            if (view.name === 'Top') camera.up.set(0, 0, -1);
             camera.lookAt(this.gridCenter);
 
             this.playerCameras[view.name] = camera;
@@ -162,10 +147,8 @@ export class CameraSystem {
 
     setActiveCamera(camera) {
         this.activeCamera = camera;
-        // Sync spherical coordinates with the new camera position
         this.syncSphericalCoordinates();
-        // Update compass rotation when switching cameras
-        updateCompassRotation(getCompassDirectionVector(camera, this.gridCenter));
+        syncCompass(camera);
     }
 
     getActiveCamera() {
@@ -250,9 +233,8 @@ export class CameraSystem {
              this.gridCenter.z + z
          );
 
-        // Update compass rotation
-        updateCompassRotation(getCompassDirectionVector(this.activeCamera, this.gridCenter));
         this.activeCamera.lookAt(this.gridCenter);
+        syncCompass(this.activeCamera);
 
         this.lastMouseX = mouseX;
         this.lastMouseY = mouseY;
@@ -265,20 +247,15 @@ export class CameraSystem {
 
         // For top view rotation, rotate the camera in place (change orientation, not position)
         if (Math.abs(this.phi) < 0.3) {
-            // Top view: rotate the camera's up vector around the vertical axis
             const angle = deltaX * EditorConfig.CAMERA_ROTATION_SPEED;
 
-            // Rotate camera around its own vertical axis (yaw rotation)
-            // Keep position the same, but change where it's looking
-            const rotationAxis = new THREE.Vector3(0, 1, 0); // Y axis (vertical)
+            const rotationAxis = new THREE.Vector3(0, 1, 0);
             const quaternion = new THREE.Quaternion();
             quaternion.setFromAxisAngle(rotationAxis, angle);
-
-            // Apply rotation to camera's current orientation
             this.activeCamera.quaternion.multiplyQuaternions(quaternion, this.activeCamera.quaternion);
-
-            // Update the camera's up vector to maintain orientation
             this.activeCamera.up.applyQuaternion(quaternion);
+
+            syncCompass(this.activeCamera);
         } else {
             // Other views: use spherical coordinates (orbit around center)
             this.theta -= deltaX * EditorConfig.CAMERA_ROTATION_SPEED;
@@ -298,9 +275,6 @@ export class CameraSystem {
             // Always look at center
             this.activeCamera.lookAt(this.gridCenter);
         }
-
-        // Update compass rotation
-        updateCompassRotation(getCompassDirectionVector(this.activeCamera, this.gridCenter));
 
         this.lastMouseX = mouseX;
         this.lastMouseY = mouseY;

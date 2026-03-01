@@ -176,8 +176,7 @@ export class BrickEditor {
             this.interactionSystem.updateMouse(event.clientX, event.clientY);
 
             // Camera movement logic:
-            if (this.mode === 'edit') {
-                // Edit mode: always allow full camera movement
+            if (this.mode === 'edit' || this.mode === 'free') {
                 this.cameraSystem.updateCameraMovement(event.clientX, event.clientY);
             } else if (this.mode === 'play' && this.cameraSystem.isTopView()) {
                 // Play mode + top view: only rotate around vertical axis
@@ -195,11 +194,13 @@ export class BrickEditor {
 
         // Mouse button events
         window.addEventListener('mousedown', (event) => {
-            if (event.button === 1) { // Middle mouse button - both modes
+            if (event.button === 1 && (this.mode === 'edit' || this.mode === 'free' || this.cameraSystem.isTopView())) { // Middle mouse button
                 this.cameraSystem.startCameraMovement(event.clientX, event.clientY);
             } else if (event.button === 0) { // Left click
-                if (this.mode === 'play' && this.cameraSystem.isTopView()) {
-                    // In play mode top view, left click starts camera rotation
+                if (this.mode === 'free') {
+                    this.cameraSystem.startCameraMovement(event.clientX, event.clientY);
+                } else if (this.mode === 'play' && this.cameraSystem.isTopView()) {
+                    // Play mode + top view: left click starts camera rotation
                     this.cameraSystem.startCameraMovement(event.clientX, event.clientY);
                 } else if (this.mode === 'edit' && !this.brickManager.isDragging()) {
                     // In edit mode, left click handles brick selection
@@ -212,11 +213,13 @@ export class BrickEditor {
         });
 
         window.addEventListener('mouseup', (event) => {
-            if (event.button === 1) { // Middle mouse button - both modes
+            if (event.button === 1 && (this.mode === 'edit' || this.mode === 'free' || this.cameraSystem.isTopView())) {
                 this.cameraSystem.stopCameraMovement();
             } else if (event.button === 0) { // Left click release
-                if (this.mode === 'play' && this.cameraSystem.isTopView()) {
-                    // In play mode top view, left click release stops camera rotation
+                if (this.mode === 'free') {
+                    this.cameraSystem.stopCameraMovement();
+                } else if (this.mode === 'play' && this.cameraSystem.isTopView()) {
+                    // Play mode + top view: left click release stops camera rotation
                     this.cameraSystem.stopCameraMovement();
                 } else if (this.mode === 'edit' && this.brickManager.isDragging()) {
                     // In edit mode, left click release stops brick dragging
@@ -237,8 +240,7 @@ export class BrickEditor {
 
         window.addEventListener('touchstart', (e) => {
             if (e.touches.length === 1) {
-                // Only allow camera movement in edit mode or play mode + top view
-                if (this.mode === 'edit' || (this.mode === 'play' && this.cameraSystem.isTopView())) {
+                if (this.mode === 'edit' || this.mode === 'free' || (this.mode === 'play' && this.cameraSystem.isTopView())) {
                     this.cameraSystem.startCameraMovement(e.touches[0].clientX, e.touches[0].clientY);
                 }
             }
@@ -250,8 +252,7 @@ export class BrickEditor {
                 e.preventDefault();
 
                 // Camera movement logic:
-                if (this.mode === 'edit') {
-                    // Edit mode: always allow full camera movement
+                if (this.mode === 'edit' || this.mode === 'free') {
                     this.cameraSystem.updateCameraMovement(e.touches[0].clientX, e.touches[0].clientY);
                 } else if (this.mode === 'play' && this.cameraSystem.isTopView()) {
                     // Play mode + top view: only rotate around vertical axis
@@ -358,7 +359,7 @@ export class BrickEditor {
     }
 
     setMode(mode) {
-        if (mode === 'edit' || mode === 'play') {
+        if (mode === 'edit' || mode === 'play' || mode === 'free') {
             this.mode = mode;
             this.updateUIBasedOnMode();
         }
@@ -370,46 +371,23 @@ export class BrickEditor {
 
     updateUIBasedOnMode() {
         const bottomBar = document.querySelector('.bottom-bar');
-        const seedDisplayContainer = document.getElementById('seed-display-container');
 
-        if (this.mode === 'play') {
-            // Add play mode class to body for CSS styling
+        if (this.mode === 'play' || this.mode === 'free') {
             document.body.classList.add('play-mode');
-
-            // Hide bottom bar for immersive play experience
             if (bottomBar) bottomBar.style.display = 'none';
-            if (seedDisplayContainer) seedDisplayContainer.style.display = 'none';
-
-            // Trigger resize to update canvas dimensions (flexbox handles height automatically)
-            setTimeout(() => {
-                const canvas = document.getElementById('three-canvas');
-                if (canvas && canvas.parentElement) {
-                    const container = canvas.parentElement;
-                    const width = container.clientWidth;
-                    const height = container.clientHeight;
-                    this.renderer.setSize(width, height);
-                    this.cameraSystem.updateAspectRatio(width / height);
-                }
-            }, 100);
         } else {
-            // Remove play mode class from body
             document.body.classList.remove('play-mode');
-
-            // Show bottom bar in edit mode
             if (bottomBar) bottomBar.style.display = '';
-
-            // Trigger resize to update canvas dimensions (flexbox handles height automatically)
-            setTimeout(() => {
-                const canvas = document.getElementById('three-canvas');
-                if (canvas && canvas.parentElement) {
-                    const container = canvas.parentElement;
-                    const width = container.clientWidth;
-                    const height = container.clientHeight;
-                    this.renderer.setSize(width, height);
-                    this.cameraSystem.updateAspectRatio(width / height);
-                }
-            }, 100);
         }
+
+        setTimeout(() => {
+            const canvas = document.getElementById('three-canvas');
+            if (canvas && canvas.parentElement) {
+                const container = canvas.parentElement;
+                this.renderer.setSize(container.clientWidth, container.clientHeight);
+                this.cameraSystem.updateAspectRatio(container.clientWidth / container.clientHeight);
+            }
+        }, 100);
     }
 
     startRenderLoop() {
