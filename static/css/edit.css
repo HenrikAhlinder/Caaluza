@@ -493,15 +493,14 @@ body {
     position: fixed;
     top: 10px;
     left: 10px;
-    width: 300px;
-    max-height: 400px;
+    width: max-content;
+    max-height: 90vh;
     overflow-y: auto;
-    background: white;
-    border: 1px solid #ccc;
+    border: 1px solid #444;
     border-radius: 5px;
     padding: 10px;
     z-index: 1500;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     background: #282525;
 }
 
