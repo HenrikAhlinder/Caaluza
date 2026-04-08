@@ -35,10 +35,12 @@ function addCompassOverlay() {
  */
 export class BrickEditor {
     setupModeDisplay() {
-        // Create the placed bricks display overlay
+        // Remove any existing bricks display from a previous editor instance
+        document.querySelectorAll('.bricks-display').forEach(el => el.remove());
+
         this.bricksDisplay = document.createElement('div');
         this.bricksDisplay.className = 'bricks-display ui-hidden';
-        this.bricksDisplay.innerHTML = '<div class="bricks-display-header">Bricks <button id="close-bricks-display" class="bricks-display-close">×</button></div><div id="bricks-list"></div>';
+        this.bricksDisplay.innerHTML = '<div class="bricks-display-header">Bricks <button class="bricks-display-close">×</button></div><div id="bricks-list"></div>';
         document.body.appendChild(this.bricksDisplay);
 
         // Button to show placed bricks - add to bottom bar
@@ -47,7 +49,7 @@ export class BrickEditor {
             this.updateBricksDisplay();
             this.bricksDisplay.classList.remove('ui-hidden');
         });
-        this.bricksDisplay.querySelector('#close-bricks-display').addEventListener('click', () => {
+        this.bricksDisplay.querySelector('.bricks-display-close').addEventListener('click', () => {
             this.bricksDisplay.classList.add('ui-hidden');
         });
     }
