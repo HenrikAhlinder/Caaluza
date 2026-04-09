@@ -35,10 +35,12 @@ function addCompassOverlay() {
  */
 export class BrickEditor {
     setupModeDisplay() {
-        // Create the placed bricks display overlay
+        // Remove any existing bricks display from a previous editor instance
+        document.querySelectorAll('.bricks-display').forEach(el => el.remove());
+
         this.bricksDisplay = document.createElement('div');
         this.bricksDisplay.className = 'bricks-display ui-hidden';
-        this.bricksDisplay.innerHTML = '<div class="bricks-display-header">Bricks <button id="close-bricks-display" class="bricks-display-close">×</button></div><div id="bricks-list"></div>';
+        this.bricksDisplay.innerHTML = '<div class="bricks-display-header">Bricks <button class="bricks-display-close">×</button></div><div id="bricks-list"></div>';
         document.body.appendChild(this.bricksDisplay);
 
         // Button to show placed bricks - add to bottom bar
@@ -47,56 +49,41 @@ export class BrickEditor {
             this.updateBricksDisplay();
             this.bricksDisplay.classList.remove('ui-hidden');
         });
-        this.bricksDisplay.querySelector('#close-bricks-display').addEventListener('click', () => {
+        this.bricksDisplay.querySelector('.bricks-display-close').addEventListener('click', () => {
             this.bricksDisplay.classList.add('ui-hidden');
         });
     }
 
     updateBricksDisplay() {
-        const bricks = this.brickManager.getBricks().filter(b => b.buttonName !== 'Baseplate');
+        const placedBricks = this.brickManager.getBricks().filter(b => b.buttonName !== 'Baseplate');
         const list = this.bricksDisplay.querySelector('#bricks-list');
-        if (!bricks.length) {
-            list.innerHTML = '<em>No bricks placed.</em>';
-            return;
-        }
 
-        const groups = bricks.reduce((acc, brick) => {
-            const hex = brick.color.toString(16).padStart(6, '0');
-            if (!acc[hex]) acc[hex] = [];
-            acc[hex].push(brick);
-            return acc;
-        }, {});
+        const placedNames = new Set(placedBricks.map(b => b.buttonName));
 
-        // Define which colors go in left column (green, blue) vs right column (yellow, red)
-        const leftColumnColors = ['00ff00', '0000ff']; // green, blue
-        const rightColumnColors = ['ffff00', 'ff0000']; // yellow, red
+        const toCSS = (hex) => '#' + hex.toString(16).padStart(6, '0');
 
-        const leftColumn = [];
-        const rightColumn = [];
+        const brickSvg = (width, depth, color, active) => {
+            const STUD = 10;
+            const svgW = width * STUD;
+            const svgH = depth * STUD;
+            const fillColor = active ? toCSS(color) : '#555';
+            return `<svg xmlns="http://www.w3.org/2000/svg" width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}" data-darkreader-inline-fill style="--darkreader-inline-fill:none">
+                <rect width="${svgW}" height="${svgH}" style="fill:${fillColor} !important"/>
+            </svg>`;
+        };
 
-        Object.keys(groups).forEach(hex => {
-            const bricksHtml = groups[hex].map(brick => {
-                return `<div class="brick-item">
-                            <span class="brick-item-name">${brick.buttonName}</span>
-                        </div>`;
-            }).join('');
-            const colorGroup = `<div>${bricksHtml}</div><hr class="bricks-separator">`;
-
-            if (leftColumnColors.includes(hex)) {
-                leftColumn.push(colorGroup);
-            } else if (rightColumnColors.includes(hex)) {
-                rightColumn.push(colorGroup);
-            } else {
-                // Default: put unknown colors in right column
-                rightColumn.push(colorGroup);
-            }
+        const rows = (window.colors || []).map(color => {
+            const tiles = (window.sizes || []).map(size => {
+                const name = `${size.name} ${color.name}`;
+                const active = placedNames.has(name);
+                return `<div class="brick-tile ${active ? '' : 'brick-tile-inactive'}" title="${name}">
+                    ${brickSvg(size.width, size.depth, color.hex, active)}
+                </div>`;
+            });
+            return `<div class="brick-tile-row">${tiles.join('')}</div>`;
         });
 
-        // Render two columns
-        list.innerHTML = `
-            <div class="brick-column">${leftColumn.join('')}</div>
-            <div class="brick-column">${rightColumn.join('')}</div>
-        `;
+        list.innerHTML = rows.join('');
     }
 
     constructor(mode = 'edit') {

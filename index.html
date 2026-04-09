@@ -371,8 +371,26 @@
         }
 
         .bricks-display {
-            z-index: 1070 !important; /* Above everything when open */
+            z-index: 1070 !important;
+            width: max-content !important;
+            max-height: 90vh !important;
+            height: auto !important;
         }
+
+        .brick-tile-row {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 4px;
+            padding: 2px 0;
+            align-items: flex-end;
+        }
+
+        .brick-tile {
+            display: inline-flex;
+            user-select: none;
+            line-height: 0;
+        }
+
     </style>
 </head>
 <body class="d-flex flex-column">
